@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lab Instructions</title>
+  <meta name="description" content="Interstella instructions" />
+
+</head>
+
+<body>
+<textarea theme="spacelab" style="display:none;">
+
+# Learn Docker on AWS: An Interstella 8888 Challenge
+
+### Lab 3
+
+In the past, Interstella has operated by fulfilling all four requests as a bundle and there were no other options. However, times are changing and so will Interstella. Starting today, Interstella will take individual requests for fulfillment. It's your job to figure out how to make that happen.
+
+In this lab, you will start to break apart Interstella's monolith. To help with this, the first thing we'll do is explain how the monolith works in more detail. When a request first comes in, all four resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled back to the customer. Logically, you can think of this as five separate services. One per resource and one for fulfillment. The goal for this lab is to move from the monolith to microservice architecture.
+
+When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible. Hence, Interstella has chosen to move forward with the "Strangler Application" pattern which has Interstella has seen success with in the past. Instead of breaking every single service apart, we will be taking some parts of the monolith out and making those into microservices while creating some new integrations into the monolith to use legacy code. This introduces less risk to the overall migration but allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it strangled. 
+
+In the following diagram we show what the system looks like now and what it should look like when you're done.
+
+1\. First thing's first. We're using microservices now, so we must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
+
+* Customer sends JSON to microservice - {"resource": 1}.
+* Microservice gathers and sends JSON to the monolith via a new integration hook - {"resourcegathered": 1}
+* The fulfillment service maps the JSON to the original API contract between the monolith and customer - {'spice': #, 'vespene': #, 'dilithium': #, 'tiberium': #}. This integration hook is in monolith.py and is named glueFulfill()
+
+
+2\. Let's start by removing the spice production from the monolith. At this point, you should already be SSH'ed into one of the instances. If not, SSH into the same instance you were in earlier.
+
+3\. Since you already figured out how to containerize the monolith, you had your lackey figure out how to do it for gathering the resources. All you have to do is run the following commands:
+
+<pre>
+$ mkdir code/melange
+$ cd code/melange
+$ curl -O http://www.interstella.trade/code/melange/Dockerfile
+$ curl -O http://www.interstella.trade/code/melange/requirements.txt
+$ curl -O http://www.interstella.trade/code/melange/melange.py
+</pre>
+
+4\. These steps will be very similar to lab 1. First, let's build the new spice melange production microservice.
+
+<pre>
+$ docker build -t melange .
+</pre>
+
+5\. Follow Lab 1 step 6 but make sure you use the melange repository.
+
+<pre>
+$ docker tag melange:latest ECR_REPOSITORY_URI:latest
+$ docker push ECR_REPOSITORY_URI:latest
+</pre>
+
+![Getting Melange Repo](3-1ecr.png)
+
+In this example, the commands would be:
+
+<pre>
+$ docker tag melange:latest 123456789012.dkr.ecr.us-west-2.amazonaws.com/interstella-melange:latest
+$ docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/interstella-melange:latest
+</pre>
+
+6\. Create a new **Log Group** for our melange service. In the AWS Management Console navigate to the CloudWatch dashboard and click on **Logs** in the left menu. In the **Actions** drop down, select **Create log group**
+![Create Log Group](3-create-log-group.png)
+
+Enter a name for the group, e.g. interstella-melange:
+![Name Log Group](3-name-log-group.png)
+
+*Tip: You can create all four log groups now. interstella-vespene, interstella-dilithium, interstella-tiberium*
+
+7\. In order for your new microservices to hook back into the monolith, we need to find the IP and port mappings of the monolith. Navigate back to the EC2 Container Service Dashboard. Click on **Clusters** and then on the cluster that you created. 
+![Go to cluster](3-view-clusters.png)
+
+Then click on the **Tasks** tab and the specific task for the monolith service. 
+![View Task](3-view-task.png)
+
+Click on the triangle next to your container to expand the box and take note of the **External Link**
+![Expand Container](3-expand-container.png)
+
+8\. Create a new **Task Definition** for our melange service. In the AWS Management Console, navigate to the EC2 Container Service dashboard.  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.  
+
+9\. Enter a name for your Task Definition, e.g. interstella-melange.  Port mapping should be 8001 -> 8001
+
+Under Advanced container configuration, create an environment variable named monolithUrl. For the value, enter the **External Link** of your monolith service you copied in step 7.
+
+10\. Run the task.
+
+11\. The same way you found the monolith **External Link** (Step 7), find the one for the new microservice. Copy it.
+
+11\. Now that you have the spice service running, let's subscribe it. Go to http://www.interstella.trade/getkey.html and subscribe your microservice external link. 
+
+12\. Let's check that the microservice is actually doing something. Go to the **CloudWatch Dashboard**, hit **Logs** and filter for **melange**.
+
+13\. Now that we have the microservice running, it's time to remove the functionality from the monolith. Open up monolith.py and remove the line that says spiceResult = spice()
+![Remove spice()](3-remove-spice.png)
+
+14\. Build and push the monolith again. Note the tag "nomelange". It's best practice not to use :latest when deploying Docker. This makes the specific deployment unique.
+<pre>
+$ docker build -t monolith:nomelange .
+$ docker tag monolith:nomelange 123456789012.dkr.ecr.us-west-2.amazonaws.com/interstella-monolith:nomelange
+$ docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/interstella-monolith:nomelange
+</pre>
+
+15\. Create a new revision of the monolith task definition. Navigate to the EC2 Container Service dashboard and click Task Definitions in the left menu. Select the task definition you created earlier and click Create new revision. Make sure you choose the latest version of your task definition.
+![Task Def New Revision](2-task-def-new-rev.png) 
+
+Click on the container link and modify the image tag to the new one you just pushed. Make sure you're using the **nomelange** tag and not **latest**. The logging configuration should already be set. If not, make sure it is.
+![Task Def Modify Container](3-taskdef-modify-container)
+
+16\. Deploy your new task.
+
+*Tip: The next step will reference the container image you pushed to ECR, so make sure you have the ECR repository URI for the melange container handy.*
+
+  
+</textarea>
+<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
+
+</body>
+</html>
+

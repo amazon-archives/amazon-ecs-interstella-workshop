@@ -1,0 +1,44 @@
+---
+swagger: "2.0"
+info:
+  version: "2017-09-20T05:10:17Z"
+  title: "requestprocessor"
+host: "3ijxwsddzg.execute-api.us-west-2.amazonaws.com"
+basePath: "/production"
+schemes:
+- "https"
+paths:
+  /:
+    put:
+      produces:
+      - "application/json"
+      parameters:
+      - name: "x-api-key"
+        in: "header"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+      security:
+      - api_key: []
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri: "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:652181821727:function:ProcessInterstella8888Requests/invocations"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "x-api-key"
+    in: "header"
+definitions:
+  Empty:
+    type: "object"
+    title: "Empty Schema"

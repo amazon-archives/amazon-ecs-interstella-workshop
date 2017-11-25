@@ -1,0 +1,10 @@
+.DS_Store
+*.pyc
+localonly/
+bin/
+lib/
+include/
+pip-selfcheck.json
+*.zip
+.Python
+.vscode/

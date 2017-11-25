@@ -1,0 +1,61 @@
+Parameters:
+  Tag:
+    Type: String
+
+  DesiredCount:
+    Type: Number
+    Default: 0
+
+  TargetGroup:
+    Type: String
+
+  Cluster:
+    Type: String
+
+  Repository:
+    Type: String
+
+
+Resources:
+  ECSServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument: |
+        {
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": { "Service": [ "ecs.amazonaws.com" ]},
+                "Action": [ "sts:AssumeRole" ]
+            }]
+        }
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
+              
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: spice
+      ContainerDefinitions:
+        - Name: spice
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/spice:${Tag}
+          Essential: true
+          Memory: 128
+          PortMappings:
+            - ContainerPort: 5000
+          Environment:
+            - Name: Tag
+              Value: !Ref Tag
+  
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: !Ref DesiredCount
+      TaskDefinition: !Ref SpiceTaskDefinition
+      Role: !Ref ECSServiceRole
+      LoadBalancers:
+      - TargetGroupArn:
+          Ref: SpiceTargetGroup
+        ContainerPort: 5000
+        ContainerName: spice

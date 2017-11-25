@@ -1,0 +1,103 @@
+Parameters:
+  Tag:
+    Type: String
+    Default: 3c2ecb608a7f2a9794392a151bd1dbf7fc83a3e4
+
+  DesiredCount:
+    Type: Number
+    Default: 2
+
+  TargetGroupArn:
+    Type: String
+    Default: arn:aws:elasticloadbalancing:us-east-2:521243010531:targetgroup/inter-Spice-GPD6T8CF7SOP/4dd6b949539253ac
+
+  Cluster:
+    Type: String
+    Default: interstella1207
+
+  Repository:
+    Type: String
+    Default: interstella1207-spice
+    
+  cloudWatchLogsGroup:
+    Type: String
+
+  CwlPrefix:
+    Type: String
+
+
+Resources:
+  ECSServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument: |
+        {
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": { "Service": [ "ecs.amazonaws.com" ]},
+                "Action": [ "sts:AssumeRole" ]
+            }]
+        }
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
+  
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument: |
+        {
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": { "Service": [ "ecs-tasks.amazonaws.com" ]},
+                "Action": [ "sts:AssumeRole" ]
+            }]
+        }
+      Policies: 
+        - 
+          PolicyName: "root"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - 
+                Effect: "Allow"
+                Action: "*"
+                Resource: "*"
+              
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: spice
+      ContainerDefinitions:
+        - Name: spice
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
+          Essential: true
+          Memory: 128
+          PortMappings:
+            - ContainerPort: 5000
+          Environment:
+            - Name: Tag
+              Value: !Ref Tag
+          TaskRoleArn: !Ref ECSTaskRole
+          LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group:
+                  Ref: cloudWatchLogsGroup
+                awslogs-region:
+                  Ref: AWS::Region
+                awslogs-stream-prefix: prod
+  
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: !Ref DesiredCount
+      TaskDefinition: !Ref TaskDefinition
+      Role: !Ref ECSServiceRole
+      LoadBalancers:
+      - TargetGroupArn:
+          Ref: TargetGroupArn
+        ContainerPort: 5000
+        ContainerName: spice
