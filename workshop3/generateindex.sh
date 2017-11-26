@@ -1,5 +1,5 @@
 #!/bin/bash
-
+aws s3 sync . s3://www.interstella.trade/workshop3/ --acl public-read
 #cat indexstart > index.html
 echo '<!DOCTYPE html>
 <html>
