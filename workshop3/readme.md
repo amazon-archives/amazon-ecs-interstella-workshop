@@ -144,17 +144,50 @@ RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
 Are you sure you want to continue connecting (yes/no)? 
 </pre>
 
-2\. Once logged onto the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella's S3 static site.  
-
-Note: the flag for the curl command below is a capital O, not a zero.   
+2\. Once logged onto the instance, clone the interstella github repo. 
 
 <pre>
-$ curl -O http://www.interstella.trade/workshop1/code/monolith.py
-$ curl -O http://www.interstella.trade/workshop1/code/requirements.txt
-$ curl -O http://www.interstella.trade/workshop1/code/Dockerfile.draft
+$ git clone https://github.com/aws-samples/amazon-ecs-interstella-workshop.git
 </pre>
 
-One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control.  Looking at Dockerfile.draft, it looks like it's almost done, we just need a few more lines added.
+This will include the code from other Interstella workshops, but you will just be looking at workshop3.
+
+3\. Build and push monolith
+
+First, we have to get the ECR repository that we will be pushing to. Navigate to the Amazon Elastic Container Service Dashboard in the AWS Management Console. On the left pane, click **Repositories**. You should see a few repositories that were created for you:
+
+![ECR Repos](images/0-ecr-repos.png)
+
+Click the monolith repo and then click **View Push Commands**.
+
+A popup with commands to log into, tag, and push to ECR will appear. Note down the build, tag, and push commands. In my case these are:
+
+<pre>
+$ aws ecr get-login --no-include-email --region eu-central-1
+$ docker build -t interstellafra-monolith .
+$ docker tag interstellafra-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstellafra-monolith:latest
+$ docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstellafra-monolith:latest
+</pre>
+
+Back on the EC2 instance you logged into, navigate to the workshop3/code/monolith folder and build your Docker image. The build command below corresponds directly with the one that you got just a minute ago.
+
+<pre>
+$ cd amazon-ecs-interstella-workshop/workshop3/code/monolith
+$ docker build -t interstellafra-monolith .
+</pre>
+
+Tag and push your container image to the repository.
+
+<pre>
+$ docker tag interstellafra-monolith:latest <b><i>ECR_REPOSITORY_URI</i></b>:latest
+$ docker push <b><i>ECR_REPOSITORY_URI</i></b>:latest
+</pre>
+
+When you issue the push command, Docker pushes the layers up to ECR, and if you refresh the monolith repository page, you'll see an image indicating the latest version.  
+
+*Note: that you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the EC2 instance.  This was done as a bootstrap action when launching the EC2 instances.  Review the CloudFormation template and you will see where this is done.  You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
+
+
 
 ### Lab 1 - Offload the application build from your dev machine
 
