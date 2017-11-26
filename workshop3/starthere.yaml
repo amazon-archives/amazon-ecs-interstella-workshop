@@ -37,7 +37,7 @@ Mappings:
 Parameters:
 
     EnvironmentName:
-        Description: An environment name that will be prefixed to resource names. Restriction: Lower case with minimal special characters. 
+        Description: An environment name that will be prefixed to resource names. Restriction - Lower case with minimal special characters. 
         Type: String
         MinLength: 2
         AllowedPattern: (?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*
@@ -94,14 +94,22 @@ Parameters:
         Type: String
         MinLength: 1
     
+    InterstellaFulfillmentAPIURL:
+        Description: Enter the URL where your application will be fulfilling the orders
+        Type: String
+        MinLength: 1
+        Default: https://orders.interstella.trade/receiving/
+    
     InterstellaOrdersTopicArn: 
         Description: Logistics software will subscribe to this SNS topic to receive orders
         Type: String
+        Default: arn:aws:sns:us-west-2:270206935686:orderTopic
         MinLength: 1
     
     InterstellaIridiumOrdersTopicArn: 
         Description: Logistics software will subscribe to this SNS topic to receive iridium orders
         Type: String
+        Default: arn:aws:sns:us-west-2:270206935686:iridium
         MinLength: 1
 
 Resources:
@@ -520,7 +528,7 @@ Resources:
             Name: /interstella/apiEndpoint
             Description: API endpoint for sending order fulfillment
             Type: String
-            Value: https://orders.interstella.trade/receiving/
+            Value: !Ref InterstellaFulfillmentAPIURL
 
     InterstellaOrderTopicParam:
         Type: AWS::SSM::Parameter

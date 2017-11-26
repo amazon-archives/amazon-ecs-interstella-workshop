@@ -10,7 +10,7 @@ echo '<!DOCTYPE html>
     </head>
 
     <body>
-    <textarea theme="spacelab" style="display:none;">
+    <textarea theme="cerulean" style="display:none;">
 ' > index.html
 cat readme.md >> index.html
 

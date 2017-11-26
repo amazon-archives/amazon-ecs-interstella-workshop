@@ -43,6 +43,44 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 * * * 
 
+### Workshop Setup
+
+1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.  Workshop administrators will typically indicate which region you should use.
+
+2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.  If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.  
+
+Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.      
+
+*Mac or Linux Users*:  Change the permissions of the .pem file to be less open using this command:
+
+<pre>$ chmod 400 <b><i>PRIVATE_KEY.PEM</i></b></pre>
+
+*Windows Users*: Convert the .pem file to .ppk format to use with Putty.  Here is a link to instructions for the file conversion - [Connecting to Your Linux Instance from Windows Using PuTTY](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html)
+
+3\. Generate a Fulfillment API Key for the logistics software [here](http://www.interstella.trade/getkey.html).  Create a username and password to login to the API Key Management portal; you'll need to access this page again later in the workshop, so don't forget what they are.  Click **GetKey** to generate an API Key.  Note down your username and API Key because we'll be tracking resource fulfillment rates.  The API key will be used later to authorize the logistics software send messages to the order fulfillment API endpoint (see arch diagram in Lab 1).
+
+4\. For your convenience, we provide a [CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) template to stand up core workshop infrastructure.
+
+Here is what the workshop environment looks like:
+
+![CloudFormation Starting Stack](images/starthere.png)
+
+The CloudFormation template will launch the following:
+* VPC with public subnets, routes and Internet Gateway
+* EC2 Instances with security groups (inbound tcp 22, 80, 5000) and joined to an ECS cluster 
+* ECR repositories for your container image
+* Parameter store to hold values for API Key, fulfillment API endpoint, and SNS Orders topic
+
+*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in an admin CloudFormation template, so you can run this workshop at your office, home, etc.*
+
+Click on the CloudFormation launch template link below for the region you selected in Step 1.  The link will load the CloudFormation Dashboard and start the stack creation process in the specified region.
+
+Region | Launch Template
+------------ | -------------  
+**Dublin** (eu-west-1) | [![Launch Interstella Stack into Dublin with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)  
+**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)
+
+
 ### Lab 1 - Offload the application build from your dev machine
 
 In this lab, you will start the process of automating the entire software delivery process. The first step we're going to take is to automate the Docker container builds and push the container image into the EC2 Container Registry. This will allow you to develop and not have to worry too much about build resources. We will use AWS CodeCommit and AWS CodeBuild to automate this process. 

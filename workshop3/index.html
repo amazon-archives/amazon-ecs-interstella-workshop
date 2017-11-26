@@ -7,7 +7,7 @@
     </head>
 
     <body>
-    <textarea theme="spacelab" style="display:none;">
+    <textarea theme="cerulean" style="display:none;">
 
 # Interstella 8888: CICD for Containers on AWS
 
@@ -53,6 +53,44 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 3. Delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.
 
 * * * 
+
+### Workshop Setup
+
+1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.  Workshop administrators will typically indicate which region you should use.
+
+2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.  If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.  
+
+Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.      
+
+*Mac or Linux Users*:  Change the permissions of the .pem file to be less open using this command:
+
+<pre>$ chmod 400 <b><i>PRIVATE_KEY.PEM</i></b></pre>
+
+*Windows Users*: Convert the .pem file to .ppk format to use with Putty.  Here is a link to instructions for the file conversion - [Connecting to Your Linux Instance from Windows Using PuTTY](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html)
+
+3\. Generate a Fulfillment API Key for the logistics software [here](http://www.interstella.trade/getkey.html).  Create a username and password to login to the API Key Management portal; you'll need to access this page again later in the workshop, so don't forget what they are.  Click **GetKey** to generate an API Key.  Note down your username and API Key because we'll be tracking resource fulfillment rates.  The API key will be used later to authorize the logistics software send messages to the order fulfillment API endpoint (see arch diagram in Lab 1).
+
+4\. For your convenience, we provide a [CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) template to stand up core workshop infrastructure.
+
+Here is what the workshop environment looks like:
+
+![CloudFormation Starting Stack](images/starthere.png)
+
+The CloudFormation template will launch the following:
+* VPC with public subnets, routes and Internet Gateway
+* EC2 Instances with security groups (inbound tcp 22, 80, 5000) and joined to an ECS cluster 
+* ECR repositories for your container image
+* Parameter store to hold values for API Key, fulfillment API endpoint, and SNS Orders topic
+
+*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in an admin CloudFormation template, so you can run this workshop at your office, home, etc.*
+
+Click on the CloudFormation launch template link below for the region you selected in Step 1.  The link will load the CloudFormation Dashboard and start the stack creation process in the specified region.
+
+Region | Launch Template
+------------ | -------------  
+**Dublin** (eu-west-1) | [![Launch Interstella Stack into Dublin with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)  
+**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)
+
 
 ### Lab 1 - Offload the application build from your dev machine
 
@@ -282,7 +320,7 @@ Open the existing **buildspec.yml** for the **iridium** microservice.
 
 *Add a section for parameters and pull in the right parameters from parameter store. Specifically, we'll need to get the parameters iridiumTargetGroupArn, cloudWatchLogsGroup, and ecsClusterName so we can pass those to the CloudFormation stack later.
 
-Add a line to put all the parameters into JSON format and write it to disk as build.json. The parameters in this build.json file should map 1:1 to the parameters in service.yaml
+Add a line to put all the parameters into JSON format and write it to disk as build.json. The parameters in this build.json file should map 1:1 to the parameters in service.yml
 
 Add a section for artifacts and include the build.json file and also the service.yml CloudFormation template.*
 
@@ -291,11 +329,11 @@ Add a section for artifacts and include the build.json file and also the service
     ***Click here to show detailed info on what to do in the buildspec file***
   </summary>
 
-Here are some hints and documentation:<br \>
+Here are some hints and documentation:
 
-[Buildspec reference](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) <br \>
+[Buildspec reference](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) 
 
-Add a section to your buildspec.yml file entitled "**env**". Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: <br \>
+Add a section to your buildspec.yml file entitled "**env**". Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: 
 
 <pre>
 env:
@@ -304,7 +342,7 @@ env:
     ...
 </pre>
 
-Now, look at the service.yaml file. We need to have CodeBuild output all the parameters so CloudFormation can take them in as inputs. The parameters in service.yaml are: <br \>
+Now, look at the service.yml file. We need to have CodeBuild output all the parameters so CloudFormation can take them in as inputs. The parameters in service.yml are: 
 
 <pre>
 Tag:
@@ -329,7 +367,7 @@ CwlPrefix:
   Type: String
 </pre>
 
-Now let's write a parameters file that will map my parameters to that of the CloudFormation template. <br \>
+Now let's write a parameters file that will map my parameters to that of the CloudFormation template. 
 
 <pre>
 ...
@@ -338,9 +376,9 @@ commands:
   - printf '{"Parameters":{"Tag":"%s","DesiredCount":"2","TargetGroupArn":"%s","Cluster":"%s","Repository":"%s", "cloudWatchLogsGroup":"%s","CwlPrefix":"%s"}}' $TAG $targetGroup $ecsClusterName $IMAGE_REPO_NAME $cloudWatchLogsGroup $ENV_TYPE > build.json
 </pre>
 
-If you get stuck, look at the file **finalhelpspec.yml** <br \>
+If you get stuck, look at the file **finalhelpspec.yml** 
 
-</details><br \>
+</details>
 4\. Create an AWS CodePipeline Pipeline and set it up to listen to AWS CodeCommit. 
 
 In the AWS Management Console, navigate to the AWS CodePipeline console. Click on **Create Pipeline**.
@@ -370,7 +408,7 @@ Scroll down further. In the Environment: How to build section, select values for
 
 Expand the **Advanced** section.
 
-Under Environment Variables, enter two variables:
+Under Environment Variables, enter three variables:
 
 - Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext** *Earlier, when we created the buildspec, it looked for some existing environment variables like this one.*
 - Name: **IMAGE_REPO_NAME** Value: **YOURENVIRONMENTNAME-iridium** Type: **Plaintext** 
@@ -385,7 +423,7 @@ The next dialog that will appear is **Deploy**. Select and populate the followin
 - **Deployment provider: AWS CloudFormation** - *This is the mechanism we're choosing to deploy with. CodePipeline also supports several other deployment options, but we're using CloudFormation in this case.*
 - **Action Mode: Create or Update a Stack** - *This will actually update the stack instead of just creating a change set. We'll do that later.*
 - **Stack Name: prod-iridium-service** - *Name the CloudFormation stack that you're going to create/update*
-- **Template File: service.yaml** - *The filename of the template that you looked over earlier in this workshop*
+- **Template File: service.yml** - *The filename of the template that you looked over earlier in this workshop*
 - **Configuration File: build.json** - *The filename of the JSON file generated by CodeBuild that has all the parameters*
 - **Capabilities: CAPABILITY_IAM** - *Here, we're giving CloudFormation the ability to create IAM resources*
 - **Role Name: The name of the role created as part of the initial CloudFormation stack** - *CloudFormation needs a role to assume so that it can create and update stacks on your behalf*
@@ -417,19 +455,19 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
   <summary>
     *Click here to expand this section and we'll go over how to find out what happened.*
   </summary>
-  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.<br \>
+  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.
 
-  Now click on **Link to execution details** since the error message didn't tell us much.<br \>
+  Now click on **Link to execution details** since the error message didn't tell us much.
 
-  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**<br \>
+  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**
 
-  Looking in the logs, we can see that **AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/orderTopic status code: 400**<br \>
+  Looking in the logs, we can see that **AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/orderTopic status code: 400**
 
-  Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br \>
+  Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. 
 
-  In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **code-build-prod-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br \>
+  In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **code-build-prod-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. 
 
-  Choose **Custom Policy**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:<br \>
+  Choose **Custom Policy**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:
 
 <pre>
 `{
@@ -459,9 +497,9 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
 
 </pre>
 
-Choose **Apply Policy**<br \>
+Choose **Apply Policy**
 
-</details><br \>
+</details>
 
 Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
 
@@ -471,7 +509,7 @@ At this point you have a pipeline ready to listen for changes to your repo. Once
 
 
 
-### Lab 3 - Implement Automated Testing
+### Lab 3 - Add Security and Implement Automated Testing
 Now that we've automated the deployments of our application, we want to improve the security posture of our application, so we will be automating the testing of the application as well. We've decided that as a starting point, all Interstella deployments will require a minimum of 1 test to make the changes minimal for developers. At the same time,  we will start using [IAM Roles for Tasks](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This allows us to specify a role per task instead of assuming the EC2 Instance Role. 
 
 In this lab, we will use Stelligent's tool **cfn-nag**. The cfn-nag tool looks for patterns in CloudFormation templates that may indicate insecure infrastructure. Roughly speaking it will look for:
@@ -483,14 +521,77 @@ In this lab, we will use Stelligent's tool **cfn-nag**. The cfn-nag tool looks f
 
 For more background on the tool, please see: [Finding Security Problems Early in the Development Process of a CloudFormation Template with "cfn-nag"](https://stelligent.com/2016/04/07/finding-security-problems-early-in-the-development-process-of-a-cloudformation-template-with-cfn-nag/)
 
-1\. Create a new stage for testing in your pipeline
+1\. Add in IAM task roles in service.yml
+
+Now that the microservices are really split up, we should look into how to lock them down. One great way is to use IAM Roles for Tasks. We can give a specific task an IAM role so we know exactly what task assumed what role to do something instead of relying on the default EC2 instance profile.
+
+A complete and updated service.yml file is located in hints/final-service.yml. Overwrite your existing service.yml with that one. 
+
+Here are the differences:
+
+- We added a new role to the template:
+
+<pre>
+ECSTaskRole:
+  Type: AWS::IAM::Role
+  Properties:
+    Path: /
+    AssumeRolePolicyDocument: |
+      {
+          "Statement": [{
+              "Effect": "Allow",
+              "Principal": { "Service": [ "ecs-tasks.amazonaws.com" ]},
+              "Action": [ "sts:AssumeRole" ]
+          }]
+      }
+    Policies: 
+      - 
+        PolicyName: "root"
+        PolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - 
+              Effect: "Allow"
+              Action: "*"
+              Resource: "*"
+</pre>
+
+- Then updated the ECS task definition to use the new role.
+
+<pre>
+TaskDefinition:
+  Type: AWS::ECS::TaskDefinition
+  Properties:
+    Family: iridium
+    ContainerDefinitions:
+      - Name: iridium
+        Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
+        Essential: true
+        Memory: 128
+        PortMappings:
+          - ContainerPort: 5000
+        Environment:
+          - Name: Tag
+            Value: !Ref Tag
+        <b>TaskRoleArn: !Ref ECSTaskRole </b>
+        LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: cloudWatchLogsGroup
+              awslogs-region:
+                Ref: AWS::Region
+              awslogs-stream-prefix: prod
+</pre>
+
+Create a new stage for testing in your pipeline
 
 Navigate to the AWS CodePipeline dashboard and choose your pipeline. Edit the pipeline and click the **+stage** button between source and the build stage. Name it **CodeAnalysis** and then click on the **+ Action** button. This will add a new stage to your pipeline where we can run some static analysis. *We want this static analysis tool to run before our Docker container even gets built so that we can fail the deployment quickly if something goes wrong.*
 
 Select and populate the following Values:
 
 - **Action Category - Test**
-- **Action Name - CfnNag**
+- **Action Name - StaticAnalysis**
 - **Test provider - AWS CodeBuild**
 - **Project Name - CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
 - **Input Artifact #1 - MyApp**
@@ -499,7 +600,7 @@ Click **Add Action**
 
 2\. Create a new yml file for the test CodeBuild project to use.
 
-In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-cfn-nag.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yaml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-cfn-nag.draft in the service folder for you to start. It looks like this:
+In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-buildspec.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-buildspec.yml.draft in the service folder for you to start. It looks like this:
 
 <pre>
 version: 0.2
@@ -511,14 +612,14 @@ phases:
   build:
     commands:
       - echo 'In Build'
-      - cfn_nag_scan --input-path service.yaml
+      - cfn_nag_scan --input-path service.yml
 </pre>
 
 <details>
   <summary>
     Click here for some assistance.
   </summary>
-  Within the pre-build stage, we'll want to install cfn-nag. Then we'll want to use the cfn_nag_scan command to scan the service.yaml CloudFormation template. It should look like this:
+  Within the pre-build stage, we'll want to install cfn-nag. Then we'll want to use the cfn_nag_scan command to scan the service.yml CloudFormation template. It should look like this:
   <pre>
   version: 0.2
 
@@ -529,13 +630,53 @@ phases:
     build:
       commands:
         - echo 'In Build'
-        - cfn_nag_scan --input-path service.yaml
+        - cfn_nag_scan --input-path service.yml
   </pre>
   
-  A completed file is in the hints folder of workshop3.
-</details><br \>
+  A completed file is in the hints folder of workshop3. It's named hint1-test-buildspec.yml
+</details>
 
-The file is already included in the repo when you copied over the repo from the monolith. Take a look to make sure it's there and named test-cfn-nag.yml. 
+You should be good to go for the cfn-nag build now, but why stop here? Let's add in a few more lines to look for any sort of AWS Access or Secret keys. Can you think of a way to do this? AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. Secret keys, however, can contain some special characters and are 40 characters long. How would you look through your code for anything like this and throw a warning up if something exists?
+
+<details>
+<summary>
+  Click here for an answer that we've come up with.
+</summary>
+  We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. 
+
+  Within the build section, add in a line to run a script in the test folder.
+  <pre>
+  ./tests/checkaccesskeys.sh 
+  </pre>
+
+  Your test-build.yml should now look like this:
+
+  <pre>
+  version: 0.2
+
+  phases:
+    pre_build:
+      commands:
+        - gem install cfn-nag
+    build:
+      commands:
+        - echo 'In Build'
+        - cfn_nag_scan --input-path service.yml
+        - ./tests/checkaccesskeys.sh
+  </pre>
+
+  A final version of this test-buildspec.yml is also located in the hints folder. It's named final-test-buildspec.yml.
+</details>
+
+Let's check everything in and run the test. 
+
+<pre>
+$ git add test-cfn-nag.yml
+$ git commit -m "Adding in buildspec for cfn-nag"
+$ git push origin master
+</pre>
+
+3\. 
 
 
 
@@ -613,7 +754,7 @@ Enter the following values:
 
 **Stack name: canary-iridium-service**
 
-**Template: MyAppBuild::service.yaml**
+**Template: MyAppBuild::service.yml**
 
 **Template configuration: MyAppBuild::build.json**
 
