@@ -51,7 +51,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
   
 ### Workshop Setup:
 
-1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this lab, choose either **Ohio** or **Oregon**. 
+1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.  Workshop administrators will typically indicate which region you should use.
 
 2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.  If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.  
 
@@ -84,9 +84,10 @@ Click on the CloudFormation launch template link below for the region you select
 Region | Launch Template
 ------------ | -------------  
 **Ohio** (us-east-2) | [Launch Interstella CloudFormation Stack in Ohio](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop2/starthere.yaml)  
-**Oregon** (us-west-2) | [Launch Interstella CloudFormation Stack in Oregon](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop2/starthere.yaml) 
+**Oregon** (us-west-2) | [Launch Interstella CloudFormation Stack in Oregon](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop2/starthere.yaml)
+**Ireland** (eu-west-1) | [Launch Interstella CloudFormation Stack in Ireland](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop2/starthere.yaml)
 
-You should be on the Select Template page, notice an S3 URL link to the CloudFormation template is already populated.  Click **Next** to continue without modifying any fields on this page.    
+You should be on the Select Template page, notice an S3 URL link to the CloudFormation template is already populated.  Click **Next** to continue without modifying any fields on this page.
 
 5\. On the Specify Details step of the Create Stack process, enter values for the following fields:
 
@@ -443,6 +444,20 @@ It should be line 96, in the app route decorator for the /order/ URL:
 
 ![Remove iridium()](images/2-remove-iridium.png)
 
+Save your changes and close the file.  
+
+<details>
+<summary>HINT</summary>
+If you get stuck or don't really know your way around linux text editors, you can download lab2-monolith.py from Interstella HQ to the EC2 instance and replace the old file with these commands.
+
+<pre>
+$ cd ~/code/monolith
+$ curl -O http://www.interstella.trade/workshop2/hints/lab2-monolith.py
+$ mv lab2-monolith.py monolith.py
+</pre>
+</details>
+
+
 
 9\. Build, tag and push the monolith again to write the changes into the monolith image.  Note the tag "noiridium" instead of "latest".  This is a best practice because it makes the specific deployment unique and easily referenceable.  
 
@@ -490,18 +505,20 @@ Click **Next step** for this step and remaining steps without making any additio
 
 ![Monolith service updated](images/2-service-updated.png)
 
-If you're lucky, the monolith service deployed the monolith task to the same instance as before, but there's a high probability it was launched on the other EC2 host.  Remember when you configured the iridium task definition, you had set an environment variable "monolithUrl" and passed it the IP address of the instance running the monolith container.  Since the monolith in all likelihood running on the other host, the iridium service is no longer able to fulfill orders which happens through the integration hook in the monolith.
+You might have noticed something interesting happen.  There's a high probability the service update launched your new container on the other EC2 instance (also called container instance).  This is the default placement logic evenly spreading tasks across availability zones (AZs).  This is a great feature, but a problem in this case because when you configured the iridium task definition, you had set an environment variable "monolithUrl" and passed it the IP address of the instance running the monolith container.  Since the monolith is running on the other EC2 host, the iridium service is no longer able to fulfill orders through the fulfillment service running on the monolith.
 
-Service discovery is the best way to correct this.  There are many patterns, and here are a few examples:
+We need service discovery to identify the microservices endpoints.  Here are a few patterns that could work:
 * [DNS/Route53 without load balancing](https://aws.amazon.com/blogs/compute/service-discovery-for-amazon-ecs-using-dns/), 
 * [DNS/Route53 and ELB](https://aws.amazon.com/blogs/compute/service-discovery-an-amazon-ecs-reference-architecture/)
 * [3rd party tools such as Consul](https://aws.amazon.com/blogs/compute/service-discovery-via-consul-with-amazon-ecs/) or Weave
 
-We're going to use the 2nd pattern above, though leaving out the DNS part until Interstella's IT team provides IAM access to Route53 to enable the DNS record automation.  For now, we'll use an Application Load Balancer (ALB) to be the front door for our microservices and monolith (which is essentially strangled down to a fulfillment service).  A load balancer will also allow us to horizontally scale our processing capacity, bonus!
+We're going to use the 2nd pattern above, though leaving out the DNS part for now since we're in a dev environment.  We'll use an Application Load Balancer (ALB) to be the front door for our microservices and monolith (which is essentially strangled down to a fulfillment service).  A load balancer will also allow us to horizontally scale our processing capacity, bonus!
 
-12\. Since the integration is broken, let's stop the monolith service and stop the iridium task.
+12\. Since the monolith-iridium integration is not currently working, let's stop the monolith service and stop the iridium task.
 
-You should still be in the monolith service view.  Click on the **Update** button, and in Step 1: Configure service, set **Number of tasks** to be **0**.  Click **Next step** for this step and remaining steps without making any additional modifications.  Click **Update Service**.  Click on **View Service** and then on the **Tasks** tab.  Notice no running tasks, **Desired Count** is now **0** and **Running count** eventually drops to **0** as well.  
+You should still be in the monolith service view.  Click on the **Update** button, and in Step 1: Configure service, set **Number of tasks** to be **0**.  
+
+Click **Next step** for this step and remaining steps without making any additional modifications.  Click **Update Service**.  Click on **View Service** and then on the **Tasks** tab.  Notice no running tasks, **Desired Count** is now **0** and **Running count** eventually drops to **0** as well.
 
 The service view has a link to your workshop cluster, click on the workshop cluster name to open that view, so we can find and stop the iridium task.  
 
@@ -512,27 +529,31 @@ Click on the **Tasks** tab, select the iridium task, and click **Stop** to kill 
 ![Kill iridium](images/2-kill-iridium.png)
 
 ###Checkpoint:
-By this point, you've containerized the Interstella logistics platform (aka monolith) and the iridium microservice.  Images for these environments are stored in ECR and can be deployed with ECS.  At one point you had the iridium microservice running and sending order fulfillment to the monolith, so you know the integration works.  We'll worry about the magnesite microservice in the next lab.
+By this point, you've containerized the Interstella logistics platform (aka monolith) and the iridium microservice.  Images for these environments are stored in ECR and can be deployed with ECS.  At one point you had the iridium microservice running and sending processed orders to the monolith, so you know the integration works.  We'll worry about the magnesite microservice in the next lab.
 
 ### Lab 3 - Scale the logistics platform with ALB: 
 
-In this lab, you will continue the journey to microservices by introducing an ALB to front-end your resource microservices and fulfillment service (running from monolith codebase).  The ALB helps with service discovery and enables you to horizontally scale each microservice.  
+In this lab, you will continue the journey to microservices by introducing an ALB to front-end your fulfillment service (running on monolith) and resource microservices.  The ALB will help identify and scale each microservice endpoint by load balancing across a pool of containers.
 
-If you ran multiple copies of your containers as they are, there would be more capacity, but each container currently self-registers to the SNS topic (you will edit the code to alter this behavior).  As a result, the same order would be processed by all running containers.  We need a load balancer to distribute the orders to a pool of containers, so orders are only processed once.
+ALB/ECS integration offers a feature called dynamic port mapping, which enables you to run multiple copies of the same container with the same listening port on the same host...say that 10 times fast.  With dynamic port mapping, an ephemeral listening port is automatically assigned to the host and mapped to the container.  
 
-ALB/ECS integration offers a feature called dynamic port mapping, which enables you to run multiple copies of the same container on the same host.  The current monolith task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  With dynamic port mapping, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two monolith tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
+Another key ALB feature you'll take advantage of is path-based routing, which routes traffic based on URL path to particular target groups.  Monolith/fulfillment will be the default path, '/'.  Iridium and magnesite will be '/iridium' and '/magnesite', respectively.  This means we'll only need to run one instane of ALB.  
 
-Another key feature you'll take advantage of is path-based routing.  You essentially have three groups of targets - monolith/fulfillment, iridium, magnesite.  You can have a common ALB listener (e.g. port 80) represent a single entry point and use path-based routing (e.g. http://ALB_ENDPOINT/iridium) to route to each target group of containers.
+Here is a reference architecture for what you will be implementing in the Lab 3:
 
-Here is a reference architecture for what you will be implementing in the Bonus Lab:
+![Lab 3 Architecture](images/workshop2-lab3.png)
 
-TODO: CONTINUE HERE
+Let's start by putting the monolith behind an ALB.
 
-![Bonus Lab Architecture](images/workshop2-lab3.png)
+1\. First, make the following updates in the monolith app code:
+* Disable the monolith from self-registering to SNS
+* Disable bundle order processing - this puts all resource processing on the microservices and the monolith only handles order fulfillment.
 
-1\. Disable the logistics platform from self-registering to SNS.  
+You should still have your SSH session open, but if not, SSH into the same EC2 instance you've been using to build container images throughout the workshop.  Navigate to the monolith code directory and open monolith.py with your favorite text editor.  
 
-SSH into the EC2 instance you used to build the container in lab 1 and open monolith.py with your favorite text editor.  Comment out the lines in the app code that subscribes to SNS.  If you're not familiar with Python, you can comment out multiple lines by surrounding the text in triple single quotes, see below:
+Comment out the lines in the app code that subscribes to SNS - it's noted with a comment reading '# Subscribe SNS'.  If you're not familiar with multi-line comments in Python, this is done by surrounding the text in triple single quotes.
+
+Your SNS subscribe code should look like this commented out:
 
 <pre>
 # Subscribe SNS
@@ -547,7 +568,9 @@ response = snsClient.subscribe(
     Endpoint=ip
 )
 '''
-</pre> 
+</pre>
+
+Also, comment out the /order/ route for the application.  This is where orders were being 
 
 Rebuild the container after making these modifications and tag/push a new version of the container image to ECR.  If you do not remember the commands, refer to Lab 1 Step 4 for building the image and Lab 1 Step 6 for tagging and pushing the image up to ECR.  
 
