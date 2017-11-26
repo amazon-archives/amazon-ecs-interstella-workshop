@@ -7,27 +7,18 @@ import json
 import requests
 import boto3
 from urllib2 import urlopen
+import logging
+import sys
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # Get API Key and parameters from SSM
 region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
 ssmClient = boto3.client('ssm',region_name=region[:-1])
 
 apiKey = ssmClient.get_parameter(Name='/interstella/apiKey')['Parameter']['Value']
 endpoint = ssmClient.get_parameter(Name='/interstella/apiEndpoint')['Parameter']['Value']
-orderTopic = ssmClient.get_parameter(Name='/interstella/orderTopic')['Parameter']['Value']
-orderTopicRegion = orderTopic.split(':')[3]
+
 portNum = 5000
-
-# Subscribe SNS
-# snsClient = boto3.client('sns',region_name=orderTopicRegion)
-# ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
-# ip = 'http://'+ip+':'+str(portNum)+'/order/'
-
-#response = snsClient.subscribe(
-#    TopicArn=orderTopic,
-#    Protocol='http',
-#    Endpoint=ip
-#)
 
 def iridium():
     print "Getting Iridium"
@@ -66,49 +57,6 @@ app = Flask(__name__)
 def index():
     return "Welcome to the monolith"
     
-# Effectively, our subscriber service.
-@app.route('/order/', methods=['POST'])
-def order():
-    if request.method == 'POST':
-        try: 
-            iridiumResult = 0
-            magnesiteResult = 0
-            # Is this a normal SNS payload? Try to get JSON out of it
-            payload = request.get_json(force=True)
-            if 'SubscribeURL' in payload:
-                print 'Incoming subscription request from SNS...'
-                # print payload['SubscribeURL']
-                print 'Sending subscription confirmation to SNS...'
-                response = requests.get(payload['SubscribeURL'])
-                # print response.status_code
-                if response.status_code == requests.codes.ok:
-                    return "SNS topic subscribed!"
-                else:
-                    response.raise_for_status()
-            elif 'bundle' in payload['Message']:
-                print 'Gathering Requested Items'
-                iridiumResult = iridium()
-                magnesiteResult = magnesite()
-                response = fulfill(apiKey, endpoint, iridiumResult, magnesiteResult)
-                if response == requests.codes.ok:
-                    print 'Bundle fulfilled'
-                    return 'Your order has been fulfilled'
-                else:
-                    # print response
-                    return 'Your order has NOT been fulfilled'
-	    else: 
-		print 'SOMETHING IS WEIRD'
-        except Exception as e:
-            # Looks like it wasn't.
-            print e
-            print 'This was not a fulfillment request. Moving on...'
-            return 'We were unable to place your order'
-        
-        return "This was not a fulfillment request. Moving on..."
-    else:
-        # We should never get here
-        return "This is not the page you are looking for"
-
 # Fulfillment service
 # Expects a POST of {'thing': '1'} from microservice until we separate fulfillment into its own microservice as well
 # def fulfill(apiKey, endpoint, iridium, magnesite)

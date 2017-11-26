@@ -155,17 +155,142 @@ RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
 Are you sure you want to continue connecting (yes/no)? 
 </pre>
 
-2\. Once logged onto the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella's S3 static site.  
-
-Note: the flag for the curl command below is a capital O, not a zero.   
+2\. Once logged onto the instance, clone the interstella github repo. 
 
 <pre>
-$ curl -O http://www.interstella.trade/workshop1/code/monolith.py
-$ curl -O http://www.interstella.trade/workshop1/code/requirements.txt
-$ curl -O http://www.interstella.trade/workshop1/code/Dockerfile.draft
+$ git clone https://github.com/aws-samples/amazon-ecs-interstella-workshop.git
 </pre>
 
-One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control.  Looking at Dockerfile.draft, it looks like it's almost done, we just need a few more lines added.
+This will include the code from other Interstella workshops, but you will just be looking at workshop3.
+
+3\. Build and push monolith
+
+First, we have to get the ECR repository that we will be pushing to. Navigate to the Amazon Elastic Container Service Dashboard in the AWS Management Console. On the left pane, click **Repositories**. You should see a few repositories that were created for you:
+
+![ECR Repos](images/0-ecr-repos.png)
+
+Click the monolith repo and then click **View Push Commands**.
+
+A popup with commands to log into, tag, and push to ECR will appear. Note down the build, tag, and push commands. In my case these are:
+
+<pre>
+$ aws ecr get-login --no-include-email --region eu-central-1 <i>You'll need this later</i>
+$ docker build -t interstella-monolith .
+$ docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
+$ docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
+</pre>
+
+Back on the EC2 instance you logged into, navigate to the workshop3/code/monolith folder and build your Docker image. The build command below corresponds directly with the one that you got just a minute ago.
+
+<pre>
+$ cd amazon-ecs-interstella-workshop/workshop3/code/monolith
+$ docker build -t interstella-monolith .
+</pre>
+
+*You'll see some red error-looking messages. Don't worry about them*
+
+Try to run the image and you should see output like this:
+
+<pre>
+$ docker run -it interstella-monolith
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 296-298-553
+</pre>
+
+Push **Ctrl + C** to exit.
+
+Once you've confirmed it runs, tag and push your container image to the repository.
+
+<pre>
+$ docker tag interstella-monolith:latest <b><i>ECR_REPOSITORY_URI</i></b>:latest
+$ docker push <b><i>ECR_REPOSITORY_URI</i></b>:latest
+</pre>
+
+With my commands I copied before, the commands would be:
+<pre>
+$ docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
+$ docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
+</pre>
+
+When you issue the push command, Docker pushes the layers up to ECR, and if you refresh the monolith repository page, you'll see an image indicating the latest version.  
+
+*Note: that you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the EC2 instance.  This was done as a bootstrap action when launching the EC2 instances.  Review the CloudFormation template and you will see where this is done.  You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
+
+4\. Create a task definition to reference this Docker image in ECS.
+
+Now that we've pushed an image to ECS, let's make a task definition to reference and deploy using ECS. Navigate to the ECS Dashboard in the AWS Management Console. Click **Task Definitions** on the left menu. Click on **Create new Task Definition**.
+
+Enter a name for your task definition, e.g. **interstella-monolith**.
+
+Add a container to the task definition. Click **Add container**.  Enter values for the following fields:
+* **Container name** - this is a logical identifier, not the name of the container image, e.g. monolith
+* **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
+* **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
+
+Your container definition should look like this:
+
+![Task Definition Creation Pt 1](images/0-task-def-create.png)
+
+Expand the **Advanced container configuration** to set the **Log Configuration** and configure these settings.  
+
+* **Log driver** - select **awslogs** from the drop-down
+* **Log options** - enter the name of the CloudWatch log group that CloudFormation created, and enter the AWS region of the log group. Enter **prod** as the awslogs-stream-prefix.
+
+![Task Definition Creation Logs](images/0-task-def-logs.png)
+
+Click **Add** and then **Create**.
+
+5\. Create an ECS Service using your task definition.
+
+It's time to start up the monolith service. Let's create an ECS service.
+
+From the Task Definition page, click on **Actions** and choose **Create Service**. If you navigated away from the page, click on **Task Definitions** on the left menu and then click the task definition you just created.
+
+![Task Definition Create Service](images/0-task-def-create-svc.png)
+
+Fill in the following fields:
+* **Service Name** - this is a logical identifier for your service, e.g. interstella-monolith
+* **Number of tasks** - set to **1** for now; you will horizontally scale this service in the last lab with a new ECS service
+
+![ECS Service Creation Step 1](images/0-ecs-svc-create-1.png)
+
+*Note: There are many options to explore in the Task Placement section of the Run Task action, and while we will not touch on every configuration in this workshop, you can read more about [Scheduling Tasks](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduling_tasks.html) in our documentation.*
+
+Leave the other fields as default and click **Next step**
+
+Under Load Balancing, choose **Application Load Balancer**. Then select the Service IAM Role created earlier. It should start with your environmentName. In this case, it is **interstella-ECSServiceRole**. Next, choose the Load Balancer that was created. Again, it should start with your environmentName. Mine is **interstella-LoadBalancer**. 
+
+![ECS Service Creation Step 2a](images/0-ecs-svc-create-2.png)
+
+In the Container to load balance section, click **Add to load balancer**. Enter the following values:
+
+- Listener port: **80** *This is a dropdown. Choose 80:HTTP*
+- Target Group: Look for the one that has Monolith in it
+
+Leave the rest as default as you can't edit it and click **Next**.
+
+![ECS Service Creation Step 2b](images/0-ecs-svc-create-3.png)
+
+Click **Next step** to skip the auto scaling option.  
+
+Click **Create Service** and click **View Service** to get the status of your service launch.  The *Last Status* will show **RUNNING** once your container has launched. 
+
+![ECS Service Monolith](images/0-ecs-service-mono.png)
+
+9\. Confirm logging to CloudWatch Logs is working. 
+
+Once the monolith service is running, navigate back to the CloudWatch Logs dashboard, and click on your log group.  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. You can test the service by sending some data to it:
+<pre>
+$ curl <LoadBalancerDNSName>/fulfill/ -d '{"iridium":"1"}'
+</pre>
+
+You can find the load balancer DNS name in the CloudFormation outputs.
+
+### Checkpoint
+At this point, you've manually deployed a service to ECS. It works, and is going to act as the glue code that connects our microservices together. Now let's automate it!
+
 
 ### Lab 1 - Offload the application build from your dev machine
 

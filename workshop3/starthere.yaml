@@ -500,7 +500,22 @@ Resources:
                                 -
                                   Ref: "AWS::AccountId"
                                 - ":parameter/microservice*"
-
+    ECSServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        Path: /
+        RoleName: !Sub ${EnvironmentName}-ECSServiceRole
+        AssumeRolePolicyDocument: |
+          {
+              "Statement": [{
+                  "Effect": "Allow",
+                  "Principal": { "Service": [ "ecs.amazonaws.com" ]},
+                  "Action": [ "sts:AssumeRole" ]
+              }]
+          }
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
+                                
     ECSInstanceProfile: 
         Type: AWS::IAM::InstanceProfile
         Properties:
@@ -586,6 +601,7 @@ Resources:
           - !Ref PublicSubnet2
         SecurityGroups:
           - !Ref LoadBalancerSecurityGroup
+        Name: !Sub ${EnvironmentName}-LoadBalancer
 
     LoadBalancerListener:
       Type: AWS::ElasticLoadBalancingV2::Listener
@@ -614,6 +630,7 @@ Resources:
         TargetGroupAttributes:
           - Key: deregistration_delay.timeout_seconds
             Value: 30
+        Name: !Sub ${EnvironmentName}-monolith-tg
             
     IridiumTargetGroup:
       Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -632,6 +649,7 @@ Resources:
         TargetGroupAttributes:
           - Key: deregistration_delay.timeout_seconds
             Value: 30
+        Name: !Sub ${EnvironmentName}-iridium-tg
 
     ListenerRule:
       Type: AWS::ElasticLoadBalancingV2::ListenerRule
