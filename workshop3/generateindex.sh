@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #cat indexstart > index.html
 echo '<!DOCTYPE html>
 <html>
@@ -22,5 +21,4 @@ Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 <script src='http://strapdownjs.com/v/0.2/strapdown.js'></script>
 </body>
 </html>" >> index.html
-
-aws s3 cp index.html s3://www.interstella.trade/workshop3/index.html --acl public-read
+aws s3 sync . s3://www.interstella.trade/workshop3/ --acl public-read

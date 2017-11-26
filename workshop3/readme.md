@@ -87,19 +87,74 @@ The link above will bring you to the AWS CloudFormation console with the **Speci
 
 ![CloudFormation Starting Stack](images/cfn-createstack-1.png)
 
-In the **Specify Details** page, there are some parameters to populate. Feel free to leave any of the pre-populated fields as is. The only fields you NEED to change are:
+In the **Specify Details** page, there are some parameters to populate. Feel free to leave any of the pre-populated fields as is. The only fields you **NEED** to change are:
 
-- EnvironmentName - *This name will be prepended to many of the resources created to help you distinguish the workshop resources from other existing ones*
-- InterstellaApiKey - *In a previous step, you visited the getkey website to get an API key for fulfillment. Enter it here.*
-- KeyPairName - *You will need to log into an EC2 instance. This is your authentication mechanism. If there are no options in the dropdown, please create a new keypair*
+- **EnvironmentName** - *This name will be prepended to many of the resources created to help you distinguish the workshop resources from other existing ones*
+- **InterstellaApiKey** - *In a previous step, you visited the getkey website to get an API key for fulfillment. Enter it here.*
+- **KeyPairName** - *You will need to log into an EC2 instance. This is your authentication mechanism. If there are no options in the dropdown, please create a new keypair*
 
 Click **Next**
 
 In the **Options** section, you can leave things blank and default. You can optionally enter in tags to be applied to all resources.
 
-In the **Review** section, take a look at all the parameters and make sure they're accurate. Check the box next to **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** as the CloudFormation template will create IAM roles on your behalf for this workshop. As part of the cleanup, CloudFormation will remove the IAM Roles for you.
+In the **Review** section, take a look at all the parameters and make sure they're accurate. Check the box next to **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** As part of the cleanup, CloudFormation will remove the IAM Roles for you.
 
+![CloudFormation IAM Capabilities](images/cfn-iam-capabilities.png)
 
+### Checkpoint:  
+The CloudFormation stack will take a few minutes to launch.  Periodically check on the stack creation process in the CloudFormation Dashboard.  Your stack should show status **CREATE\_COMPLETE** in roughly 5-10 minutes. If you select box next to your stack and click on the **Events** tab, you can see what steps it's on.  
+
+![CloudFormation CREATE_COMPLETE](images/cfn-create-complete.png)
+
+If there was an [error](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html#troubleshooting-errors) during the stack creation process, CloudFormation will rollback and terminate. You can investigate and troubleshoot by looking in the Events tab.  Any errors encountered during stack creation will appear in the event stream as a failure.
+
+While you're waiting, take a minute to look over the overall architecture that you will be deploying to:
+
+![Overall Microservice Architecture](images/arch-endstate.png)
+
+### Lab 0 - Manually deploy monolith service
+
+In this lab, you will manually deploy the monolith service so that you know what you'll be automating later. Remember, the monolith is what we broke apart, but there's still some legacy code in there that we can't get rid of. For a better sense of the story, review [Workshop 2](http://www.interstella.trade/workshop2/). By the end of the lab, you will have a single monolith service waiting to fulfill orders to the API. 
+
+Here's a reference architecture for what you'll be building:
+
+![Lab0 - Overview](images/0-overview.png)
+
+*Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
+
+*If you are attending a live AWS event, these assets will be provided.  We're working on packaging up the admin components, so you can run this workshop at your office, home, etc.*
+
+1\. SSH into one of the launched EC2 instances to get started.  
+
+Go to the EC2 Dashboard in the Management Console and click on **Instances** in the left menu.  Select either one of the EC2 instances created by the CloudFormation stack and SSH into the instance.  
+
+*Tip: If your instances list is cluttered with other instances, type the **EnvironmentName** you used when running your CloudFormation template into the filter search bar to reveal only those instances.*  
+
+![EC2 Public IP](images/1-ec2-IP.png)
+
+<pre>
+$ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
+</pre>
+
+If you see something similar to the following message (host IP address and fingerprint will be different, this is just an example) when trying to initiate an SSH connection, this is normal when trying to SSH to a server for the first time.  The SSH client just does not recognize the host and is asking for confirmation.  Just type **yes** and hit **enter** to continue:
+
+<pre>
+The authenticity of host '52.15.243.19 (52.15.243.19)' can't be established.
+RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
+Are you sure you want to continue connecting (yes/no)? 
+</pre>
+
+2\. Once logged onto the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella's S3 static site.  
+
+Note: the flag for the curl command below is a capital O, not a zero.   
+
+<pre>
+$ curl -O http://www.interstella.trade/workshop1/code/monolith.py
+$ curl -O http://www.interstella.trade/workshop1/code/requirements.txt
+$ curl -O http://www.interstella.trade/workshop1/code/Dockerfile.draft
+</pre>
+
+One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control.  Looking at Dockerfile.draft, it looks like it's almost done, we just need a few more lines added.
 
 ### Lab 1 - Offload the application build from your dev machine
 
