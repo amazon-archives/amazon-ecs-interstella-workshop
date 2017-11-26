@@ -4,15 +4,21 @@ Parameters:
 
   DesiredCount:
     Type: Number
-    Default: 0
+    Default: 2
 
-  TargetGroup:
+  TargetGroupArn:
     Type: String
-
+    
   Cluster:
     Type: String
 
   Repository:
+    Type: String
+    
+  cloudWatchLogsGroup:
+    Type: String
+
+  CwlPrefix:
     Type: String
 
 
@@ -31,14 +37,14 @@ Resources:
         }
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
-              
+
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: spice
+      Family: iridium
       ContainerDefinitions:
-        - Name: spice
-          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/spice:${Tag}
+        - Name: iridium
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
           Essential: true
           Memory: 128
           PortMappings:
@@ -46,16 +52,24 @@ Resources:
           Environment:
             - Name: Tag
               Value: !Ref Tag
+          LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group:
+                  Ref: cloudWatchLogsGroup
+                awslogs-region:
+                  Ref: AWS::Region
+                awslogs-stream-prefix: prod
   
   Service:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref Cluster
       DesiredCount: !Ref DesiredCount
-      TaskDefinition: !Ref SpiceTaskDefinition
+      TaskDefinition: !Ref TaskDefinition
       Role: !Ref ECSServiceRole
       LoadBalancers:
       - TargetGroupArn:
-          Ref: SpiceTargetGroup
+          Ref: TargetGroupArn
         ContainerPort: 5000
-        ContainerName: spice
+        ContainerName: iridium

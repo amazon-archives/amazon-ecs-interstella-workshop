@@ -1,6 +1,6 @@
 Description: >
     Starting template for Interstella 4-part workshop series.  
-    Last Modified: Nov 17, 2017
+    Last Modified: Nov 25, 2017
 
 Mappings:
 
@@ -10,38 +10,40 @@ Mappings:
 
     AWSRegionToAMI:
         us-east-2:
-            AMI: ami-b0527dd5
+            AMI: ami-6e56780b
         us-east-1:
-            AMI: ami-ec33cc96
+            AMI: ami-6944c513
         us-west-2:
-            AMI: ami-29f80351
+            AMI: ami-f5fc2c8d
         us-west-1:
-            AMI: ami-d5d0e0b5
+            AMI: ami-bbe6dfdb
         eu-west-2:
-            AMI: ami-eb62708f
+            AMI: ami-e36b7487
         eu-west-1:
-            AMI: ami-13f7226a
+            AMI: ami-faa10a83
         eu-central-1:
-            AMI: ami-40d5672f
+            AMI: ami-1f9f1f70
+        ap-northeast-2:
+            AMI: ami-88f85fe6
         ap-northeast-1:
-            AMI: ami-21815747
+            AMI: ami-cb3a8cad
         ap-southeast-2:
-            AMI: ami-4f08e82d
+            AMI: ami-a9a14acb
         ap-southeast-1:
-            AMI: ami-99f588fa
+            AMI: ami-ca3762a9
         ca-central-1:
-            AMI: ami-9b54edff
+            AMI: ami-cace75ae
 
 Parameters:
 
     EnvironmentName:
-        Description: An environment name that will be prefixed to resource names
+        Description: An environment name that will be prefixed to resource names. Restriction: Lower case with minimal special characters. 
         Type: String
         MinLength: 2
         AllowedPattern: (?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*
 
     KeyPairName:
-        Description: Name of an existing EC2 KeyPair to enable SSH access to the EC2 instances
+        Description: Name of an existing EC2 KeyPair to enable SSH access to the EC2 instances. If no dropdown appears, please create a new keypair. 
         Type: AWS::EC2::KeyPair::KeyName
         MinLength: 1
 
@@ -73,7 +75,7 @@ Parameters:
     InstanceType: 
         Description: Choose an instance type for ECS Cluster Instances - default is t2.medium
         Type: String
-        Default: t2.micro
+        Default: t2.medium
         AllowedValues:
             - t2.micro
             - t2.small
@@ -90,14 +92,17 @@ Parameters:
     InterstellaApiKey:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
         Type: String
+        MinLength: 1
     
     InterstellaOrdersTopicArn: 
         Description: Logistics software will subscribe to this SNS topic to receive orders
         Type: String
+        MinLength: 1
     
-    InterstellaSpiceOrdersTopicArn: 
-        Description: Logistics software will subscribe to this SNS topic to receive spice orders
+    InterstellaIridiumOrdersTopicArn: 
+        Description: Logistics software will subscribe to this SNS topic to receive iridium orders
         Type: String
+        MinLength: 1
 
 Resources:
 
@@ -306,10 +311,10 @@ Resources:
         Properties: 
             RepositoryName: !Sub ${EnvironmentName}-monolith
 
-    ECRSpiceRepository:
+    ECRIridiumRepository:
         Type: AWS::ECR::Repository
         Properties: 
-            RepositoryName: !Sub ${EnvironmentName}-spice
+            RepositoryName: !Sub ${EnvironmentName}-iridium
 
     ECSAutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
@@ -323,7 +328,7 @@ Resources:
             DesiredCapacity: !Ref ClusterSize
             TargetGroupARNs: 
                 - !Ref MonolithTargetGroup
-                - !Ref SpiceTargetGroup
+                - !Ref IridiumTargetGroup
             Tags: 
                 - Key: Name
                   Value: !Sub ${EnvironmentName} ECS host
@@ -515,7 +520,7 @@ Resources:
             Name: /interstella/apiEndpoint
             Description: API endpoint for sending order fulfillment
             Type: String
-            Value: http://fulfill.interstella.trade
+            Value: https://orders.interstella.trade/receiving/
 
     InterstellaOrderTopicParam:
         Type: AWS::SSM::Parameter
@@ -525,13 +530,13 @@ Resources:
             Type: String
             Value: !Ref InterstellaOrdersTopicArn
     
-    SpiceSubscriptionArn:
+    IridiumSubscriptionArn:
         Type: AWS::SSM::Parameter
         Properties:
-            Name: /interstella/spiceSubscriptionArn
-            Description: SNS topic for receiving orders for spice
+            Name: /interstella/iridiumSubscriptionArn
+            Description: SNS topic for receiving orders for Iridium
             Type: String
-            Value: !Ref InterstellaSpiceOrdersTopicArn
+            Value: !Ref InterstellaIridiumOrdersTopicArn
     
     InternalFulfillmentEndpoint:
         Type: AWS::SSM::Parameter
@@ -541,13 +546,13 @@ Resources:
             Type: String
             Value: !GetAtt LoadBalancer.DNSName
     
-    SpiceTargetGroupArn:
+    IridiumTargetGroupArn:
         Type: AWS::SSM::Parameter
         Properties:
-            Name: /interstella/spiceTargetGroupArn
-            Description: SNS topic for receiving orders for spice
+            Name: /interstella/iridiumTargetGroupArn
+            Description: Target group behind ALB for Iridium microservice
             Type: String
-            Value: !Ref SpiceTargetGroup
+            Value: !Ref IridiumTargetGroup
     
     CloudWatchLogsGroupParam:
         Type: AWS::SSM::Parameter
@@ -602,7 +607,7 @@ Resources:
           - Key: deregistration_delay.timeout_seconds
             Value: 30
             
-    SpiceTargetGroup:
+    IridiumTargetGroup:
       Type: AWS::ElasticLoadBalancingV2::TargetGroup
       DependsOn: LoadBalancer
       Properties:
@@ -612,7 +617,7 @@ Resources:
         Matcher:
           HttpCode: 200-299
         HealthCheckIntervalSeconds: 10
-        HealthCheckPath: /spice/
+        HealthCheckPath: /iridium/
         HealthCheckProtocol: HTTP
         HealthCheckTimeoutSeconds: 5
         HealthyThresholdCount: 2
@@ -633,7 +638,7 @@ Resources:
           - TargetGroupArn: !Ref MonolithTargetGroup
             Type: forward
     
-    SpiceListenerRule:
+    IridiumListenerRule:
       Type: AWS::ElasticLoadBalancingV2::ListenerRule
       Properties:
         ListenerArn: !Ref LoadBalancerListener
@@ -641,18 +646,18 @@ Resources:
         Conditions:
           - Field: path-pattern
             Values:
-              - /spice/*
+              - /iridium/*
         Actions:
-          - TargetGroupArn: !Ref SpiceTargetGroup
+          - TargetGroupArn: !Ref IridiumTargetGroup
             Type: forward
             
-    CodeCommitSpiceRepo:
+    CodeCommitIridiumRepo:
       Type: "AWS::CodeCommit::Repository"
       Properties: 
         RepositoryDescription: This is a git repo for the ECS CI/CD Workshop.
-        RepositoryName: !Sub ${EnvironmentName}-spice-repo
+        RepositoryName: !Sub ${EnvironmentName}-iridium-repo
     
-    ApprovalSNSTopic:
+    SecuritySNSTopic:
       Type: "AWS::SNS::Topic"
       Properties: 
         TopicName: !Ref EnvironmentName
@@ -702,3 +707,7 @@ Outputs:
     CloudWatchLogGroup:
         Description: A reference to the CloudWatch Logs LogGroup
         Value: !Ref CloudWatchLogsGroup
+        
+    IridiumTargetGroup:
+        Description: Target Group ARN for Iridium
+        Value: !Ref IridiumTargetGroup
