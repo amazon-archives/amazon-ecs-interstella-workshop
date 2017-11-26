@@ -1,4 +1,5 @@
 ![ECS Interstella Workshop](/images/mainsplash.png)
+![ECS Interstella Workshop](/images/mainsplash_2.png)
 # Interstella!
 
 4-part workshop series:
