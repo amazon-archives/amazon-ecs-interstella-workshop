@@ -24,6 +24,7 @@ orderTopic = ssmClient.get_parameter(Name='/interstella/iridium')['Parameter']['
 orderTopicRegion = orderTopic.split(':')[3]
 
 # Subscribe SNS
+'''
 snsClient = boto3.client('sns',region_name=orderTopicRegion)
 ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 ip = 'http://'+ip+':'+str(portNum)+'/'+resource+'/'
@@ -33,7 +34,7 @@ response = snsClient.subscribe(
     Protocol='http',
     Endpoint=ip
 )
-
+'''
 def produceResource():
     print "Producing "+resource
     #time.sleep(1)
@@ -43,7 +44,7 @@ def fulfill(endpoint, number):
     if endpoint == '':
         return 'Missing endpoint'
     else:
-        fullEndpoint = 'http://'+str(endpoint)+':5000/fulfill/'
+        fullEndpoint = 'http://'+str(endpoint)+'/fulfill/'
         data = {resource : number}
         try:
             response = requests.post(fullEndpoint, data=json.dumps(data))

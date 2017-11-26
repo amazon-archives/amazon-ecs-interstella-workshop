@@ -23,6 +23,7 @@ ssmClient = boto3.client('ssm',region_name=region[:-1])
 orderTopic = ssmClient.get_parameter(Name='/interstella/magnesite')['Parameter']['Value']
 orderTopicRegion = orderTopic.split(':')[3]
 
+# SNS Subscribe
 snsClient = boto3.client('sns',region_name=orderTopicRegion)
 ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 ip = 'http://'+ip+':'+str(portNum)+'/'+resource+'/'
@@ -42,7 +43,7 @@ def fulfill(endpoint, number):
     if endpoint == '':
         return 'Missing endpoint'
     else:
-        fullEndpoint = 'http://'+str(endpoint)+'/fulfill/'
+        fullEndpoint = 'http://'+str(endpoint)+':5000/fulfill/'
         data = {resource : number}
         try:
             response = requests.post(fullEndpoint, data=json.dumps(data))
