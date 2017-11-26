@@ -65,7 +65,7 @@ Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Networ
 
 Here is what the workshop environment looks like:
 
-![CloudFormation Starting Stack](images/starthere.png)
+![CloudFormation Starting Stack](images/arch-starthere.png)
 
 The CloudFormation template will launch the following:
 * VPC with public subnets, routes and Internet Gateway

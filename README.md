@@ -1,4 +1,6 @@
+![ECS Interstella Workshop](/images/mainsplash.png)
 # Interstella!
+
 4-part workshop series:
 1. Learn how to Use Docker on AWS [Introductory]
 2. Monolith to Microservices with Amazon ECS [Intermediate]
