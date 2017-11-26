@@ -30,7 +30,17 @@ Throughout this workshop, we provide commands for you to run in the terminal.  T
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_DNS_NAME</i></b>
 </pre>
 
-The command starts after the $.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, the ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created, and the ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by going to the specific service dashboard in the AWS management console. 
+The command starts after the $.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, the ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created, and the ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by going to the specific service dashboard in the AWS management console.
+
+Hints are provided along the way and will look like:
+
+<details>
+<summary>HINT</summary>
+
+Sweet, you just revealed a hint!
+</details>
+
+Click on the arrow to show the contents of the hint.  
 
 ### Workshop Cleanup:
 You will be deploying infrastructure on AWS which will have an associated cost.  Fortunately, this workshop should take no more than 2 hours to complete, so costs will be minimal.  When you're done with the workshop, follow these steps to make sure everything is cleaned up.  
@@ -555,7 +565,7 @@ Give your ALB a name, e.g. interstella.
 
 Under **Listeners**, update the load balancer port to be port **5000**.  
 
-Under **Availability Zones**, select the workshop VPC from the drop-down menu.  You can identify the workshop VPC in the list by the tag, which should be the same as the EnvironmentName from the CloudFormation parameters you provided.  Select one of the Availability Zones (AZ) and select the Public subnet; the **Name** column will indicate which subnet is public.  Repeat with the other AZ.
+Under **Availability Zones**, select the workshop VPC from the drop-down menu.  You can identify the workshop VPC in the list by the tag, which should be the same as the EnvironmentName from the CloudFormation parameters you provided.  Select one of the Availability Zones (AZ) and select the Public subnet in the AZ; the **Name** column will indicate which subnet is public.  Repeat with the other AZ.
 
 Leave all other settings as the defaults and click **Next: Configure Security Settings** to move to ALB config Step 2.  The settings should look similar to this:  
 
@@ -565,7 +575,7 @@ Since we're not setting up https, click **Next: Configure Security Groups** to m
 
 *Note: It's highly recommend in real world cases to implement SSL encryption for any production systems handling private information.  Our lab is designed to illustrate conceptual ideas and does not implement SSL for simplicity...and it's not a real company.*
 
-You'll notice a security group that starts with your **EnvironmentName** from CloudFormation stack creation and **LoadBalancerSecurityGroup** in the name.  This was provisioned by the CloudFormation template for your convenience.  Select that security group and click **Next: Configure Routing** to move to ALB Step 4.
+You'll notice a security group that starts with your **EnvironmentName** from CloudFormation stack creation and has **LoadBalancerSecurityGroup** in the name.  This was provisioned by the CloudFormation template for your convenience.  Select that security group and click **Next: Configure Routing** to move to ALB Step 4.
 
 ![Configure ALB Security Group](images/bonus-alb-sg.png)
 
