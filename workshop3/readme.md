@@ -333,6 +333,7 @@ On the **Configure your project** page, enter in the following details:
 - Repository: **Your AWS CodeCommit repository name from above**
 
 Environment:
+
 - Environment Image: **Use an Image managed by AWS CodeBuild** - *There are two options. You can either use a predefined Docker container that is curated by CodeBuild, or you can upload your own if you want to customize dependencies etc. to speed up build time*
 - Operating System: **Ubuntu** - *This is the OS that will run your build*
 - Runtime: **Docker** - *Each image has specific versions of software installed. See [Docker Images Provided by AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)*
@@ -343,20 +344,24 @@ Environment:
 ![CodeBuild Create Project Part 1](images/1-cb-create-project-1.png)
 
 Artifacts:
+
 - Type: **No artifacts** *If there are any build outputs that need to be stored, you can choose to put them in S3.*
 
 Cache: 
+
 - Type: **No Cache** *There are no dependencies to cache, so we're not using the caching mechanism. CodeBuild does not yet cache Docker layers.*
 
 Service Role:
+
 - Service Role: **Create a service role in your account**
 - Role Name: **codebuild-dev-iridium-service-role**
 
 VPC:
+
 - VPC: **No VPC** *If you have private repos you need to access that are hosted within your VPC, choose a VPC here. In this lab we don't have anything like that*
 
+Expand the **Advanced** section:
 
-- Expand the **Advanced** section.
 - Under Environment Variables, enter two variables:
 - Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext** *You can find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
 - Name: **IMAGE_REPO_NAME** Value: **YOURENVIRONMENTNAME-iridium** Type: **Plaintext**
@@ -402,52 +407,35 @@ Choose **Apply Policy**
 
 We now have the building blocks in place to start automating the builds of our Docker images. Now it's time to figure out how to use the Amazon EC2 Container Registry. 
 
-In the AWS Management Console, navigate to the Amazon EC2 Container Service console. On the left, click on Repositories. You'll see a number of repositories that have already been created for you. Choose the one for melange and click on *View Push Commands* to get the commands to login, tag, and push to this particular ECR repo.
+In the AWS Management Console, navigate to the Amazon EC2 Container Service console. On the left, click on Repositories. This time, we'll use the iridium repository instead of the monolith repository.
 
-Copy down these instructions somewhere as we will need to add them into our code later. Alternatively, bookmark this page so you can come back.
+Copy the login, build, tag, and push commands to use later.
 
-![ECR Instructions](png)
+5\. Clone workshop repo and commit one microservice to your repo
 
-5\. SSH into one of the launched EC2 instances to get working with the code. 
-
-Go to the EC2 Dashboard in the Management Console and click on **Instances** in the left menu.  Select either one of the EC2 instances created by the CloudFormation stack and SSH into the instance.  
-
-*Tip: If your instances list is cluttered with other instances, type the **EnvironmentName** you used when running your CloudFormation template into the filter search bar to reveal only those instances.*  
-
-![EC2 Public IP](images/1-ec2-IP.png)
+Before we log into CodeCommit, to avoid entering in a password every time, we're going to cache the password. SSH back into the EC2 instance you were in earlier and run the following command to cache the password for the next two hours. While we're at it, we'll also set up a git name and email:
 
 <pre>
-$ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
+$ git config --global credential.helper "cache --timeout=7200"
+$ git config --global user.email "REPLACEMEWITHYOUREMAIL"
+$ git config --global user.name "REPLACEMEWITHYOURNAME"
 </pre>
 
-If you see something similar to the following message (host IP address and fingerprint will be different, this is just an example) when trying to initiate an SSH connection, this is normal when trying to SSH to a server for the first time.  The SSH client just does not recognize the host and is asking for confirmation.  Just type **yes** and hit **enter** to continue:
-
-<pre>
-The authenticity of host '52.15.243.19 (52.15.243.19)' can't be established.
-RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
-Are you sure you want to continue connecting (yes/no)? 
-</pre>
-
-6\. Clone workshop repo and commit one microservice to your repo
-
-Once logged in, clone your new repository and the workshop repository. Go back to the AWS CodeCommit console, click on your repository, and then copy the command to clone your empty repository.
+Now, clone your new repository and the amazon-ecs-interstella-workshop repository. Go back to the AWS CodeCommit console, click on your repository, and then copy the command to clone your empty repository.
 
 **Make sure to replace YOURENVIRONMENTNAME with the name you put into CloudFormation for the following commands**
 
 <pre>
-$ git clone https://git-codecommit.*your_region*.amazonaws.com/v1/repos/*YOURENVIRONMENTNAME-iridium*
-$ git clone https://git-codecommit.*your_region*.amazonaws.com/v1/repos/*YOURENVIRONMENTNAME-monolith*
-$ git clone https://github.com/interstellaworkshop
+$ git clone https://git-codecommit.*your_region*.amazonaws.com/v1/repos/*YOURENVIRONMENTNAME*-iridium
+$ git clone https://github.com/aws-samples/amazon-ecs-interstella-workshop.git
 </pre>
 
 Now that we have everything locally, we can move just one microservice into the new repo. Because this is for development, we'll be checking into development. 
 
 *You are now separating one part of the repository into another so that you can commit direct to the specific service. Similar to breaking up the monolith application in lab 2, we've now started to break the monolithic repository apart.*
 
-
-
 <pre>
-$ cp -R ecs-interstella-workshop/lab3/iridium/ YOURENVIRONMENTNAME-iridium/
+$ cp -R amazon-ecs-interstella-workshop/workshop3/code/iridium/* YOURENVIRONMENTNAME-iridium/
 $ cd YOURENVIRONMENTNAME-iridium
 $ git checkout -b dev
 $ git add -A
@@ -473,7 +461,7 @@ Again, one of your lackeys has started a buildspec file for you, but never got t
 $ cp buildspec.yml.draft buildspec.yml
 </pre>
 
-Now that you have a copy of the draft as your buildspec, you can start editing it. If you get stuck, look at the hintspec.yml file also in the same folder.
+Now that you have a copy of the draft as your buildspec, you can start editing it. If you get stuck, look at the hintspec.yml file also in the hints folder.
 
 Here are some links to the documentation and hints:
 
@@ -482,7 +470,46 @@ Log into ECR: http://docs.aws.amazon.com/AmazonECR/latest/userguide/Registries.h
 Building a Docker image: https://docs.docker.com/get-started/part2/#build-the-app
 Available Environment Variables in CodeBuild:  http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
 
+<details>
+<summary>
+  Click here for the answer!
+</summary>
+  There are many ways to achieve what we're looking for. In this case, the buildspec looks like this:
+  <pre>
+  version: 0.2
+
+  phases:
+    pre_build:
+      commands:
+        - echo Logging in to Amazon ECR...
+        - $(aws ecr get-login --region $AWS_DEFAULT_REGION) <i>This is the login command from earlier</i>
+    build:
+      commands:
+        - echo Build started on `date`
+        - echo Building the Docker image...          
+        - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION . # <i>There are a number of variables that are available directly in the CodeBuild build environment. We specified IMAGE_REPO_NAME earlier, but CODEBUILD_SOURCE_VERSION is there by default.</i>
+        - docker tag $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <i>This is the tag command from earlier</i>
+    post_build:
+      commands:
+        - echo Build completed on `date`
+        - echo Pushing the Docker image...
+        - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <i>This is the push command from earlier</i>
+  </pre>
+</details>
+
+Notice that when we build the image, it's looking to name it $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION. What is CODEBUILD_SOURCE_VERSION? You can find out in the [Environment Variables for Build Environments](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html) documentation.
+
+<summary>
+<details>
+  Click here for a spoiler!
+</details>
+  For Amazon S3, the version ID associated with the input artifact. For AWS CodeCommit, the commit ID or branch name associated with the version of the source code to be built. For GitHub, the commit ID, branch name, or tag name associated with the version of the source code to be built.
+</summary>
+
 8\. Check in your new file into the AWS CodeCommit repository.
+
+Make sure the name of the file is buildspec.yml and then run these commands:
+
 <pre>
 $ git add buildspec.yml
 $ git commit -m "Adding in support for AWS CodeBuild"
@@ -491,14 +518,11 @@ $ git push origin dev
 
 9\. Test your build.
 
-In the AWS CodeBuild console, choose the melange project and build it. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build**. 
+In the AWS CodeBuild console, choose the dev-iridium-service project and build it. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build**. 
 
 If all goes well, you should see a lot of successes and your image in the ECR console. Inspect the **Build Log** if there were any failures. You'll also see these same logs in the CloudWatch Logs console. 
 
-![Successes in CodeBuild](png)
-
-10\. Link AWS CodeCommit and AWS CodeBuild to automate a build of your dev branch.
-**Can I do pull request and build?**
+![Successes in CodeBuild](images/1-cb-success.png)
 
 ### Lab 2 - Automate end to end deployments
 
@@ -1014,7 +1038,7 @@ Here is a reference architecture for what you will be implementing in Lab 1:
 6\. Now that we have a branch to test, let's make sure it builds locally. In this case, we're creating a Docker image. 
 
 <pre>
-$ docker build -t melange-microservice:test .
+$ docker build -t iridium-microservice:test .
 $ docker run -it 
 $ log into ECR and push
 </pre>
