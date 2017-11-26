@@ -273,14 +273,27 @@ Click **Create Service** and click **View Service** to get the status of your se
 Once the monolith service is running, navigate back to the CloudWatch Logs dashboard, and click on your log group.  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. You can test the service by sending some data to it:
 
 <pre>
-$ curl <LoadBalancerDNSName>/fulfill/ -d '{"iridium":"1"}'
+$ curl LoadBalancerDNSName.eu-central-1.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
 </pre>
 
 You can find the load balancer DNS name in the CloudFormation outputs.
 
+You should get output like this:
+
+<pre>
+$ curl interstella-LoadBalancer-972770484.eu-central-1.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
+Your fulfillment request has been delivered
+</pre>
+
+Within CloudWatch Logs you should see output that says:
+<pre>
+Trying to send a request to the API
+API Status Code: 200
+Fulfillment request succeeded
+</pre>
+
 ### Checkpoint
 At this point, you've manually deployed a service to ECS. It works, and is going to act as the glue code that connects our microservices together. Now let's automate it!
-
 
 ### Lab 1 - Offload the application build from your dev machine
 
@@ -288,18 +301,22 @@ In this lab, you will start the process of automating the entire software delive
 
 We've already separated the code in the application, but it's time to move the code out of the monolith repo so we can work on it quicker. As part of the bootstrap process, CloudFormation has already created an AWS CodeCommit repository for you. It will be called {EnvironmentName}-iridium. We'll use this repository to break apart the iridium microservice code from the monolith. 
 
+Here's a reference architecture for what you'll be building:
+
+![CodeBuild Create](images/1-arch-codebuild.png)
+
 1\. Connect to your AWS CodeCommit repository.
 
 In the AWS Management Console, navigate to the AWS CodeCommit dashboard. Choose the repository named **Environmentname-iridium-repo** where Environmentname is what you entered in CloudFormation. A screen should appear saying **Connect to your repository**.
-*Note: If you are familiar with using git, feel free to use the ssh connection so you don't have to type in a password every time.*
+*Note: If you are familiar with using git, feel free to use the ssh connection as well.*
 
 When the **Connect to your repository** menu appears, choose **HTTPS** for the connection type to make things simpler for this lab. Then follow the **Steps to clone your repository**. Click on the **IAM User** link. This will generate credentials for you to log into CodeCommit when trying to check your code in. 
 
-![CodeCommit Connect Repo](3-4-codecommitcreateiam.png)
+![CodeCommit Create IAM User](images/1-cc-createiam.png)
 
 Scroll down to the **HTTPS Git credentials for AWS CodeCommit** section and click on **Generate**. 
 
-![Codecommit HTTPS Credentials](3-5-codecommitgeneratecreds.png)
+![Codecommit HTTPS Credentials](images/1-cc-generate-creds.png)
 
 Save the **User name** and **Password** as you'll never be able to get this again.
 
@@ -311,31 +328,42 @@ In the AWS Management Console navigate to the AWS CodeBuild console. If this is 
 
 On the **Configure your project** page, enter in the following details:
 
-Project Name: **dev-iridium-service**
+- Project Name: **dev-iridium-service**
+- Source Provider: **AWS CodeCommit**
+- Repository: **Your AWS CodeCommit repository name from above**
 
-Source Provider: **AWS CodeCommit**
+Environment:
+- Environment Image: **Use an Image managed by AWS CodeBuild** - *There are two options. You can either use a predefined Docker container that is curated by CodeBuild, or you can upload your own if you want to customize dependencies etc. to speed up build time*
+- Operating System: **Ubuntu** - *This is the OS that will run your build*
+- Runtime: **Docker** - *Each image has specific versions of software installed. See [Docker Images Provided by AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)*
+- Version: **aws/codebuild/docker:1.12.1** - *There's only one version now, but you will be able to choose different versions in the future*
+- Build Specification: **Use the buildspec.yml in the source code root directory**
+- Buildspec name: **buildspec.yml**
 
-Repository: **Your AWS CodeCommit repository name from above**
+![CodeBuild Create Project Part 1](images/1-cb-create-project-1.png)
 
-Type: **No Artifacts**
+Artifacts:
+- Type: **No artifacts** *If there are any build outputs that need to be stored, you can choose to put them in S3.*
 
-Service Role: **Create a service role in your account**
+Cache: 
+- Type: **No Cache** *There are no dependencies to cache, so we're not using the caching mechanism. CodeBuild does not yet cache Docker layers.*
 
-Role Name: **codebuild-dev-iridium-service-role**
+Service Role:
+- Service Role: **Create a service role in your account**
+- Role Name: **codebuild-dev-iridium-service-role**
 
-![CodeBuild Create Project](png)
+VPC:
+- VPC: **No VPC** *If you have private repos you need to access that are hosted within your VPC, choose a VPC here. In this lab we don't have anything like that*
 
-Expand the **Advanced** section.
 
-Under Environment Variables, enter two variables:
+- Expand the **Advanced** section.
+- Under Environment Variables, enter two variables:
+- Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext** *You can find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
+- Name: **IMAGE_REPO_NAME** Value: **YOURENVIRONMENTNAME-iridium** Type: **Plaintext**
 
-Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext**
+![CodeBuild Create Project Part 2](images/1-cb-create-project-2.png)
 
-Name: **IMAGE_REPO_NAME** Value: **YOURENVIRONMENTNAME-iridium** Type: **Plaintext**
-
-Click **Continue**
-
-Click **Save**
+Click **Continue**, and then **Save**.
 
 When you click save, CodeBuild will create an IAM role to access other AWS resources to complete your build. By default, it doesn't include everything, so we will need to modify the newly created IAM Role to allow access to EC2 Container Registry (ECR). 
 
@@ -343,10 +371,12 @@ When you click save, CodeBuild will create an IAM role to access other AWS resou
 
 In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **codebuild-dev-iridium-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. 
 
+![CodeBuild Modify IAM Role](images/1-cb-modify-iam.png)
+
 Choose **Custom Policy**. Name it **AccessECR** and enter in:
 
 <pre>
-`{
+{
     "Version": "2012-10-17",
     "Statement": [
         {
@@ -362,7 +392,7 @@ Choose **Custom Policy**. Name it **AccessECR** and enter in:
             "Effect": "Allow"
         }
     ]
-}`
+}
 
 </pre>
 
