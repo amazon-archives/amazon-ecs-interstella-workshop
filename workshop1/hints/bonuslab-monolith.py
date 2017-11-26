@@ -7,10 +7,6 @@ import json
 import requests
 import boto3
 from urllib2 import urlopen
-import logging
-import sys
-
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Get API Key and parameters from SSM
 region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
@@ -23,6 +19,7 @@ orderTopicRegion = orderTopic.split(':')[3]
 portNum = 5000
 
 # Subscribe SNS
+'''
 snsClient = boto3.client('sns',region_name=orderTopicRegion)
 ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 ip = 'http://'+ip+':'+str(portNum)+'/order/'
@@ -32,7 +29,7 @@ response = snsClient.subscribe(
     Protocol='http',
     Endpoint=ip
 )
-
+'''
 def iridium():
     print "Getting Iridium"
     time.sleep(1)
@@ -100,6 +97,8 @@ def order():
                 else:
                     # print response
                     return 'Your order has NOT been fulfilled'
+	    else: 
+		print 'SOMETHING IS WEIRD'
         except Exception as e:
             # Looks like it wasn't.
             print e

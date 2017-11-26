@@ -23,6 +23,7 @@ orderTopicRegion = orderTopic.split(':')[3]
 portNum = 5000
 
 # Subscribe SNS
+'''
 snsClient = boto3.client('sns',region_name=orderTopicRegion)
 ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 ip = 'http://'+ip+':'+str(portNum)+'/order/'
@@ -32,7 +33,7 @@ response = snsClient.subscribe(
     Protocol='http',
     Endpoint=ip
 )
-
+'''
 def iridium():
     print "Getting Iridium"
     time.sleep(1)
@@ -71,6 +72,7 @@ def index():
     return "Welcome to the monolith"
     
 # Effectively, our subscriber service.
+'''
 @app.route('/order/', methods=['POST'])
 def order():
     if request.method == 'POST':
@@ -110,7 +112,7 @@ def order():
     else:
         # We should never get here
         return "This is not the page you are looking for"
-
+'''
 # Fulfillment service
 # Expects a POST of {'thing': '1'} from microservice until we separate fulfillment into its own microservice as well
 # def fulfill(apiKey, endpoint, iridium, magnesite)

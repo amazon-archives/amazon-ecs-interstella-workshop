@@ -91,7 +91,7 @@ def order():
                     response.raise_for_status()
             elif 'bundle' in payload['Message']:
                 print 'Gathering Requested Items'
-                iridiumResult = iridium()
+                #iridiumResult = iridium()
                 magnesiteResult = magnesite()
                 response = fulfill(apiKey, endpoint, iridiumResult, magnesiteResult)
                 if response == requests.codes.ok:

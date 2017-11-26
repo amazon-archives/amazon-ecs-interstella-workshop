@@ -45,7 +45,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
   
 ### Workshop Setup:
 
-1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this lab, choose either **Ohio** or **Oregon**. 
+1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.  Workshop administrators will typically indicate which region you should use.
 
 2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.  If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.  
 
@@ -79,6 +79,7 @@ Region | Launch Template
 ------------ | -------------  
 **Ohio** (us-east-2) | [Launch Interstella CloudFormation Stack in Ohio](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop1/starthere.yaml)  
 **Oregon** (us-west-2) | [Launch Interstella CloudFormation Stack in Oregon](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop1/starthere.yaml) 
+**Ireland** (eu-west-1) | [Launch Interstella CloudFormation Stack in Ireland](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop1/starthere.yaml) 
 
 You should be on the Select Template page, notice an S3 URL link to the CloudFormation template is already populated.  Click **Next** to continue without modifying any fields on this page.    
 
@@ -472,7 +473,7 @@ You've created a task definition and are able to repeatedly deploy the monolith 
 
 By now you have successfully deployed Interstella's logistics software as a container.  If you ran multiple copies of the container/task, there would be more capacity, but each container currently self-registers to the SNS topic.  As a result, the same order would be processed by all running containers.  We need a load balancer to distribute the orders to a pool of containers, so orders are only processed once.  
 
-In this lab, you will update the code to not self-register to the SNS topic.  Then you will implement an ALB to front end your containers.  ALB has a feature called dynamic port mapping for ECS containers, which allows you to run multiple copies of the same container on the same host.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.    
+In this lab, you will update the code to not self-register to the SNS topic.  Then you will implement an ALB to front end your containers.  ALB has a feature called dynamic port mapping for ECS containers, which allows you to run multiple copies of the same container on the same host.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
 
 What ties this all together is an ECS Service, which maintains a desired task count (i.e. n number of containers) and integrates the ALB.  You could take it even further by implementing task auto scaling, but let's set up the foundation first.  And finally, you will register the ALB endpoint with the SNS topic to start the order flow.    
 
@@ -498,6 +499,19 @@ response = snsClient.subscribe(
 )
 '''
 </pre> 
+
+Save your changes and close the file.
+
+<details>
+<summary>HINT</summary>
+If you get stuck or don't really know your way around linux text editors, you can download bonuslab-monolith.py from Interstella HQ to the EC2 instance and replace the old file with these commands.
+
+<pre>
+$ cd ~/code/monolith
+$ curl -O http://www.interstella.trade/workshop1/hints/bonuslab-monolith.py
+$ mv bonuslab-monolith.py monolith.py
+</pre>
+</details>
 
 Rebuild the container after making these modifications and tag/push a new version of the container image to ECR.  If you do not remember the commands, refer to Lab 1 Step 4 for building the image and Lab 1 Step 6 for tagging and pushing the image up to ECR.  
 
