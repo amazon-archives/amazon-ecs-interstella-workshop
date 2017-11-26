@@ -479,7 +479,7 @@ Navigate to the AWS CodePipeline dashboard and choose your pipeline. Edit the pi
 Select and populate the following Values:
 
 - **Action Category - Test**
-- **Action Name - CfnNag**
+- **Action Name - StaticAnalysis**
 - **Test provider - AWS CodeBuild**
 - **Project Name - CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
 - **Input Artifact #1 - MyApp**
@@ -488,7 +488,7 @@ Click **Add Action**
 
 2\. Create a new yml file for the test CodeBuild project to use.
 
-In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-cfn-nag.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yaml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-cfn-nag.draft in the service folder for you to start. It looks like this:
+In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-build.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yaml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-build.draft in the service folder for you to start. It looks like this:
 
 <pre>
 version: 0.2
@@ -524,12 +524,39 @@ phases:
   A completed file is in the hints folder of workshop3.
 </details><br \>
 
-You should be good to go for the cfn-nag build now, but why stop here? Let's add in two more lines to look for any sort of AWS Access or Secret keys. 
+You should be good to go for the cfn-nag build now, but why stop here? Let's add in a few more lines to look for any sort of AWS Access or Secret keys. Can you think of a way to do this? AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. Secret keys, however, can contain some special characters and are 40 characters long. How would you look through your code for anything like this and throw a warning up if something exists?
 
-Within the build section, add in the following lines:
-<pre>
+<details>
+<summary>
+  Click here for an answer that we've come up with.
+</summary>
+  We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. 
 
-</pre>
+  Within the build section, add in a line to run a script in the test folder.
+  <pre>
+  ./tests/checkaccesskeys.sh 
+  </pre>
+
+  Your test-build.yml should now look like this:
+
+  <pre>
+  version: 0.2
+
+  phases:
+    pre_build:
+      commands:
+        - gem install cfn-nag
+    build:
+      commands:
+        - echo 'In Build'
+        - cfn_nag_scan --input-path service.yaml
+        - ./tests/checkaccesskeys.sh
+  </pre>
+
+  A final version of this test-build.yml is also located in the hints folder. It's named final-test-build.yml.
+</details><br \>
+
+Let's check everything in and run the test. 
 
 <pre>
 $ git add test-cfn-nag.yml
@@ -537,7 +564,7 @@ $ git commit -m "Adding in buildspec for cfn-nag"
 $ git push origin master
 </pre>
 
-
+3\. 
 
 
 
