@@ -1,7 +1,7 @@
-# Interstella 8888: CICD for Containers on AWS
+# Interstella: CICD for Containers on AWS
 
 ## Overview
-Welcome to the Interstella 8888 team!  Interstella 8888 is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of containers, especially in the context of microservices and devops. We've already taken some steps in that direction, but can you help us take this to the next level? 
+Welcome to the Interstella Galactic Trading Co team!  Interstella Galactic Trading Co is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of containers, especially in the context of microservices and devops. We've already taken some steps in that direction, but can you help us take this to the next level? 
 
 We've already moved to a microservice based model, but are still not able to develop quickly. We want to be able to deploy to our microservices as quickly as possible while maintaining a certain level of confidence that our code will work well. This is where you come in.
 
@@ -71,7 +71,8 @@ The CloudFormation template will launch the following:
 * VPC with public subnets, routes and Internet Gateway
 * EC2 Instances with security groups (inbound tcp 22, 80, 5000) and joined to an ECS cluster 
 * ECR repositories for your container images
-* Parameter store to hold values for API Key, fulfillment API endpoint, and SNS Orders topic
+* Application Load Balancer to front all your services
+* Parameter store to hold values for your API Key, Order Fulfillment URL, SNS Topic ARNs to subscribe to, and a security SNS topic.
 
 *Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in an admin CloudFormation template, so you can run this workshop at your office, home, etc.*
 
@@ -80,7 +81,24 @@ Click on the CloudFormation launch template link below for the region you select
 Region | Launch Template
 ------------ | -------------  
 **Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)  
-**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)
+**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)
+
+The link above will bring you to the AWS CloudFormation console with the **Specify an Amazon S3 template URL** field populated and radio button selected. Just click **Next**. If you do not have this populated, please click the link above.
+
+![CloudFormation Starting Stack](images/cfn-createstack-1.png)
+
+In the **Specify Details** page, there are some parameters to populate. Feel free to leave any of the pre-populated fields as is. The only fields you NEED to change are:
+
+- EnvironmentName - *This name will be prepended to many of the resources created to help you distinguish the workshop resources from other existing ones*
+- InterstellaApiKey - *In a previous step, you visited the getkey website to get an API key for fulfillment. Enter it here.*
+- KeyPairName - *You will need to log into an EC2 instance. This is your authentication mechanism. If there are no options in the dropdown, please create a new keypair*
+
+Click **Next**
+
+In the **Options** section, you can leave things blank and default. You can optionally enter in tags to be applied to all resources.
+
+In the **Review** section, take a look at all the parameters and make sure they're accurate. Check the box next to **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** as the CloudFormation template will create IAM roles on your behalf for this workshop. As part of the cleanup, CloudFormation will remove the IAM Roles for you.
+
 
 
 ### Lab 1 - Offload the application build from your dev machine
