@@ -1,7 +1,7 @@
 # Interstella!
 4-part workshop series:
-1. Learn Docker and ECS [Introductory]
-2. Break Monolith to Microservices [Intermediate]
-3. CI/CD with CodePipeline [Intermediate/Advanced]
-4. Advanced Microservices Operations: Load testing, Perf monitoring, Service Mesh [Advanced] 
+1. Learn how to Use Docker on AWS [Introductory]
+2. Monolith to Microservices with Amazon ECS [Intermediate]
+3. CI/CD for Containers on AWS [Intermediate/Advanced]
+4. Advanced Microservices Operations: Load testing, Monitoring, Service Mesh [Advanced]
 
