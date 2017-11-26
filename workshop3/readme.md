@@ -280,11 +280,11 @@ Add a section for artifacts and include the build.json file and also the service
     ***Click here to show detailed info on what to do in the buildspec file***
   </summary>
 
-Here are some hints and documentation:<br \>
+Here are some hints and documentation:
 
-[Buildspec reference](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) <br \>
+[Buildspec reference](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) 
 
-Add a section to your buildspec.yml file entitled "**env**". Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: <br \>
+Add a section to your buildspec.yml file entitled "**env**". Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: 
 
 <pre>
 env:
@@ -293,7 +293,7 @@ env:
     ...
 </pre>
 
-Now, look at the service.yaml file. We need to have CodeBuild output all the parameters so CloudFormation can take them in as inputs. The parameters in service.yaml are: <br \>
+Now, look at the service.yaml file. We need to have CodeBuild output all the parameters so CloudFormation can take them in as inputs. The parameters in service.yaml are: 
 
 <pre>
 Tag:
@@ -318,7 +318,7 @@ CwlPrefix:
   Type: String
 </pre>
 
-Now let's write a parameters file that will map my parameters to that of the CloudFormation template. <br \>
+Now let's write a parameters file that will map my parameters to that of the CloudFormation template. 
 
 <pre>
 ...
@@ -327,9 +327,9 @@ commands:
   - printf '{"Parameters":{"Tag":"%s","DesiredCount":"2","TargetGroupArn":"%s","Cluster":"%s","Repository":"%s", "cloudWatchLogsGroup":"%s","CwlPrefix":"%s"}}' $TAG $targetGroup $ecsClusterName $IMAGE_REPO_NAME $cloudWatchLogsGroup $ENV_TYPE > build.json
 </pre>
 
-If you get stuck, look at the file **finalhelpspec.yml** <br \>
+If you get stuck, look at the file **finalhelpspec.yml** 
 
-</details><br \>
+</details>
 4\. Create an AWS CodePipeline Pipeline and set it up to listen to AWS CodeCommit. 
 
 In the AWS Management Console, navigate to the AWS CodePipeline console. Click on **Create Pipeline**.
@@ -406,19 +406,19 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
   <summary>
     *Click here to expand this section and we'll go over how to find out what happened.*
   </summary>
-  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.<br \>
+  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.
 
-  Now click on **Link to execution details** since the error message didn't tell us much.<br \>
+  Now click on **Link to execution details** since the error message didn't tell us much.
 
-  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**<br \>
+  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**
 
-  Looking in the logs, we can see that **AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/orderTopic status code: 400**<br \>
+  Looking in the logs, we can see that **AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/orderTopic status code: 400**
 
-  Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br \>
+  Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. 
 
-  In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **code-build-prod-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br \>
+  In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **code-build-prod-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. 
 
-  Choose **Custom Policy**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:<br \>
+  Choose **Custom Policy**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:
 
 <pre>
 `{
@@ -448,9 +448,9 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
 
 </pre>
 
-Choose **Apply Policy**<br \>
+Choose **Apply Policy**
 
-</details><br \>
+</details>
 
 Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
 
@@ -488,7 +488,7 @@ Click **Add Action**
 
 2\. Create a new yml file for the test CodeBuild project to use.
 
-In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-build.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yaml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-build.draft in the service folder for you to start. It looks like this:
+In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-buildspec.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yaml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-buildspec.yml.draft in the service folder for you to start. It looks like this:
 
 <pre>
 version: 0.2
@@ -521,8 +521,8 @@ phases:
         - cfn_nag_scan --input-path service.yaml
   </pre>
   
-  A completed file is in the hints folder of workshop3.
-</details><br \>
+  A completed file is in the hints folder of workshop3. It's named hint1-test-buildspec.yml
+</details>
 
 You should be good to go for the cfn-nag build now, but why stop here? Let's add in a few more lines to look for any sort of AWS Access or Secret keys. Can you think of a way to do this? AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. Secret keys, however, can contain some special characters and are 40 characters long. How would you look through your code for anything like this and throw a warning up if something exists?
 
@@ -553,8 +553,8 @@ You should be good to go for the cfn-nag build now, but why stop here? Let's add
         - ./tests/checkaccesskeys.sh
   </pre>
 
-  A final version of this test-build.yml is also located in the hints folder. It's named final-test-build.yml.
-</details><br \>
+  A final version of this test-buildspec.yml is also located in the hints folder. It's named final-test-buildspec.yml.
+</details>
 
 Let's check everything in and run the test. 
 
