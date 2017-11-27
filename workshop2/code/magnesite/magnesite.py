@@ -15,7 +15,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # This should be the endpoint of the monolith
 endpoint = os.getenv('monolithUrl')
-portNum = 8001
+portNum = 80
 resource = 'magnesite'
 region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
 
