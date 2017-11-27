@@ -414,7 +414,7 @@ Add a container to the task definition.  Click **Add container**.  Enter values 
 * **Container name** - this is a logical identifier, not the name of the container image, e.g. iridium
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
-* **Port mapping** - set host and container ports to be 8001
+* **Port mapping** - set host and container ports to be 80
 
 The iridium app code is designed to use the monolith integration hook to send order fulfillment to the fulfillment service running on the monolith.  It needs the monolith endpoint stored in an environment variable.
 
@@ -856,7 +856,7 @@ Also, notice a path "/iridium*" is created here for path-based routing.  This ha
 
 Click **Next step** for this step and step 3.  Click **Create Service**.  Once ECS completes its tasks, click **View Service** to watch the service enter the RUNNING state. 
 
-5\. Ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
+8\. Ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
@@ -866,13 +866,18 @@ Enter the ALB endpoint in the text field using the following format:
 http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/iridium/
 </pre>
 
-*Note: The ALB is exposing a port 80 listener and mapping that to the iridium service container which listens on port 8001.*
+Click on **Subscribe to Iridium topic** to start receiving orders for the iridium resource.
 
-Click on **Subscribe to Iridium topic** to subscribe to the Orders SNS topic.  
+![SNS Subscription](images/3-alb-sns-sub.png)
 
-![SNS Subscription](images/bonus-alb-sns-sub.png)
+Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs.  You may notice GET requests in your log stream.  Those are the ALB health checks.  You can also check the monolith log stream to confirm 
 
-Once the endpoint is subscribed, you should start seeing orders POST in CloudWatch Logs.  You'll notice many GET requests in your log stream.  Those are the ALB health checks.  Those were left in to confirm traffic between the ALB and container(s). 
+
+9\. 
+
+
+
+MAYBE USE LATER:
 
 6\. Let's update the ECS Service's desired task count to introduce another instance of the logistics platform container behind the ALB.  
 
