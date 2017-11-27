@@ -425,6 +425,7 @@ Enter a name for your Task Definition, e.g. interstella-monolith.  Leave Task Ro
 *Tip: The next step will reference the container image you pushed to ECR, so make sure you have the ECR repository URI for the monolith container handy.*
 
 Click **Add container**.  Enter values for the following fields:
+
 * **Container name** - this is a logical identifier, not the name of the container image, e.g. monolith
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
@@ -480,6 +481,8 @@ Navigate to the EC2 Container Service dashboard and click **Task Definitions** i
 Under **Container Definitions**, click on the monolith container definition you created earlier.  You'll see the Standard options that you had set.  Scroll down to **Storage and Logging** options and find the **Log configuration** section.  Select **awslogs** from the *Log driver* dropdown. For *Log options*, enter the name of the CloudWatch log group that you created in step 7 and enter the AWS region of the log group.
 
 ![CloudWatch Logs integration](images/2-awslogs-config.png)
+
+*Note: The AWS region is where you're running the workshop, so if you created the stack in Ireland, the region would be eu-west-1.  The screenshot above is just an example from running the stack in us-east-2.*
 
 Click **Update** to finalize the updates to the container definition, and click **Create** to create the new revision of your task definition.  Notice your task definition's revision number incremented. 
 
