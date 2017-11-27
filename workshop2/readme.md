@@ -858,7 +858,7 @@ Click **Next step** for this step and step 3.  Click **Create Service**.  Once E
 
 5\. Ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
 
-Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.  
+Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
 Enter the ALB endpoint in the text field using the following format:
 
@@ -866,7 +866,9 @@ Enter the ALB endpoint in the text field using the following format:
 http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/iridium/
 </pre>
 
-Click on **Subscribe to monolith resources** to subscribe to the Orders SNS topic.  
+*Note: The ALB is exposing a port 80 listener and mapping that to the iridium service container which listens on port 8001.*
+
+Click on **Subscribe to Iridium topic** to subscribe to the Orders SNS topic.  
 
 ![SNS Subscription](images/bonus-alb-sns-sub.png)
 
