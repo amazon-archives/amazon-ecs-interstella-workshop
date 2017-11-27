@@ -279,9 +279,9 @@ Try reordering the instructions in your Dockerfile to copy the monolith code ove
 Here's another [working Dockerfile](http://www.interstella.trade/workshop1/hints/Dockerfile.anotherhint) as a hint.
 
 If you want to see the improvement in build time, you'll need to:
-- rebuild the image after you've reordered the instructions
-- add another arbitrary comment to monolith.py
-- rebuild the image again and notice dependencies are referenced from cache:
+
+* introduce a change in monolith.py, such as adding another arbitrary comment to monolith.py
+* rebuild the Docker image again and notice dependencies are referenced from cache:
 
 <pre>
 Step 11/15 : COPY ./requirements.txt .
