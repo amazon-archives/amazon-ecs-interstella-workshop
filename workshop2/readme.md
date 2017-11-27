@@ -875,32 +875,6 @@ Once the endpoint is subscribed, you should start seeing orders come in as HTTP 
 
 9\. 
 
-
-
-MAYBE USE LATER:
-
-6\. Let's update the ECS Service's desired task count to introduce another instance of the logistics platform container behind the ALB.  
-
-Navigate to the ECS dashboard, click on **Clusters** in the left menu, and click on the workshop cluster. 
-
-![Select ECS cluster](images/bonus-cluster.png)
-
-Select the ECS Service you created in the **Services** tab, and click **Update**.
-
-![Update ECS Service](images/bonus-ecs-service-update.png)
-
-Edit **Number of tasks** to be **2**.
-
-![Update ECS Service task count](images/bonus-ecs-service-update-count.png)
-
-No other changes are necessary, so keep clicking **Next Step** until Step 4, where you'll click **Update Service**.  Once the update's completed, click **View Service** and you'll notice the **Desired Count** is now **2** with a **Running Count** of **1**.
-
-![Review update](images/bonus-ecs-service-updated-1.png)
-
-Once the 2nd container is launced, you'll see the **Running Count** show as **2**.  You'll need to click the refresh button near the upper right hand corner of the table to see this change. 
-
-![Review update complete](images/bonus-ecs-service-updated-2.png)
-
 ### Checkpoint: 
 In this bonus lab, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella 8888's logistics platform container.  
 
