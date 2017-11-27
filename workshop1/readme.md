@@ -319,13 +319,31 @@ $ docker run -p 5000:5000 monolith
 Here's a sample output:
 
 <pre>
-[ec2-user@ip-10-177-10-249 ~]$ docker run -p 5000:5000 monolith
- * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 265-056-304
-54.240.230.188 - - [13/Nov/2017 01:46:52] "POST /order/ HTTP/1.1" 200 -
-54.240.230.246 - - [13/Nov/2017 01:46:53] "POST /order/ HTTP/1.1" 200 -
+[ec2-user@ip-10-177-10-137 ~]$ docker run -p 5000:5000 monolith
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
+INFO:werkzeug: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:werkzeug: * Restarting with stat
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 150-079-776
+Incoming subscription request from SNS...
+Sending subscription confirmation to SNS...
+INFO:werkzeug:205.251.234.35 - - [27/Nov/2017 18:10:48] "POST /order/ HTTP/1.1" 200 -
+Incoming subscription request from SNS...
+Sending subscription confirmation to SNS...
+INFO:werkzeug:54.240.230.190 - - [27/Nov/2017 18:10:49] "POST /order/ HTTP/1.1" 200 -
+Gathering Requested Items
+Getting Iridium
+Getting Magnesite
+Trying to send a request to the API
+API Status Code: 200
+Bundle fulfilled
 </pre>
 
 *Note: Your output will not be exactly like this, but it will be similar.*
