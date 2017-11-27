@@ -508,7 +508,9 @@ Click on the log stream to view log entries.
 ![CloudWatch Log Entries](images/2-cwl-logs.png)
 
 ### Checkpoint:  
-You've created a task definition and are able to repeatedly deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container is working as expected.  Now you're ready to tackle a bigger challenge, horizontally scaling the containerized logistics platform, so you can process more orders and as a bonus improve the fault tolerance.  Let's get to it! 
+You've created a task definition and are able to repeatedly deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container is working as expected.  Now you're ready to tackle a bigger challenge, horizontally scaling the containerized logistics platform, so you can process more orders and as a bonus improve the fault tolerance.  Let's get to it!
+
+Before moving on to the Bonus Lab, in the ECS dashboard, stop the monolith task that you just ran in step 5. 
 
 * * *
 
@@ -550,7 +552,7 @@ Save your changes and close the file.
 If you get stuck or don't really know your way around linux text editors, you can download bonuslab-monolith.py from Interstella HQ to the EC2 instance and replace the old file with these commands.
 
 <pre>
-$ cd ~/code/monolith
+$ cd ~/
 $ curl -O http://www.interstella.trade/workshop1/hints/bonuslab-monolith.py
 $ mv bonuslab-monolith.py monolith.py
 </pre>
@@ -648,9 +650,9 @@ In the **Container to load balance** section, select the **Container name : port
 
 Click **Add to load balancer**.  More fields related to the container will appear.  
 
-For the **Listener Port**, select the ALB listener configured earlier.  
+For the **Listener Port**, select from the drop-down the ALB listener configured earlier.  
 
-For the **Target Group Name**, select the target group created earlier during ALB setup.
+For the **Target Group Name**, select from the drop-down the target group created earlier during ALB setup.
 
 Leave the other fields as defaults and click **Next Step**.
 
@@ -676,13 +678,13 @@ To get the ALB endpoint, navigate to the EC2 Dashboard, click on **Load Balancer
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.  
 
-Enter the ALB endpoint in the text field using the following format:
+Enter the ALB endpoint in the SNS Subscription text field using the following format:
 
 <pre>
 http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>:5000/order/
 </pre>
 
-Click on **Subscribe to monolith resources** to subscribe to the Orders SNS topic.  
+Click on **Subscribe to Orders topic** to subscribe to the Orders SNS topic.  
 
 ![SNS Subscription](images/bonus-alb-sns-sub.png)
 

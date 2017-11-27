@@ -7,6 +7,10 @@ import json
 import requests
 import boto3
 from urllib2 import urlopen
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Get API Key and parameters from SSM
 region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
