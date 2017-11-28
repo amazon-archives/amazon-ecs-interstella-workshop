@@ -451,8 +451,9 @@ If we go back to the AWS CodeCommit dashboard, we should now be able to look at 
 
 AWS CodeBuild uses a definition file called a buildspec.yml file. The contents of the buildspec will determine what AWS actions CodeBuild should perform. The key parts of the buildspec are Environment Variables, Phases, and Artifacts. 
 
-At Interstella, we want to follow best practices, so there are 2 requirements:
-1. We don't use the *latest* tag for Docker images. We have decided to use the Commit ID from our source control instead as the tag so we know exactly what image was deployed.
+**At Interstella, we want to follow best practices, so there are 2 requirements:**
+
+1. We don't use the ***latest*** tag for Docker images. We have decided to use the Commit ID from our source control instead as the tag so we know exactly what image was deployed.
 2. We want this buildspec to be generalized to multiple environments but use different CodeBuild projects to build our Docker containers. You have to figure out how to do this
 
 Again, one of your lackeys has started a buildspec file for you, but never got to finishing it. Add the remaining instructions to the buildspec.yml.draft. The file should bein your YOURENVIRONMENTNAME-iridium folder and already checked in. Copy the draft to a buildspec.yml file.
@@ -497,7 +498,7 @@ Available Environment Variables in CodeBuild:  http://docs.aws.amazon.com/codebu
   </pre>
 </details>
 
-Notice that when we build the image, it's looking to name it $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION. What is CODEBUILD_SOURCE_VERSION? You can find out in the [Environment Variables for Build Environments](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html) documentation.
+Notice that when we build the image, it's looking to name it $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION. What is CODEBUILD_SOURCE_VERSION? You can find out in the [Environment Variables for Build Environments](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html) documentation. How does this change when we use CodePipeline?
 
 <summary>
 <details>
