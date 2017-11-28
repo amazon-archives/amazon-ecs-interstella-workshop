@@ -2,12 +2,12 @@
 <html>
 <head>
   <title>Lab Instructions</title>
-  <meta name="description" content="Interstella instructions" />
+    <meta name="description" content="Interstella instructions" />
 
-</head>
+    </head>
 
-<body>
-<textarea theme="cerulean" style="display:none;">
+    <body>
+    <textarea theme="cerulean" style="display:none;">
 
 # Interstella 8888: Learn How to Use Docker on AWS
 
@@ -170,9 +170,9 @@ Are you sure you want to continue connecting (yes/no)?
 Note: the flag for the curl command below is a capital O, not a zero.   
 
 <pre>
-$ curl -O http://www.interstella.trade/workshop1/code/monolith.py
-$ curl -O http://www.interstella.trade/workshop1/code/requirements.txt
-$ curl -O http://www.interstella.trade/workshop1/code/Dockerfile.draft
+$ curl -O https://www.interstella.trade/workshop1/code/monolith.py
+$ curl -O https://www.interstella.trade/workshop1/code/requirements.txt
+$ curl -O https://www.interstella.trade/workshop1/code/Dockerfile.draft
 </pre>
 
 One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control.  Looking at Dockerfile.draft, it looks like it's almost done, we just need a few more lines added.
@@ -255,22 +255,22 @@ Rebuild the image using the 'docker build' command from above and notice Docker 
 
 <pre>
 Step 8/15 : RUN virtualenv ${PRODUCT}
-  ---> Using cache
-  ---> f53443a081bf
+ ---> Using cache
+ ---> f53443a081bf
 Step 9/15 : WORKDIR ${PRODUCT}
-  ---> Using cache
-  ---> 8ed7d4c92e24
+ ---> Using cache
+ ---> 8ed7d4c92e24
 Step 10/15 : RUN bin/pip install --upgrade pip &&     bin/pip install requests[security]
-  ---> Using cache
-  ---> 68cf52215eb7
+ ---> Using cache
+ ---> 68cf52215eb7
 Step 11/15 : COPY ./monolith.py .
-  ---> 313b28d629bb
+ ---> 313b28d629bb
 Removing intermediate container 3b9db00c476d
 Step 12/15 : COPY ./requirements.txt .
-  ---> 24aea2192c09
+ ---> 24aea2192c09
 Removing intermediate container 88fb9b72087e
 Step 13/15 : RUN bin/pip install -r requirements.txt
-  ---> Running in 30794a84a399
+ ---> Running in 30794a84a399
 Collecting Flask==0.12.2 (from -r requirements.txt (line 1))
 </pre>
 
@@ -286,13 +286,13 @@ If you want to see the improvement in build time, you'll need to:
 
 <pre>
 Step 11/15 : COPY ./requirements.txt .
-  ---> Using cache
-  ---> 448f69a6bf1b
+ ---> Using cache
+ ---> 448f69a6bf1b
 Step 12/15 : RUN bin/pip install -r requirements.txt
-  ---> Using cache
-  ---> ff783b9e3fda
+ ---> Using cache
+ ---> ff783b9e3fda
 Step 13/15 : COPY ./monolith.py .
-  ---> f5583e78794b
+ ---> f5583e78794b
 Removing intermediate container a4ace03b75dd
 Step 14/15 : EXPOSE 5000
 </pre>
@@ -330,31 +330,31 @@ $ docker run -p 5000:5000 monolith
 Here's a sample output:
 
 <pre>
-  [ec2-user@ip-10-177-10-137 ~]$ docker run -p 5000:5000 monolith
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
-  INFO:werkzeug: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
-  INFO:werkzeug: * Restarting with stat
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
-  INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
-  WARNING:werkzeug: * Debugger is active!
-  INFO:werkzeug: * Debugger PIN: 150-079-776
-  Incoming subscription request from SNS...
-  Sending subscription confirmation to SNS...
-  INFO:werkzeug:205.251.234.35 - - [27/Nov/2017 18:10:48] "POST /order/ HTTP/1.1" 200 -
-  Incoming subscription request from SNS...
-  Sending subscription confirmation to SNS...
-  INFO:werkzeug:54.240.230.190 - - [27/Nov/2017 18:10:49] "POST /order/ HTTP/1.1" 200 -
-  Gathering Requested Items
-  Getting Iridium
-  Getting Magnesite
-  Trying to send a request to the API
-  API Status Code: 200
-  Bundle fulfilled
+[ec2-user@ip-10-177-10-137 ~]$ docker run -p 5000:5000 monolith
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
+INFO:werkzeug: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:werkzeug: * Restarting with stat
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 150-079-776
+Incoming subscription request from SNS...
+Sending subscription confirmation to SNS...
+INFO:werkzeug:205.251.234.35 - - [27/Nov/2017 18:10:48] "POST /order/ HTTP/1.1" 200 -
+Incoming subscription request from SNS...
+Sending subscription confirmation to SNS...
+INFO:werkzeug:54.240.230.190 - - [27/Nov/2017 18:10:49] "POST /order/ HTTP/1.1" 200 -
+Gathering Requested Items
+Getting Iridium
+Getting Magnesite
+Trying to send a request to the API
+API Status Code: 200
+Bundle fulfilled
 </pre>
 
 *Note: Your output will not be exactly like this, but it will be similar.*
@@ -508,9 +508,9 @@ Click on the log stream to view log entries.
 ![CloudWatch Log Entries](images/2-cwl-logs.png)
 
 ### Checkpoint:  
-You've created a task definition and are able to repeatedly deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container is working as expected.  Now you're ready to tackle a bigger challenge, horizontally scaling the containerized logistics platform, so you can process more orders and as a bonus improve the fault tolerance.  Let's get to it!
+You've created a task definition and are able to repeatedly deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container is working as expected.  Now you're ready to tackle a bigger challenge, horizontally scaling the containerized logistics platform, so you can process more orders and as a bonus improve the fault tolerance.  Let's get to it! 
 
-Before moving on to the Bonus Lab, in the ECS dashboard, stop the monolith task that you just ran in step 5. 
+Before moving on to the Bonus Lab, in the ECS dashboard, stop the monolith task that you just ran in step 5.
 
 * * *
 
@@ -553,7 +553,7 @@ If you get stuck or don't really know your way around linux text editors, you ca
 
 <pre>
 $ cd ~/
-$ curl -O http://www.interstella.trade/workshop1/hints/bonuslab-monolith.py
+$ curl -O https://www.interstella.trade/workshop1/hints/bonuslab-monolith.py
 $ mv bonuslab-monolith.py monolith.py
 </pre>
 </details>
@@ -738,15 +738,11 @@ This is really important because if you leave stuff running in your account, it 
 1. Delete any manually created resources throughout the labs, e.g. ALBs (if you got to the bonus lab).  Certain things like task definitions do not have a cost associated, so you don't have to worry about that.  If you're not sure what has a cost, you can always look it up on our website.  All of our pricing is publicly available, or feel free to ask one of the workshop attendants when you're done.
 2. If you got to the bonus lab, you created an ECS service.  To delete that, first update the desired task count to 0, and then delete the ECS service.  
 3. Delete any container images stored in ECR, delete CloudWatch logs groups, and delete ALBs and target groups (if you got to the bonus lab)
-4. Finally, delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.  
-
-* * *
-
+4. Finally, delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
 ## Credits
-Markdown rendering by [Strapdown.js]("http://strapdownjs.com/)
+Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 
 </textarea>
-<script src="../js/strapdown/strapdown.js"></script>
+<script src='../js/strapdown/strapdown.js'></script>
 </body>
 </html>
-

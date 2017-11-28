@@ -159,9 +159,9 @@ Are you sure you want to continue connecting (yes/no)?
 Note: the flag for the curl command below is a capital O, not a zero.   
 
 <pre>
-$ curl -O http://www.interstella.trade/workshop1/code/monolith.py
-$ curl -O http://www.interstella.trade/workshop1/code/requirements.txt
-$ curl -O http://www.interstella.trade/workshop1/code/Dockerfile.draft
+$ curl -O https://www.interstella.trade/workshop1/code/monolith.py
+$ curl -O https://www.interstella.trade/workshop1/code/requirements.txt
+$ curl -O https://www.interstella.trade/workshop1/code/Dockerfile.draft
 </pre>
 
 One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control.  Looking at Dockerfile.draft, it looks like it's almost done, we just need a few more lines added.
@@ -542,7 +542,7 @@ If you get stuck or don't really know your way around linux text editors, you ca
 
 <pre>
 $ cd ~/
-$ curl -O http://www.interstella.trade/workshop1/hints/bonuslab-monolith.py
+$ curl -O https://www.interstella.trade/workshop1/hints/bonuslab-monolith.py
 $ mv bonuslab-monolith.py monolith.py
 </pre>
 </details>
