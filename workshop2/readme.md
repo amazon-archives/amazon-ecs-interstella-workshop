@@ -1,7 +1,7 @@
 # Interstella 8888: Monolith to Microservices with Amazon ECS
 
 ## Overview:
-Welcome back from your first mission where you helped Interstella 8888 maintain its status as the premier intergalactic shipping company in the universe by containerizing our logistics platform and running it on Amazon Elastic Container Service (ECS). We could your help again!
+Welcome back from your first mission where you helped Interstella 8888 maintain its status as the premier intergalactic shipping company in the universe by containerizing our logistics platform and running it on Amazon Elastic Container Service (ECS). We could use your help again!
 
 *Note: if you are brand new to Docker containers and ECS, check out the first workshop in the series where you containerize an application, tag/push the image to a Docker image repository, deploy the container with ECS, and scale with an ALB - http://interstella.trade/workshop1/)*
 
@@ -49,11 +49,7 @@ Sweet, you just revealed a hint!
 Click on the arrow to show the contents of the hint.  
 
 ### Workshop Cleanup:
-You will be deploying infrastructure on AWS which will have an associated cost.  Fortunately, this workshop should take no more than 2 hours to complete, so costs will be minimal.  When you're done with the workshop, follow these steps to make sure everything is cleaned up.  
-
-1. Delete any manually created resources throughout the labs.  Certain things do not have a cost associated, and if you're not sure what has a cost, you can always look it up on our website.  All of our pricing is publicly available, or feel free to ask one of the workshop attendants when you're done. 
-2. Delete any container images stored in ECR, delete CloudWatch logs groups, and delete ALBs and target groups (if you get to that lab) 
-3. Delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.
+You will be deploying infrastructure on AWS which will have an associated cost.  Fortunately, this workshop should take no more than 2 hours to complete, so costs will be minimal.  If you're attending an AWS event, credits will be provided.
 
 * * * 
 
@@ -217,13 +213,31 @@ $ docker run -p 5000:5000 monolith
 You should see output similar to this:
 
 <pre>
-[ec2-user@ip-10-177-10-249 ~]$ docker run -p 5000:5000 monolith
- * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 265-056-304
-54.240.230.188 - - [13/Nov/2017 01:46:52] "POST /order/ HTTP/1.1" 200 -
-54.240.230.246 - - [13/Nov/2017 01:46:53] "POST /order/ HTTP/1.1" 200 -
+[ec2-user@ip-10-177-11-38 monolith]$ docker run -p 5000:5000 monolith
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
+INFO:werkzeug: * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+INFO:werkzeug: * Restarting with stat
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.eu-west-1.amazonaws.com
+INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): sns.us-west-2.amazonaws.com
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 697-065-810
+Incoming subscription request from SNS...
+Sending subscription confirmation to SNS...
+INFO:werkzeug:54.240.230.188 - - [28/Nov/2017 08:11:07] "POST /order/ HTTP/1.1" 200 -
+Incoming subscription request from SNS...
+Sending subscription confirmation to SNS...
+INFO:werkzeug:54.240.230.189 - - [28/Nov/2017 08:11:07] "POST /order/ HTTP/1.1" 200 -
+Gathering Requested Items
+Getting Iridium
+Getting Magnesite
+Trying to send a request to the API
+API Status Code: 200
+Bundle fulfilled
 </pre>
 
 *Note: You'll see inbound POST requests start printing out.  Your output will not be exactly like this, but it will be similar.*
@@ -232,7 +246,7 @@ Use **Ctrl-C** to stop the container.
 
 5\. Now that you have a deployable container, tag and push the image to Amazon EC2 Container Registry (ECR).  You now have version control and persistence, and ECS will reference the image from ECR when deploying the container.    
 
-In the AWS Management Console, navigate to the ECS dashboard and click on **Repositories** in the left menu.  You should see the Docker image repositories created by CloudFormation for the monolith and resource microservices prefixed by the EnvironmentName you specified in the CloudFormation template.  Here's an example where I used 'interstella' as the EnvironmentName:  
+In the AWS Management Console, navigate to the ECS dashboard and click on **Repositories** in the left menu.  You should see the Docker image repositories created by CloudFormation for the monolith and resource microservices prefixed by the EnvironmentName you specified in the CloudFormation template.  Here's an example where 'interstella' is used as the EnvironmentName:  
 
 ![ECR repositories](images/1-ecr-repos.png)
 
@@ -302,6 +316,7 @@ Click **Create** to finish creating the task definition.
 In the **Actions** dropdown, select **Create Service**.  
 
 Fill in the following fields:
+
 * **Service Name** - this is a logical identifier for your service, e.g. interstella-monolith
 * **Number of tasks** - set to **1** for now; you will horizontally scale this service in the last lab with a new ECS service
 
@@ -336,7 +351,7 @@ At this point you have a working container for the monolith codebase stored in a
 
 In this lab, you will start to break apart Interstella's logistics platform monolith into microservices. To help with this, the first thing we'll do is explain how the monolith works in more detail. 
 
-When a request first comes in, all four resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled back to the customer. Logically, you can think of this as five separate services. One per resource and one for fulfillment. The goal for this lab is to remove those functions from the monolith and implement as their own micrservice.
+When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled back to the customer. Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove those functions from the monolith and implement as their own micrservice.
 
 When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible. 
 
@@ -366,9 +381,9 @@ Create a working directory for the iridium code, and download the iridium applic
 $ cd
 $ mkdir -p code/iridium
 $ cd code/iridium
-$ curl -O http://www.interstella.trade/code/iridium/Dockerfile
-$ curl -O http://www.interstella.trade/code/iridium/requirements.txt
-$ curl -O http://www.interstella.trade/code/iridium/iridium.py
+$ curl -O http://www.interstella.trade/workshop2/code/iridium/Dockerfile
+$ curl -O http://www.interstella.trade/workshop2/code/iridium/requirements.txt
+$ curl -O http://www.interstella.trade/workshop2/code/iridium/iridium.py
 </pre>
 
 2\. Build the new iridium production Docker image.
