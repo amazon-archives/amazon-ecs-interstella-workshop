@@ -741,13 +741,13 @@ Here's what the new revision should look like:
 
 ![Update Task Definition host port](images/3-new-task-def-monolith.png)
 
-5\. Now that you have a new revision of the task definition, you're going to create a new ECS service since the ALB created in step 1 will be included in the configuration.  You ran monolith as an ECS service in lab 2, so the steps should be familiar.
+5\. Now that you have a new revision of the task definition, you're going to create a new ECS service since the ALB created in step 1 will be included in the configuration.  You ran monolith as an ECS service in lab 2, so the steps should look familiar.
 
 You should still be on the screen showing the new revision of the task definition you just modified.  Under the **Actions** drop down, choose **Create Service**.
 
 ![Configure ECS Service](images/3-ecs-service.png)
 
-Enter a name for the service, e.g. monolith-alb, and set **Number of tasks** to be **1** for now.  Keep other settings as their defaults and click **Next Step**
+Enter a name for the new service (something different than what you used for the earlier ECS service you created), e.g. monolith-alb.  Set **Number of tasks** to be **1** for now.  Keep other settings as their defaults and click **Next Step**
 
 On the next page, select **Application Load Balancer** for **Load balancer type**.
 
@@ -755,17 +755,21 @@ You'll see a **Load balancer name** drop-down menu appear.  Select the ALB you c
 
 In the **Container to load balance** section, select the **Container name : port** combo from the drop-down menu that corresponds to the task definition you edited in step 3.
 
+Your progress so far should look similar to this: 
+
 ![ECS Load Balancing](images/3-ecs-service-elb.png)
 
-Click **Add to load balancer**.  More fields related to the container will appear.
+Click **Add to load balancer** to add the container.  More fields related to the container will appear.
 
-For the **Listener Port**, select the ALB listener configured earlier.
+For the **Listener Port**, select the ALB listener configured durng ALB creation, i.e. "80:HTTP".
 
-For the **Target Group Name**, select the target group created earlier during ALB setup.
+For the **Target Group Name**, select the target group you created earlier during ALB creation.
 
-Leave the other fields as defaults and click **Next Step**.
+Your fields should look similar to this:
 
 ![Create ECS Network Container Conf](images/3-ecs-service-container.png)
+
+Leave the other fields as defaults and click **Next Step**.
 
 Skip the Auto Scaling configuration by clicking **Next Step**.
 
@@ -773,12 +777,13 @@ Skip the Auto Scaling configuration by clicking **Next Step**.
 
 Click **Create Service**.
 
-*Note: There were many other configuration options, and you can read more about [ECS Services](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) and [ALB Listeners](http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html) in our documentation*
+*Note: There were many other configuration options that were not used.  You can read more about [ECS Services](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) and [ALB Listeners](http://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html) in our documentation to spark some ideas*
 
-Once the Service is created, click **View Service** and you'll see your task definition has been deployed.
+Once the Service is created, click **View Service** and you'll see your task has been deployed.
 
 6\. Now let's fix the iridium microservice you created earlier.  There are a few things you need to do:
-* Disable the iridium microservice from self-registering to SNS because you're going to put it behind the ALB; similar to the monolith, this is how the app was designed
+
+* Disable the iridium microservice from self-registering to SNS because you're going to put it behind the ALB
 * Update the fulfill service port in the iridium app code
 * Update the container environment variable set in the iridium task definition to point to the public DNS of the ALB which now front-ends the monolith
 
@@ -786,7 +791,7 @@ First, update the iridium code to not self-register to SNS.
 
 You should still have your SSH session open, but if not, SSH into the same EC2 instance you've been using to build container images throughout the workshop.  Navigate to the iridium code directory and open iridium.py with your favorite text editor.
 
-Comment out the lines in the app code that subscribes to SNS - it's noted with a comment reading '# Subscribe SNS'.
+Comment out the lines in the app code that subscribes to SNS - it's denoted with a comment reading '# Subscribe SNS'.
 
 <details>
 <summary>HINT</summary>
@@ -801,7 +806,7 @@ comment
 </pre>
 </details>
 
-SNS subscribe code should look like this commented out:
+The SNS subscribe code should look like this commented out:
 
 <pre>
 # Subscribe SNS
@@ -818,7 +823,7 @@ response = snsClient.subscribe(
 '''
 </pre>
 
-Next, update the fulfill service port from port 5000 to be port 80.  Look for this line (should be line 46) in the iridium app code:
+Next, update the fulfill service port from port 5000 to be port 80.  Look for this line (should be line 47) in the iridium app code:
 
 <pre>
 fullEndpoint = 'http://'+str(endpoint)+':5000/fulfill/'
@@ -856,6 +861,7 @@ $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:alb
 </details>
 
 7\. Now create a new revision of the iridium task definition with the following changes to the container definition:
+
 * update the image to the one tagged "iridium:alb"
 * leave the host port blank to use dynamic port mapping
 * modify the "monolithUrl" environment variable to point to the ALB DNS name you noted down earlier
@@ -878,11 +884,15 @@ and
 
 Click **Update** and click **Create**.
 
-8\. Now we're ready to tie it all together by creating a a new ECS service for the iridium microservice.  Follow the instructions from step 4 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".  
+8\. Now we're ready to tie it all together by creating a new ECS service for the iridium microservice.  Follow the instructions from step 4 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".
 
-**NOTE:** in "Step 2: Configure Network" of the ALB wizard, once you add the iridium container to the load balancer, rather than select a **Target group name**, leave the drop-down as "create new" and you can use the default name provided or enter your own, e.g. iridium.
+**NOTE:** in "Step 2: Configure Network" of the ALB wizard, once you add the iridium container to the load balancer, rather than select a **Target group name**, leave the drop-down as "create new" and enter **iridium**.
 
-Also, notice a path "/iridium*" is created here for path-based routing.  This happens automatically because multiple services are being served from the main ALB listener.  For **Evaluation order** enter **1**. Your configuration should look similar to this:
+Change the path pattern to "/iridium*".  The ALB uses this path to route traffic to the iridium target group.  This is how multiple services are being served from the same ALB listener.  
+
+For **Evaluation order** enter **1**.  And finally edit the **Health check path** to be **/iridium/**.  You need the trailing forward slash for health checks to be successful.
+
+Your configuration should look similar to this:
 
 ![Iridium Service](images/3-iridium-service.png)
 
@@ -915,8 +925,6 @@ In lab 3, you implemented an ALB as a way to distribute incoming HTTP orders to 
 ## Finished! Please fill out evaluation cards!
 
 Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella 8888 regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.
-
-Interstella 8888 has bigger goals of refactoring their software to run as a microservices architecture.  If you liked this workshop and want to take on the challenge of breaking up the logistics platform into to microservices, check out Workshop 2 in the series - Interstella 8888: Monolith to Microservices with Amazon ECS.
 
 * * * 
 
