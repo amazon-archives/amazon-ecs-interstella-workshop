@@ -1,4 +1,4 @@
-![ECS Interstella Workshop](/images/mainsplash.png)
+![ECS Interstella Workshop](/images/splash.png)
 # Interstella Intergalactic Trading Co!
 
 Welcome to the Interstella Intergalactic Trading Co. team!  Interstella is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of containers and devops and very much want to head in that direction.  Can you help us get there? 
