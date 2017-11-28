@@ -405,7 +405,7 @@ $ docker tag iridium:latest ECR_REPOSITORY_URI:latest
 $ docker push ECR_REPOSITORY_URI:latest
 </pre>
 
-4\. In order for your new microservices to hook back into the monolith, we need to find the IP and port mappings of the monolith. Navigate back to the Elastic Container Service Dashboard. Click on **Clusters** and then again on your ECS cluster.
+4\. In order for your new microservices to hook back into the monolith, we need to find the IP and port mappings of the monolith. Navigate back to the Elastic Container Service Dashboard. Click on **Clusters** and then again on your workshop ECS cluster.
 
 Click on the **Tasks** tab and find the specific task for the monolith service that's in a RUNNING state.  Click on the task to expand details.
 
@@ -426,6 +426,7 @@ In the AWS Management Console, navigate to the Elastic Container Service dashboa
 Enter a name for your Task Definition, e.g. interstella-iridium.
 
 Add a container to the task definition.  Click **Add container**.  Enter values for the following fields:
+
 * **Container name** - this is a logical identifier, not the name of the container image, e.g. iridium
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
@@ -433,9 +434,9 @@ Add a container to the task definition.  Click **Add container**.  Enter values 
 
 The iridium app code is designed to use the monolith integration hook to send order fulfillment to the fulfillment service running on the monolith.  It needs the monolith endpoint stored in an environment variable.
 
-Scroll down to the **Advanced container configuration** section, and create an environment variable named "monolithUrl". For the value, enter the **Public IP** address of the host running the monolith service you copied in step 7.
+Scroll down to the **Advanced container configuration** section, and create an environment variable named "monolithUrl" for the key. For the value, enter the **Public IP** address of the host running the monolith service you copied in step 7.
 
-Finally, let's add logging.  We'll use CloudWatch logs like with the monolith.  Scroll down to the **Log configuration** section, select "awslogs" from the **Log driver** dropdown, enter "interstella-iridium" as the logs group (CloudFormation already created this log group for you), and enter the AWS region of the logs group.  Here's an example of what it should look like:
+Finally, let's add logging.  We'll use CloudWatch logs like with the monolith.  Scroll down to the **Log configuration** section, select "awslogs" from the **Log driver** dropdown, enter "interstella-iridium" as the logs group (CloudFormation already created this log group for you), and enter the AWS region of the logs group.  For example, if you ran the cloudformation stack in Ireland, you would specify 'eu-west-1' for the region.  Here's an example of what it should look like:
 
 ![CloudWatch Logs configuration](images/2-cwlogs.png)
 
@@ -443,7 +444,7 @@ Click **Add**, and click **Create**.
 
 6\. Run the task.
 
-Under the **Actions** dropdown, click **Run task**.  You should see the iridium task launch as PENDING.  Give it some time and click the refresh button to see the task enter RUNNING state.  
+Under the **Actions** dropdown, click **Run task**, leave the fields as default and click **Run task**.  You should see the iridium task launch as PENDING.  Give it some time and click the refresh button to see the task enter RUNNING state.  
 
 ![Iridium task running](images/2-iridium-running.png)
 
@@ -892,12 +893,6 @@ Once the endpoint is subscribed, you should start seeing orders come in as HTTP 
 
 ### Checkpoint: 
 In lab 3, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella 8888's services.  In addition, you're benefiting from ECS/ALB integration for dynamic port mapping to run multiple containers on the same host and path-based routing which allows you to have one ALB endpoint for multiple services.
-
-* * *
-
-### Additional Challenge
-
-If you've got extra time and don't feel like rushing off just yet, try implementing ECS [Service Auto Scaling](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html). 
 
 * * *
 
