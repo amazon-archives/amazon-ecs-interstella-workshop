@@ -2,12 +2,12 @@
 <html>
 <head>
   <title>Lab Instructions</title>
-  <meta name="description" content="Interstella instructions" />
+    <meta name="description" content="Interstella instructions" />
 
-</head>
+    </head>
 
-<body>
-<textarea theme="cerulean" style="display:none;">
+    <body>
+    <textarea theme="cerulean" style="display:none;">
 
 # Interstella 8888: Monolith to Microservices with Amazon ECS
 
@@ -65,7 +65,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 * * * 
 
 ## Let's Begin!  
-    
+  
 ### Workshop Setup:
 
 1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.  Workshop administrators will typically indicate which region you should use.
@@ -178,9 +178,9 @@ Note: the flag for the curl command below is a capital O, not a zero.
 <pre>
 $ mkdir -p code/monolith
 $ cd code/monolith
-$ curl -O http://www.interstella.trade/workshop2/code/monolith/monolith.py
-$ curl -O http://www.interstella.trade/workshop2/code/monolith/requirements.txt
-$ curl -O http://www.interstella.trade/workshop2/code/monolith/Dockerfile
+$ curl -O https://www.interstella.trade/workshop2/code/monolith/monolith.py
+$ curl -O https://www.interstella.trade/workshop2/code/monolith/requirements.txt
+$ curl -O https://www.interstella.trade/workshop2/code/monolith/Dockerfile
 </pre>
 
 3\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.  Note the trailing period.
@@ -392,9 +392,9 @@ Create a working directory for the iridium code, and download the iridium applic
 $ cd
 $ mkdir -p code/iridium
 $ cd code/iridium
-$ curl -O http://www.interstella.trade/workshop2/code/iridium/Dockerfile
-$ curl -O http://www.interstella.trade/workshop2/code/iridium/requirements.txt
-$ curl -O http://www.interstella.trade/workshop2/code/iridium/iridium.py
+$ curl -O https://www.interstella.trade/workshop2/code/iridium/Dockerfile
+$ curl -O https://www.interstella.trade/workshop2/code/iridium/requirements.txt
+$ curl -O https://www.interstella.trade/workshop2/code/iridium/iridium.py
 </pre>
 
 2\. Build the new iridium production Docker image.
@@ -489,7 +489,7 @@ If you get stuck or don't really know your way around linux text editors, you ca
 
 <pre>
 $ cd ~/code/monolith
-$ curl -O http://www.interstella.trade/workshop2/hints/lab2-monolith.py
+$ curl -O https://www.interstella.trade/workshop2/hints/lab2-monolith.py
 $ mv lab2-monolith.py monolith.py
 </pre>
 </details>
@@ -540,14 +540,15 @@ Click **Next step** for this step and remaining steps without making any additio
 
 ![Monolith service updated](images/2-service-updated.png)
 
-You might have noticed something interesting happen.  There's a high probability the service update launched your new container on the other EC2 container instance.  This is the default [task placement](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement.html) logic to evenly spreading tasks across availability zones (AZs).  This is a great feature, but a problem in this case because when you configured the iridium task definition, you had set an environment variable "monolithUrl" and passed it the IP address of the instance running the monolith container.  Since the monolith is running on the other EC2 host, the iridium service is no longer able to fulfill orders through the fulfillment service running on the monolith.
+You might have noticed something interesting happen.  There's a high probability the service update launched your new container on the other EC2 container instance in your ECS cluster.  This is the default [task placement](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-placement.html) logic to evenly spreading tasks across availability zones (AZs).  This is a great feature, but a problem in this case because when you configured the iridium task definition, you had set an environment variable "monolithUrl" and passed it the IP address of the instance running the monolith container.  Since the monolith is running on the other EC2 host, the iridium service is no longer able to fulfill orders through the fulfillment service running on the monolith.
 
-We need service discovery to identify the microservices endpoints.  Here are a few patterns that could work:
+We need service discovery to identify the microservices endpoints.  Here are a few patterns that could be considered:
+
 * [DNS/Route53 without load balancing](https://aws.amazon.com/blogs/compute/service-discovery-for-amazon-ecs-using-dns/), 
 * [DNS/Route53 and ELB](https://aws.amazon.com/blogs/compute/service-discovery-an-amazon-ecs-reference-architecture/)
 * [3rd party tools such as Consul](https://aws.amazon.com/blogs/compute/service-discovery-via-consul-with-amazon-ecs/) or Weave
 
-We're going to use the 2nd pattern above, though leaving out the DNS part for now since we're in a dev environment.  We'll use an Application Load Balancer (ALB) to be the front door for our microservices and monolith (which is essentially strangled down to a fulfillment service).  A load balancer will also allow us to horizontally scale our processing capacity, bonus!
+We're going to use the 2nd pattern above, though leaving out the DNS part for now since we're in a dev environment.  This simply means you'll just be using the DNS name of the Application Load Balancer (ALB) vs something more CNAME friendly.  The ALB will be the front door for our microservices and monolith (which is essentially strangled down to a fulfillment service).  A load balancer will also allow us to horizontally scale our processing capacity, bonus!
 
 12\. Since the monolith-iridium integration is not currently working, let's stop the monolith service and stop the iridium task.
 
@@ -564,7 +565,7 @@ Click on the **Tasks** tab, select the iridium task, and click **Stop** to kill 
 ![Kill iridium](images/2-kill-iridium.png)
 
 ###Checkpoint:
-By this point, you've containerized the Interstella logistics platform (aka monolith) and the iridium microservice.  Images for these environments are stored in ECR and can be deployed with ECS.  At one point you had the iridium microservice running and sending processed orders to the monolith, so you know the integration works.  We'll worry about the magnesite microservice in the next lab.
+By this point, you've containerized the Interstella logistics platform (aka monolith) and the iridium microservice.  Images for these environments are stored in ECR and can be deployed with ECS.  At one point you had the iridium microservice running and fulfilling orders via the monolith fulfillment service, so you know the integration works at the application level.  We'll worry about the magnesite microservice in the next lab.
 
 ### Lab 3 - Scale the logistics platform with ALB: 
 
@@ -572,7 +573,7 @@ In this lab, you will continue the journey to microservices by introducing an AL
 
 ALB/ECS integration offers a feature called dynamic port mapping, which enables you to run multiple copies of the same container with the same listening port on the same host...say that 10 times fast.  With dynamic port mapping, an ephemeral listening port is automatically assigned to the host and mapped to the container.
 
-Another key ALB feature you'll take advantage of is path-based routing, which routes traffic based on URL path to particular target groups.  Monolith/fulfillment will be the default path, '/'.  Iridium and magnesite will be '/iridium' and '/magnesite', respectively.  This means we'll only need to run one instane of ALB.
+Another key ALB feature you'll take advantage of is path-based routing, which routes traffic based on URL path to particular target groups.  The monolith fulfillment service will be the default path, '/'.  Iridium and magnesite will be '/iridium' and '/magnesite', respectively.  This means we'll only need to run one instance of the ALB.
 
 Here is a reference architecture for what you will be implementing in the Lab 3:
 
@@ -581,12 +582,13 @@ Here is a reference architecture for what you will be implementing in the Lab 3:
 Let's start by putting the monolith behind an ALB.
 
 1\. First, make the following updates in the monolith app code:
+
 * Disable the monolith from self-registering to SNS
-* Disable bundle order processing - this puts all resource processing on the microservices and the monolith only handles order fulfillment.
+* Disable bundle order processing - this puts all resource processing on the microservices and the monolith only handles order fulfillment
 
 You should still have your SSH session open, but if not, SSH into the same EC2 instance you've been using to build container images throughout the workshop.  Navigate to the monolith code directory and open monolith.py with your favorite text editor.  
 
-Comment out the lines in the app code that subscribes to SNS - it's noted with a comment reading '# Subscribe SNS'.  
+Comment out the lines in the app code that subscribes to SNS - that block of code is denoted with a comment reading '# Subscribe SNS'.
 
 <details>
 <summary>HINT</summary>
@@ -601,7 +603,7 @@ comment
 </pre>
 </details>
 
-SNS subscribe code should look like this commented out:
+After you comment out the SNS subscribe functionality, your code should look like this:
 
 <pre>
 # Subscribe SNS
@@ -618,9 +620,9 @@ response = snsClient.subscribe(
 '''
 </pre>
 
-Also, since orders will go directly to each resource microservice, you can comment out the /order/ route for the application.  This is the URL path where orders were originally being sent and processed.  Find the block of code starting with the comment "# Effectively, our subscriber service.":
+Also, since orders will go directly to each resource microservice, you can comment out the /order/ route for the application.  This is the URL path where orders were originally being sent and processed by the logistics platform.  Find the block of code denoted as "# Effectively, our subscriber service."  Once you find it, comment out the entire route.
 
-Code should look like this after adding the triple single quotes:
+Your code should look like this after the edit:
 
 <pre>
 # Effectively, our subscriber service.
@@ -675,12 +677,12 @@ If you get stuck or don't really know your way around linux text editors, you ca
 
 <pre>
 $ cd ~/code/monolith
-$ curl -O http://www.interstella.trade/workshop2/hints/lab3-monolith.py
+$ curl -O https://www.interstella.trade/workshop2/hints/lab3-monolith.py
 $ mv lab3-monolith.py monolith.py
 </pre>
 </details>
 
-2\. After making the edits to the monolith app code, rebuild the monolith container image, tag the image as "monolith:noresources", and push the new container image to the monolith ECR repository.
+2\. After making the edits to the monolith app code, rebuild the monolith container image, tag the image as "monolith:noresources" to identify this specific container build, and push the new container image to the monolith ECR repository.
 
 <details>
 <summary>HINT</summary>
@@ -692,7 +694,7 @@ $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:noresources
 </pre>
 </details>
 
-2\. Now we're ready to create an Application Load Balancer.
+3\. Now we're ready to create an Application Load Balancer.
 
 In the AWS Management Console, navigate to the EC2 dashboard.  Click on **Load Balancers** in the left menu under the **Load Balancing** section.  Click on **Create Load Balancer**.  Click on **Create** for an Application Load Balancer.
 
@@ -716,27 +718,30 @@ You'll notice a security group that starts with your **EnvironmentName** from Cl
 
 ![Configure ALB Security Group](images/3-alb-sg-step-3.png)
 
-ALB routes incoming traffic to a target group associated with your ALB listener; targets in this case are the instances hosting your containers.
+ALB routes incoming traffic to a target group associated with your ALB listener; targets in this case will be your containers.
 
 Enter a name for the new target group, e.g. monolith.  Enter **5000** for the port.  Leave other settings as defaults and click **Next: Register Targets** to move to ALB Step 5.
 
 ![Configure ALB target group](images/3-alb-target-group-step-4.png)
 
-Amazon ECS handles registration of targets to your target groups, so do you **NOT** have to register targets in this step.  Click **Next: Review**, and on the next page, click **Create**.
+Amazon ECS will handle registration of targets dynamically to your target groups, so do you **NOT** have to register targets in this step.  Click **Next: Review**, and on the next page, click **Create**.
 
 Note down the DNS name for the created ALB.
 
 ![ALB public dns](images/3-alb-pub-dns.png)
 
-3\. Now let's modify the monolith ECS task definition to reference the new monolith container image you just built and pushed to ECR, and remove the host port in the container definition to take advantage of dynamic port mapping.  By leaving the host port blank, an ephemeral port will be assigned and ECS/ALB integration will handle the mapping.
+4\. Now let's create a new revision of the latest monolith task definition to:
 
-Here's what the new task definition should look like:
-
-![Update Task Definition host port](images/3-new-task-def-monolith.png)
+* Reference the new monolith container image you just built and pushed to ECR
+* Remove the host port in the container definition to take advantage of dynamic port mapping
 
 If you need a reminder how to create a new revision of a task definition, review Lab 2 Step 10.
 
-4\. You ran monolith as an ECS service in lab 2, so the steps should be familiar.  We're going to create a new ECS service since the ALB created in step 1 will be included in the configuration.
+Here's what the new revision should look like:
+
+![Update Task Definition host port](images/3-new-task-def-monolith.png)
+
+5\. Now that you have a new revision of the task definition, you're going to create a new ECS service since the ALB created in step 1 will be included in the configuration.  You ran monolith as an ECS service in lab 2, so the steps should be familiar.
 
 You should still be on the screen showing the new revision of the task definition you just modified.  Under the **Actions** drop down, choose **Create Service**.
 
@@ -772,7 +777,7 @@ Click **Create Service**.
 
 Once the Service is created, click **View Service** and you'll see your task definition has been deployed.
 
-5\. Now let's fix the iridium microservice you created earlier.  There are a few things you need to do:
+6\. Now let's fix the iridium microservice you created earlier.  There are a few things you need to do:
 * Disable the iridium microservice from self-registering to SNS because you're going to put it behind the ALB; similar to the monolith, this is how the app was designed
 * Update the fulfill service port in the iridium app code
 * Update the container environment variable set in the iridium task definition to point to the public DNS of the ALB which now front-ends the monolith
@@ -833,7 +838,7 @@ If you get stuck or don't really know your way around linux text editors, you ca
 
 <pre>
 $ cd ~/code/iridium
-$ curl -O http://www.interstella.trade/workshop2/hints/lab3-iridium.py
+$ curl -O https://www.interstella.trade/workshop2/hints/lab3-iridium.py
 $ mv lab3-iridium.py iridium.py
 </pre>
 </details>
@@ -850,7 +855,7 @@ $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:alb
 </pre>
 </details>
 
-6\. Now create a new revision of the iridium task definition with the following changes to the container definition:
+7\. Now create a new revision of the iridium task definition with the following changes to the container definition:
 * update the image to the one tagged "iridium:alb"
 * leave the host port blank to use dynamic port mapping
 * modify the "monolithUrl" environment variable to point to the ALB DNS name you noted down earlier
@@ -873,7 +878,7 @@ and
 
 Click **Update** and click **Create**.
 
-7\. Now we're ready to tie it all together by creating a a new ECS service for the iridium microservice.  Follow the instructions from step 4 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".  
+8\. Now we're ready to tie it all together by creating a a new ECS service for the iridium microservice.  Follow the instructions from step 4 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".  
 
 **NOTE:** in "Step 2: Configure Network" of the ALB wizard, once you add the iridium container to the load balancer, rather than select a **Target group name**, leave the drop-down as "create new" and you can use the default name provided or enter your own, e.g. iridium.
 
@@ -883,7 +888,7 @@ Also, notice a path "/iridium*" is created here for path-based routing.  This ha
 
 Click **Next step** for this step and step 3.  Click **Create Service**.  Once ECS completes its tasks, click **View Service** to watch the service enter the RUNNING state. 
 
-8\. Ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
+9\. Ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
@@ -900,7 +905,7 @@ Click on **Subscribe to Iridium topic** to start receiving orders for the iridiu
 Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs.  You may notice GET requests in your log stream.  Those are the ALB health checks.  You can also check the monolith log stream to confirm 
 
 
-9\. By now you should have two ECS services with ALB completed, the monolith for order fulfillment and the iridium service processing iridium orders.  Try to implement the magnesite service similar to how you implemented the iridium service.  
+10\. By now you should have two ECS services with ALB completed, the monolith for order fulfillment and the iridium service processing iridium orders.  Try to implement the magnesite service similar to how you implemented the iridium service.  
 
 ### Checkpoint: 
 In lab 3, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella 8888's services.  In addition, you're benefiting from ECS/ALB integration for dynamic port mapping to run multiple containers on the same host and path-based routing which allows you to have one ALB endpoint for multiple services.
@@ -923,10 +928,10 @@ This is really important because if you leave stuff running in your account, it 
 2. If you got to the bonus lab, you created an ECS service.  To delete that, first update the desired task count to 0, and then delete the ECS service.  
 3. Delete any container images stored in ECR, delete CloudWatch logs groups, and delete ALBs and target groups (if you got to the bonus lab)
 4. Finally, delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
+## Credits
+Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 
 </textarea>
-<script src="../js/strapdown/strapdown.js"></script>
-
+<script src='../js/strapdown/strapdown.js'></script>
 </body>
 </html>
-
