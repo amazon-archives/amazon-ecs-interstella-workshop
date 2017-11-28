@@ -18,7 +18,7 @@ echo "
 Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 
 </textarea>
-<script src='js/strapdown/strapdown.js'></script>
+<script src='../js/strapdown/strapdown.js'></script>
 </body>
 </html>" >> index.html
 #zip -r bundle tests/ code/ hints/ -x "*.DS_Store"
