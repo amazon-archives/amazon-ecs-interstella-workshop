@@ -755,7 +755,7 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
 
   Now click on **Link to execution details** since the error message didn't tell us much.<br/><br/>
   
-  ![CodePipeline Build Failure Execution](images/2-cp-build-failure.png)
+  ![CodePipeline Build Failure Execution](images/2-cp-build-failure-execution.png)
 
   The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**<br/><br/>
 
