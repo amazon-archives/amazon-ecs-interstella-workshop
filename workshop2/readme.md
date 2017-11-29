@@ -436,9 +436,23 @@ The iridium app code is designed to use the monolith integration hook to send or
 
 Scroll down to the **Advanced container configuration** section, and create an environment variable named "monolithUrl" for the key. For the value, enter the **Public IP** address of the host running the monolith service you copied in step 7.
 
-Finally, let's add logging.  We'll use CloudWatch logs like with the monolith.  Scroll down to the **Log configuration** section, select "awslogs" from the **Log driver** dropdown, enter "**EnvironmentName-iridium**" as the logs group (CloudFormation already created this log group for you), and enter the AWS region of the logs group.  For example, if you ran the cloudformation stack in Ireland, you would specify 'eu-west-1' for the region.  Here's an example of what it should look like:
+Finally, let's add logging.  We'll use CloudWatch logs like with the monolith.  
 
-![CloudWatch Logs configuration](images/2-cwlogs.png)
+Scroll down to the **Log configuration** section, and select "awslogs" from the **Log driver** dropdown. 
+
+CloudFormation created a log group for both iridium and magnesite microservices prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group would be "interstella-iridium".
+
+Enter ***EnvironmentName*-iridium** as the logs group, replacing ***EnvironmentName*** with the one you specified. 
+
+Enter the AWS region of the logs group.
+<details>
+<summary>HINT: Region codes</summary>
+US East (Ohio) = us-east-2<br>
+US West (Oregon) = us-west-2<br>
+EU (Ireland) = eu-west-1<br>
+</details>
+
+For example, if you ran the CloudFormation stack in Ireland, you would specify 'eu-west-1' for the region.  
 
 Click **Add**, and click **Create**.
 
