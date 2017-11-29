@@ -30,8 +30,8 @@ COPY ./requirements.txt .
 
 RUN bin/pip install -r requirements.txt
 
-COPY ./$PRODUCT.py .
+COPY ./${PRODUCT}.py .
 
-EXPOSE 5000
+EXPOSE 80
 
 ENTRYPOINT ["bin/python", "magnesite.py"]

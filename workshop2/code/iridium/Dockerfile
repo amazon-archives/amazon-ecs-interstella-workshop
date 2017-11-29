@@ -32,6 +32,6 @@ RUN bin/pip install -r requirements.txt
 
 COPY ./${PRODUCT}.py .
 
-EXPOSE 8001
+EXPOSE 80
 
 ENTRYPOINT ["bin/python", "iridium.py"]
