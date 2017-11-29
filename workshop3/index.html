@@ -765,10 +765,14 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
   ![CodePipeline Build Failure](images/2-cp-build-failure.png)  
 
   Now click on **Link to execution details** since the error message didn't tell us much.<br/><br/>
+  
+  ![CodePipeline Build Failure Execution](images/2-cp-build-failure.png)
 
   The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**<br/><br/>
 
   Looking in the logs, we can see that **AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/orderTopic status code: 400**<br/><br/>
+
+  ![CodePipeline Build Failure Details](images/2-cp-build-failure-details.png)
 
   Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br/><br/>
 
