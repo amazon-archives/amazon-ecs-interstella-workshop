@@ -78,7 +78,7 @@ def order():
                 produceResource()
                 response = fulfill(endpoint, 1)
                 if response == requests.codes.ok:
-                    print 'Spice fulfilled'
+                    print 'Magnesite fulfilled'
                     return 'Your order has been fulfilled'
                 else:
                     print response
