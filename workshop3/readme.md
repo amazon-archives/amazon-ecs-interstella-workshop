@@ -803,11 +803,36 @@ Choose **Apply Policy**
 
 Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
 
+6\. Create two more stages. One gate and one to execute the change set.
+
+In the CodePipeline console, when you're looking at prod-iridium-service pipeline, click **Edit**. Add a stage at the bottom and name it **Approval**. Then click **+Add Action**.
+
+In the dialog that comes up on the right, populate the following values:
+- Action category: **Approval**
+- Action Name: **ChangeSetApproval**
+- Approval Type: **Manual Approval**
+Leave the rest blank and click **Add action**.
+
+![CodePipeline Create Gate](images/2-cp-create-gate.png)
+
+Add one more stage, name it **DeployToCFN**, and create an action. In the dialog that comes out, populate the following values:
+- Action category: **Deploy**
+- Action Name: **DeploytoCFN**
+- Deployment Provider: **AWS CloudFormation**
+- Action Mode: **Execute a change set**
+- Stack Name: **prod-iridium-service**
+- Change set name: **prod-iridium-service-changeset**
+
+Leave the rest as default and click **Add Action** and then **Save pipeline changes** at the top of the pipeline.
+
+![CodePipeline Create Deploy to CFN](images/2-cp-deploy-to-cfn.png)
+
+Manually release a change by clicking **Release change**. Once the pipeline goes through the stages, it will stop at the Approval stage. Now is when you would typically go and see what kind of changes will happen. We can look at CloudFormation to find out what will change. Or you can just approve the pipeline because you're a daredevil. 
+
+Click **Review** and then put something in the comments and **Approve** the change.
+
 ### Checkpoint:  
-At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then deploy your application into ECS using the existing task definitions. Check in a change and you'll see the pipeline kick off.
-
-
-
+At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then call CloudFormation to create a change set and when you approve the change set, CodePipeline will call CloudFormation to execute the change set.
 
 ### Lab 3 - Add Security and Implement Automated Testing
 Now that we've automated the deployments of our application, we want to improve the security posture of our application, so we will be automating the testing of the application as well. We've decided that as a starting point, all Interstella deployments will require a minimum of 1 test to make the changes minimal for developers. At the same time,  we will start using [IAM Roles for Tasks](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This allows us to specify a role per task instead of assuming the EC2 Instance Role. 
