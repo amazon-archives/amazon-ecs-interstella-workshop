@@ -747,9 +747,11 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
 
 <details>
   <summary>
-    *Click here to expand this section and we'll go over how to find out what happened.*
+    <i><b>Click here to expand this section and we'll go over how to find out what happened.</i></b>
   </summary>
-  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.<br/><br/>
+  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.<br/>
+  
+  ![CodePipeline Build Failure](images/2-cp-build-failure.png)  
 
   Now click on **Link to execution details** since the error message didn't tell us much.<br/><br/>
 
