@@ -92,6 +92,7 @@ Parameters:
     InterstellaApiKey:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
         Type: String
+        MinLength: 5
 
     InterstellaApiEndpoint: 
         Description: Leave as default unless the workshop admins provide an API endpoint for you to input here.
