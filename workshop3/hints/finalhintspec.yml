@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   parameter-store:
-    targetGroup: /interstella/spiceTargetGroupArn
+    targetGroup: /interstella/iridiumTargetGroupArn
     cloudWatchLogsGroup: /interstella/cloudWatchLogsGroup
     ecsClusterName: /interstella/ecsClusterName
 phases:

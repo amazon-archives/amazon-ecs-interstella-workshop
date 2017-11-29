@@ -770,7 +770,7 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
   Choose **Custom Policy**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:<br/><br/>
 
 <pre>
-`{
+{
     "Version": "2012-10-17",
     "Statement": [
         {
@@ -793,7 +793,7 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
             "Effect": "Allow"
         }
     ]
-}`
+}
 
 </pre>
 
