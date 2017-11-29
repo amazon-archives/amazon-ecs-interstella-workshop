@@ -447,7 +447,7 @@ The iridium app code is designed to use the monolith integration hook to send or
 
 Scroll down to the **Advanced container configuration** section, and create an environment variable named "monolithUrl" for the key. For the value, enter the **Public IP** address of the host running the monolith service you copied in step 7.
 
-Finally, let's add logging.  We'll use CloudWatch logs like with the monolith.  Scroll down to the **Log configuration** section, select "awslogs" from the **Log driver** dropdown, enter "interstella-iridium" as the logs group (CloudFormation already created this log group for you), and enter the AWS region of the logs group.  For example, if you ran the cloudformation stack in Ireland, you would specify 'eu-west-1' for the region.  Here's an example of what it should look like:
+Finally, let's add logging.  We'll use CloudWatch logs like with the monolith.  Scroll down to the **Log configuration** section, select "awslogs" from the **Log driver** dropdown, enter "**EnvironmentName-iridium**" as the logs group (CloudFormation already created this log group for you), and enter the AWS region of the logs group.  For example, if you ran the cloudformation stack in Ireland, you would specify 'eu-west-1' for the region.  Here's an example of what it should look like:
 
 ![CloudWatch Logs configuration](images/2-cwlogs.png)
 
