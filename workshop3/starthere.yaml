@@ -688,6 +688,67 @@ Resources:
       Properties: 
         TopicName: !Ref EnvironmentName
     
+    ArtifactBucket:
+      Type: AWS::S3::Bucket
+      DeletionPolicy: Delete
+      
+    CodeBuildProject:
+      Type: AWS::CodeBuild::Project
+      Properties:
+        Artifacts:
+          Type: "CODEPIPELINE"
+        Source:
+          Type: "CODEPIPELINE"
+          BuildSpec: "test-buildspec.yml"
+        Environment:
+          ComputeType: "BUILD_GENERAL1_SMALL"
+          Image: "aws/codebuild/ruby:2.1.10"
+          Type: "LINUX_CONTAINER"
+        Name: !Sub ${EnvironmentName}-CodeBuildProject
+        ServiceRole: !Ref CodeBuildServiceRole
+    
+    CodeBuildServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub ${EnvironmentName}-CodeBuildServiceRole
+        Path: /
+        AssumeRolePolicyDocument: |
+          {
+              "Statement": [{
+                  "Effect": "Allow",
+                  "Principal": { "Service": [ "codebuild.amazonaws.com" ]},
+                  "Action": [ "sts:AssumeRole" ]
+              }]
+          }
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    - ecr:GetAuthorizationToken
+                - Resource: !Sub arn:aws:s3:::${ArtifactBucket}/*
+                  Effect: Allow
+                  Action:
+                    - s3:GetObject
+                    - s3:PutObject
+                    - s3:GetObjectVersion
+                - Resource: !Sub arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${ECRIridiumRepository}
+                  Effect: Allow
+                  Action:
+                    - ecr:GetDownloadUrlForLayer
+                    - ecr:BatchGetImage
+                    - ecr:BatchCheckLayerAvailability
+                    - ecr:PutImage
+                    - ecr:InitiateLayerUpload
+                    - ecr:UploadLayerPart
+                    - ecr:CompleteLayerUpload
+    
 Outputs:
 
     VPC: 

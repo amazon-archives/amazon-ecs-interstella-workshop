@@ -814,11 +814,54 @@ Choose **Apply Policy**
 
 Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
 
+
+
+6\. Create two more stages. One gate and one to execute the change set.
+
+In the CodePipeline console, when you're looking at prod-iridium-service pipeline, click **Edit**. Add a stage at the bottom and name it **Approval**. Then click **+Add Action**.
+
+In the dialog that comes up on the right, populate the following values:
+- Action category: **Approval**
+- Action Name: **ChangeSetApproval**
+- Approval Type: **Manual Approval**
+Leave the rest blank and click **Add action**.
+
+![CodePipeline Create Gate](images/2-cp-create-gate.png)
+
+Add one more stage, name it **DeployToCFN**, and create an action. In the dialog that comes out, populate the following values:
+- Action category: **Deploy**
+- Action Name: **DeploytoCFN**
+- Deployment Provider: **AWS CloudFormation**
+- Action Mode: **Execute a change set**
+- Stack Name: **prod-iridium-service**
+- Change set name: **prod-iridium-service-changeset**
+
+Leave the rest as default and click **Add Action** and then **Save pipeline changes** at the top of the pipeline.
+
+![CodePipeline Create Deploy to CFN](images/2-cp-deploy-to-cfn.png)
+
+Manually release a change by clicking **Release change**. Once the pipeline goes through the stages, it will stop at the Approval stage. Now is when you would typically go and see what kind of changes will happen. We can look at CloudFormation to find out what will change. Or you can just approve the pipeline because you're a daredevil. 
+
+Click **Review** and then put something in the comments and **Approve** the change.
+
+7\. Now we're ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
+
+Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
+
+Enter the ALB endpoint in the text field using the following format:
+
+<pre>
+http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/iridium/
+</pre>
+
+Click on **Subscribe to Iridium topic** to start receiving orders for the iridium resource.
+
+![SNS Subscription](images/2-alb-sns-sub.png)
+
+Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs.  You may notice GET requests in your log stream.  Those are the ALB health checks.  You can also check the monolith log stream to confirm 
+
 ### Checkpoint:  
-At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then deploy your application into ECS using the existing task definitions. Check in a change and you'll see the pipeline kick off.
-
-
-
+At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then call CloudFormation to create a change set and when you approve the change set, CodePipeline will call CloudFormation to execute the change set.
 
 ### Lab 3 - Add Security and Implement Automated Testing
 Now that we've automated the deployments of our application, we want to improve the security posture of our application, so we will be automating the testing of the application as well. We've decided that as a starting point, all Interstella deployments will require a minimum of 1 test to make the changes minimal for developers. At the same time,  we will start using [IAM Roles for Tasks](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html). This allows us to specify a role per task instead of assuming the EC2 Instance Role. 
@@ -836,7 +879,7 @@ For more background on the tool, please see: [Finding Security Problems Early in
 
 Now that the microservices are really split up, we should look into how to lock them down. One great way is to use IAM Roles for Tasks. We can give a specific task an IAM role so we know exactly what task assumed what role to do something instead of relying on the default EC2 instance profile.
 
-A complete and updated service.yml file is located in hints/final-service.yml. Overwrite your existing service.yml with that one. 
+A complete and updated service.yml file is located in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/final-service.yml). Overwrite your existing service.yml with that one. 
 
 Here are the differences:
 
@@ -892,22 +935,25 @@ TaskDefinition:
                 Ref: cloudWatchLogsGroup
               awslogs-region:
                 Ref: AWS::Region
-              awslogs-stream-prefix: prod
+              awslogs-stream-prefix: 
+                Ref: CwlPrefix
 </pre>
 
-Create a new stage for testing in your pipeline
+2\. Create a new stage for testing in your pipeline
 
 Navigate to the AWS CodePipeline dashboard and choose your pipeline. Edit the pipeline and click the **+stage** button between source and the build stage. Name it **CodeAnalysis** and then click on the **+ Action** button. This will add a new stage to your pipeline where we can run some static analysis. *We want this static analysis tool to run before our Docker container even gets built so that we can fail the deployment quickly if something goes wrong.*
 
 Select and populate the following Values:
 
-- **Action Category - Test**
-- **Action Name - StaticAnalysis**
-- **Test provider - AWS CodeBuild**
-- **Project Name - CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
-- **Input Artifact #1 - MyApp**
+- Action Category - **Test**
+- Action Name - **StaticAnalysis**
+- Test provider - **AWS CodeBuild**
+- Project Name - **CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
+- Input Artifact #1 - **MyApp**
 
 Click **Add Action**
+
+![CodePipeline Add Test](images/3-cp-create-test.png)
 
 2\. Create a new yml file for the test CodeBuild project to use.
 

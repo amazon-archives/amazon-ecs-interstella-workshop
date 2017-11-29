@@ -59,7 +59,8 @@ Resources:
                   Ref: cloudWatchLogsGroup
                 awslogs-region:
                   Ref: AWS::Region
-                awslogs-stream-prefix: prod
+                awslogs-stream-prefix:
+                  Ref: CwlPrefix
   
   Service:
     Type: AWS::ECS::Service
