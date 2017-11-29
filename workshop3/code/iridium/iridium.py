@@ -26,7 +26,7 @@ orderTopic = ssmClient.get_parameter(Name='/interstella/'+resource+'Subscription
 # This should be the endpoint of the monolith
 orderTopicRegion = orderTopic.split(':')[3]
 portNum = 5000
-
+'''
 snsClient = boto3.client('sns',region_name=orderTopicRegion)
 #ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 ip = 'http://'+fulfillmentUrl+'/'+resource+'/'
@@ -38,7 +38,7 @@ response = snsClient.subscribe(
     Protocol='http',
     Endpoint=ip
 )
-
+'''
 def produceResource():
     # print "Producing "+resource
     app.logger.info('Producing %s', resource)
