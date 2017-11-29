@@ -11,6 +11,7 @@ from urllib2 import urlopen
 import logging
 import sys
 
+
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Change this to change the resource
@@ -25,7 +26,7 @@ orderTopic = ssmClient.get_parameter(Name='/interstella/'+resource+'Subscription
 
 # This should be the endpoint of the monolith
 orderTopicRegion = orderTopic.split(':')[3]
-portNum = 5000
+portNum = 80
 
 snsClient = boto3.client('sns',region_name=orderTopicRegion)
 #ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
@@ -62,8 +63,6 @@ def fulfill(endpoint, number):
             response = e
     return response
 
-app = Flask(__name__)
-    
 # Effectively, our subscriber service.
 @app.route('/'+resource+'/', methods=['POST', 'GET'])
 def order():
@@ -73,6 +72,7 @@ def order():
     #Real requests
     elif request.method == 'POST':
         try: 
+            
             # Is this a normal SNS payload? Try to get JSON out of it
             payload = request.get_json(force=True)
             if 'SubscribeURL' in payload:
@@ -106,6 +106,7 @@ def order():
                 app.logger.info('Invalid request JSON. %s was sent', payload['Message'])
                 #print 'Invalid Request JSON.'
                 #print 'The data sent was %s' % payload['Message']
+            
         except Exception as e:
             # Looks like it wasn't.
             # print e
@@ -120,6 +121,7 @@ def order():
     else:
         # We should never get here
         return "This is not the page you are looking for"
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=portNum)

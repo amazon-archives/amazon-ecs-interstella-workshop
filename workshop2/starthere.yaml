@@ -339,10 +339,10 @@ Resources:
         Properties:
             ClusterName: !Ref EnvironmentName
 
-    ECRMonolithRepository:
+    ECRFulfillRepository:
         Type: AWS::ECR::Repository
         Properties: 
-            RepositoryName: !Sub ${EnvironmentName}-monolith
+            RepositoryName: !Sub ${EnvironmentName}-fulfill
     
     ECRMicroservicesRepository1:
         Type: AWS::ECR::Repository

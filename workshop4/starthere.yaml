@@ -1,6 +1,6 @@
 Description: >
     Starting template for Interstella 8888 workshop 4.  
-    Last Modified: Nov 22, 2017
+    Last Modified: Nov 29, 2017
 
 Mappings:
 
@@ -71,7 +71,7 @@ Parameters:
         Default: 10.177.21.0/24
 
     InstanceType: 
-        Description: Choose an instance type for ECS Cluster Instances - default is t2.medium
+        Description: Choose an instance type for ECS Cluster Instances - default is t2.micro
         Type: String
         Default: t2.micro
         AllowedValues:
@@ -92,20 +92,19 @@ Parameters:
         Type: String
 
     InterstellaApiEndpoint: 
-        Description: Enter the fulfillment API endpoint
+        Description: Leave as default unless the workshop admins provide an API endpoint for you to input here.
         Type: String
+        Default: https://orders.interstella.trade/receiving/
     
-    InterstellaOrdersTopicArn: 
-        Description: Logistics software will subscribe to this SNS topic to receive orders
+    InterstellaIridiumTopicArn: 
+        Description: Iridium production software will subscribe to this SNS topic to receive orders. Leave as default unless the workshop admins provide you a different SNS topic for you to input here. 
         Type: String
+        Default: arn:aws:sns:us-west-2:270206935686:iridium
 
-    InterstellaIridiumOrdersTopicArn: 
-        Description: Logistics software will subscribe to this SNS topic to receive Iridium orders
+    InterstellaMagnesiteTopicArn: 
+        Description: Magnesite production software will subscribe to this SNS topic to receive orders. Leave as default unless the workshop admins provide you a different SNS topic for you to input here. 
         Type: String
-
-    InterstellaMagnesiteOrdersTopicArn: 
-        Description: Logistics software will subscribe to this SNS topic to receive Magnesite orders
-        Type: String
+        Default: arn:aws:sns:us-west-2:270206935686:magnesite
 
 Resources:
 
@@ -288,6 +287,14 @@ Resources:
                   ToPort: 80
                   CidrIp: 0.0.0.0/0
                 - IpProtocol: tcp
+                  FromPort: 8001
+                  ToPort: 8001
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: tcp
+                  FromPort: 8002
+                  ToPort: 8002
+                  CidrIp: 0.0.0.0/0    
+                - IpProtocol: tcp
                   FromPort: 5000
                   ToPort: 5000
                   CidrIp: 0.0.0.0/0
@@ -320,10 +327,10 @@ Resources:
         Properties:
             ClusterName: !Sub ${EnvironmentName}-Gatling
 
-    ECRMonolithRepository:
+    ECRFulfillRepository:
         Type: AWS::ECR::Repository
         Properties: 
-            RepositoryName: !Sub ${EnvironmentName}-monolith
+            RepositoryName: !Sub ${EnvironmentName}-fulfill
     
     ECRIridiumRepository:
         Type: AWS::ECR::Repository
@@ -340,6 +347,11 @@ Resources:
         Properties: 
             RepositoryName: !Sub ${EnvironmentName}-gatling
 
+    XRayRepository:
+        Type: AWS::ECR::Repository
+        Properties: 
+            RepositoryName: !Sub ${EnvironmentName}-xray
+
     ECSAutoScalingGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
         Properties: 
@@ -351,7 +363,7 @@ Resources:
             MaxSize: !Ref ClusterSize
             DesiredCapacity: !Ref ClusterSize
             TargetGroupARNs: 
-                - !Ref MonolithTargetGroup
+                - !Ref FulfillTargetGroup
                 - !Ref IridiumTargetGroup
                 - !Ref MagnesiteTargetGroup
             Tags: 
@@ -576,6 +588,7 @@ Resources:
                             - "ecr:PutImage"
                             - "sns:Subscribe"
                             - "s3:PutObject"
+                            - "xray:*"
                         Resource: "*"
                       -
                         Effect: "Allow"
@@ -614,16 +627,34 @@ Resources:
             Roles: 
                 - !Ref ECSRole
     
-    CloudWatchLogsGroup:
+    FulfillCloudWatchLogsGroup:
         Type: AWS::Logs::LogGroup
         Properties:
-            LogGroupName: !Sub ${EnvironmentName}-LogGroup
+            LogGroupName: !Sub ${EnvironmentName}-fulfill
             RetentionInDays: 7
     
+    IridiumCloudWatchLogsGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub ${EnvironmentName}-iridium
+            RetentionInDays: 7
+
+    MagnesiteCloudWatchLogsGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub ${EnvironmentName}-magnesite
+            RetentionInDays: 7
+
     GatlingCloudWatchLogsGroup:
         Type: AWS::Logs::LogGroup
         Properties:
-            LogGroupName: !Sub ${EnvironmentName}-Gatling-LogGroup
+            LogGroupName: !Sub ${EnvironmentName}-gatling
+            RetentionInDays: 7
+
+    XrayCloudWatchLogsGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub ${EnvironmentName}-xray
             RetentionInDays: 7
 
     InterstellaApiKeyParam:
@@ -642,29 +673,21 @@ Resources:
             Type: String
             Value: !Ref InterstellaApiEndpoint
 
-    InterstellaOrderTopicParam:
-        Type: AWS::SSM::Parameter
-        Properties:
-            Name: /interstella/orderTopic
-            Description: SNS topic for receiving orders
-            Type: String
-            Value: !Ref InterstellaOrdersTopicArn
-
-    IridiumSubscriptionArn:
+    InterstellaIridiumTopicParam:
         Type: AWS::SSM::Parameter
         Properties:
             Name: /interstella/iridiumSubscriptionArn
             Description: SNS topic for receiving orders for iridium
             Type: String
-            Value: !Ref InterstellaIridiumOrdersTopicArn
+            Value: !Ref InterstellaIridiumTopicArn
     
-    MagnesiteSubscriptionArn:
+    InterstellaMagnesiteTopicParam:
         Type: AWS::SSM::Parameter
         Properties:
             Name: /interstella/magnesiteSubscriptionArn
             Description: SNS topic for receiving orders for magnesite
             Type: String
-            Value: !Ref InterstellaMagnesiteOrdersTopicArn
+            Value: !Ref InterstellaMagnesiteTopicArn
     
     InternalFulfillmentEndpoint:
         Type: AWS::SSM::Parameter
@@ -690,13 +713,45 @@ Resources:
             Type: String
             Value: !Ref MagnesiteTargetGroup
     
-    CloudWatchLogsGroupParam:
+    FullfillCloudWatchLogsGroupParam:
         Type: AWS::SSM::Parameter
         Properties:
-            Name: /interstella/cloudWatchLogsGroup
+            Name: /interstella/fullfillCloudWatchLogsGroup
             Description: Name of the CloudWatchLogs Log Group 
             Type: String
-            Value: !Ref CloudWatchLogsGroup
+            Value: !Ref FulfillCloudWatchLogsGroup
+    
+    IridiumCloudWatchLogsGroupParam:
+        Type: AWS::SSM::Parameter
+        Properties:
+            Name: /interstella/iridiumCloudWatchLogsGroup
+            Description: Name of the CloudWatchLogs Log Group 
+            Type: String
+            Value: !Ref IridiumCloudWatchLogsGroup
+
+    MagnesiteCloudWatchLogsGroupParam:
+        Type: AWS::SSM::Parameter
+        Properties:
+            Name: /interstella/magnesiteCloudWatchLogsGroup
+            Description: Name of the CloudWatchLogs Log Group 
+            Type: String
+            Value: !Ref MagnesiteCloudWatchLogsGroup
+
+    GatlingCloudWatchLogsGroupParam:
+        Type: AWS::SSM::Parameter
+        Properties:
+            Name: /interstella/gatlingCloudWatchLogsGroup
+            Description: Name of the CloudWatchLogs Log Group 
+            Type: String
+            Value: !Ref GatlingCloudWatchLogsGroup
+
+    XrayCloudWatchLogsGroupParam:
+        Type: AWS::SSM::Parameter
+        Properties:
+            Name: /interstella/xrayCloudWatchLogsGroup
+            Description: Name of the CloudWatchLogs Log Group 
+            Type: String
+            Value: !Ref XrayCloudWatchLogsGroup
     
     ECSClusterNameParam:
         Type: AWS::SSM::Parameter
@@ -723,9 +778,9 @@ Resources:
         Protocol: HTTP
         DefaultActions:
           - Type: forward
-            TargetGroupArn: !Ref MonolithTargetGroup
+            TargetGroupArn: !Ref FulfillTargetGroup
 
-    MonolithTargetGroup:
+    FulfillTargetGroup:
       Type: AWS::ElasticLoadBalancingV2::TargetGroup
       DependsOn: LoadBalancer
       Properties:
@@ -790,7 +845,7 @@ Resources:
             Values:
               - /
         Actions:
-          - TargetGroupArn: !Ref MonolithTargetGroup
+          - TargetGroupArn: !Ref FulfillTargetGroup
             Type: forward
     
     IridiumListenerRule:
@@ -871,13 +926,23 @@ Outputs:
         Description: A reference to the ECS Gatling cluster
         Value: !Ref ECSGatlingCluster
 
-    CloudWatchLogGroup:
+    FulfillCloudWatchLogGroup:
         Description: A reference to the CloudWatch Logs LogGroup
-        Value: !Ref CloudWatchLogsGroup
+        Value: !Ref FulfillCloudWatchLogsGroup
+    
+    IridiumCloudWatchLogGroup:
+        Description: A reference to the CloudWatch Logs LogGroup
+        Value: !Ref IridiumCloudWatchLogsGroup
+
+    MagnesiteCloudWatchLogGroup:
+        Description: A reference to the CloudWatch Logs LogGroup
+        Value: !Ref MagnesiteCloudWatchLogsGroup
 
     GatlingCloudWatchLogGroup:
         Description: A reference to the CloudWatch Logs LogGroup
         Value: !Ref GatlingCloudWatchLogsGroup
 
-
+    XrayCloudWatchLogGroup:
+        Description: A reference to the CloudWatch Logs LogGroup
+        Value: !Ref XrayCloudWatchLogsGroup
     
