@@ -164,10 +164,11 @@ Click the monolith repo and then click **View Push Commands**.
 A popup with commands to log into, tag, and push to ECR will appear. Note down the build, tag, and push commands. In my case these are:
 
 <pre>
-$ aws ecr get-login --no-include-email --region eu-central-1 <i>You'll need this later</i>
-$ docker build -t interstella-monolith .
-$ docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
-$ docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
+<b> Do not run these commands. Just note them down somewhere</b>
+aws ecr get-login --no-include-email --region eu-central-1 <i>You'll need this later</i>
+docker build -t interstella-monolith .
+docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
+docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
 </pre>
 
 Back on the EC2 instance you logged into, navigate to the workshop3/code/monolith folder and build your Docker image. The build command below corresponds directly with the one that you got just a minute ago.
