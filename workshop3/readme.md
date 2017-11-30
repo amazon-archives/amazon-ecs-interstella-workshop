@@ -437,23 +437,22 @@ $ git config --global user.name "REPLACEMEWITHYOURNAME"
 
 Now, clone your new repository and the amazon-ecs-interstella-workshop repository. Go back to the AWS CodeCommit console, click on your repository, and then copy the command to clone your empty repository.
 
-**Make sure to replace YOURENVIRONMENTNAME with the name you put into CloudFormation for the following commands**
+**Make sure to replace EnviromentName with the name you put into CloudFormation for the following commands**. Enter in the username and password you created in step 1.
 
 <pre>
 $ cd /home/ec2-user/
-$ git clone https://git-codecommit.*your_region*.amazonaws.com/v1/repos/*YOURENVIRONMENTNAME*-iridium
-$ git clone https://github.com/aws-samples/amazon-ecs-interstella-workshop.git
+$ git clone https://git-codecommit.*your_region*.amazonaws.com/v1/repos/*EnvironmentName*-iridium-repo
+$ cd *EnvironmentName*-iridium-repo
+$ aws s3 sync s3://www.interstella.trade/workshop3/code/iridium .
+$ aws s3 sync s3://www.interstella.trade/workshop3/hints/ hints/
+$ aws s3 sync s3://www.interstella.trade/workshop3/tests/ tests/
 </pre>
-
-Enter in the username and password you created in step 1.
-
-Now that we have everything locally, we can move just one microservice into the new repo. Because this is for development, we'll be checking into development. 
 
 *You are now separating one part of the repository into another so that you can commit direct to the specific service. Similar to breaking up the monolith application in lab 2, we've now started to break the monolithic repository apart.*
 
+You should still be in the iridium folder. Run the following commands to create a dev branch:
+
 <pre>
-$ cp -R amazon-ecs-interstella-workshop/workshop3/code/iridium/* EnvironmentName-iridium-repo/
-$ cd EnvironmentName-iridium
 $ git checkout -b dev
 $ git add -A
 $ git commit -m "Splitting iridium service into its own repo"
@@ -872,6 +871,10 @@ Now that the microservices are really split up, we should look into how to lock 
 
 A complete and updated service.yml file is located in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/final-service.yml). Overwrite your existing service.yml with that one. 
 
+<pre>
+$ cp hints/final-service.yml service.yml
+</pre>
+
 Here are the differences:
 
 - We added a new role to the template:
@@ -937,7 +940,7 @@ Navigate to the AWS CodePipeline dashboard and choose your pipeline. Edit the pi
 Select and populate the following Values:
 
 - Action Category - **Test**
-- Action Name - **StaticAnalysis**
+- Action Name - **CFNNag**
 - Test provider - **AWS CodeBuild**
 - Project Name - **CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
 - Input Artifact #1 - **MyApp**
@@ -948,7 +951,7 @@ Click **Add Action**
 
 2\. Create a new yml file for the test CodeBuild project to use.
 
-In the CloudFormation stack, we configured the CodeBuild project to look for a file named **test-buildspec.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a test-buildspec.yml.draft in the service folder for you to start. It looks like this:
+In the CloudFormation stack, we configured the CodeBuild project to look for a file named **cfn-nag-buildspec.yml**. With this, CodeBuild will install cfn-nag and then scan the service.yml CloudFormation template. It's the same format as buildspec.yml you used earlier. Take a look at the [Stelligent cfn-nag github repo](https://github.com/stelligent/cfn_nag) for how to install it. We've placed a cfn-nag-buildspec.yml.draft in the service folder for you to start. It looks like this:
 
 <pre>
 version: 0.2
@@ -981,52 +984,58 @@ phases:
         - cfn_nag_scan --input-path service.yml
   </pre>
   
-  A completed file is in the hints folder of workshop3. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-test-buildspec.yml">hint1-test-buildspec.yml</a>
+  A completed file is in the hints folder of workshop3. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
 </details>
 
 3\. Check for access keys and secret keys being checked in.
 
-Interstella GTC has heard a lot of people checking in their keys to repos. How can we help in the fight to secure Interstella GTC? Let's add in a few more lines to look for any sort of AWS Access or Secret keys. Can you think of a way to do this? AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. Secret keys, however, can contain some special characters and are 40 characters long. How would you look through your code for anything like this and throw a warning up if something exists?
+Interstella GTC has heard a lot of people checking in their keys to repos. How can we help in the fight to secure Interstella GTC? Can you think of a way to do this? We want it to run in parallel with cfn-nag so we can have multiple tests run at the same time. How would you look through your code for anything like this and throw a warning up if something exists?
+
+**Some hints:**
+
+- You can run multiple actions in parallel in CodePipeline.
+- AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. 
+- Secret keys can contain some special characters and are 40 characters long. 
+- There is a second CodeBuild project already created for you using ubuntu-base:14.04 (Just vanilla linux) looking for accesskeys-buildspec.yml
 
 <details>
   <summary>
     Click here for an answer that we've come up with.
   </summary>
+  
+  First, edit the CodeAnalysis stage of your pipeline so you can add another action right next to the CFNNag. Select and populate the following Values:
+
+  - Action Category - **Test**
+  - Action Name - **CheckAccessKeys**
+  - Test provider - **AWS CodeBuild**
+  - Project Name - **CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
+  - Input Artifact #1 - **MyApp**
+  
   We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. 
 
-  Within the build section, add in a line to run a script in the test folder.
-  <pre>
-    ./tests/checkaccesskeys.sh 
-  </pre>
-
-  Your test-build.yml should now look like this:
+  Within the build section, add in a line to run a script in the test folder. Your accesskeys-buildspec.yml should now look like this:
 
   <pre>
   version: 0.2
 
   phases:
-    pre_build:
-      commands:
-        - gem install cfn-nag
     build:
       commands:
-        - echo 'In Build'
-        - cfn_nag_scan --input-path service.yml
         - ./tests/checkaccesskeys.sh
   </pre>
 
-  A final version of this test-buildspec.yml is also located in the hints folder. It's named final-test-buildspec.yml.
+  A final version of this buildspec is also located in the hints folder. It's named accesskeys-buildspec.yml.
 </details>
 
 Let's check everything in and run the test. 
 
 <pre>
-$ git add test-cfn-nag.yml
+$ git add accesskeys-buildspec.yml 
 $ git commit -m "Adding in buildspec for cfn-nag"
 $ git push origin master
 </pre>
 
-By pushing to CodeCommit, the pipeline will automatically trigger.
+By pushing to CodeCommit, the pipeline will automatically trigger. 
 
 
 

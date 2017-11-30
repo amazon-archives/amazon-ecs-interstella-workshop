@@ -692,19 +692,34 @@ Resources:
       Type: AWS::S3::Bucket
       DeletionPolicy: Delete
       
-    CodeBuildProject:
+    CFNNagCodeBuildProject:
       Type: AWS::CodeBuild::Project
       Properties:
         Artifacts:
           Type: "CODEPIPELINE"
         Source:
           Type: "CODEPIPELINE"
-          BuildSpec: "test-buildspec.yml"
+          BuildSpec: "cfn-nag-buildspec.yml"
         Environment:
           ComputeType: "BUILD_GENERAL1_SMALL"
           Image: "aws/codebuild/ruby:2.3.1"
           Type: "LINUX_CONTAINER"
-        Name: !Sub ${EnvironmentName}-CodeBuildProject
+        Name: !Sub ${EnvironmentName}-CFNNagCodeBuild-project
+        ServiceRole: !Ref CodeBuildServiceRole
+        
+    GenericCodeBuildProject:
+      Type: AWS::CodeBuild::Project
+      Properties:
+        Artifacts:
+          Type: "CODEPIPELINE"
+        Source:
+          Type: "CODEPIPELINE"
+          BuildSpec: "accesskeys-buildspec.yml"
+        Environment:
+          ComputeType: "BUILD_GENERAL1_SMALL"
+          Image: "aws/codebuild/ubuntu-base:14.04"
+          Type: "LINUX_CONTAINER"
+        Name: !Sub ${EnvironmentName}-GeneralCodeBuild-project
         ServiceRole: !Ref CodeBuildServiceRole
     
     CodeBuildServiceRole:
