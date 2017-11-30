@@ -75,7 +75,7 @@ Parameters:
     InstanceType: 
         Description: Choose an instance type for ECS Cluster Instances - default is t2.medium
         Type: String
-        Default: t2.medium
+        Default: t2.micro
         AllowedValues:
             - t2.micro
             - t2.small
@@ -448,6 +448,8 @@ Resources:
                       -
                         Effect: "Allow"
                         Action: 
+                            - "s3:Get*"
+                            - "s3:List*"
                             - "ecs:CreateCluster"
                             - "ecs:DeregisterContainerInstance"
                             - "ecs:DiscoverPollEndpoint"
@@ -784,14 +786,16 @@ Resources:
       Properties:
         RoleName: !Sub ${EnvironmentName}-CodePipelineServiceRole
         Path: /
-        AssumeRolePolicyDocument: |
-          {
-              "Statement": [{
-                  "Effect": "Allow",
-                  "Principal": { "Service": [ "codepipeline.amazonaws.com" ]},
-                  "Action": [ "sts:AssumeRole" ]
-              }]
-          }
+        AssumeRolePolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - 
+              Effect: "Allow"
+              Principal: 
+                Service: 
+                  - "codepipeline.amazonaws.com"
+              Action: 
+                - "sts:AssumeRole"
         Policies:
           - PolicyName: root
             PolicyDocument:
@@ -812,7 +816,6 @@ Resources:
                   Action:
                     - codebuild:StartBuild
                     - codebuild:BatchGetBuilds
-                    - cloudformation:*
                     - iam:PassRole
                     - iam:CreateRole
                     - iam:DetachRolePolicy
@@ -820,8 +823,7 @@ Resources:
                     - iam:DeleteRole
                     - iam:PassRole
                     - iam:DeleteRolePolicy
-                    - iam:PutRolePolicy 
-                    - lambda:*
+                    - iam:PutRolePolicy
                     - ecs:RegisterTaskDefinition
                     - ecs:DeregisterTaskDefinition
                     - ecs:CreateService
@@ -847,6 +849,52 @@ Resources:
                     - codecommit:GetCommit
                     - codecommit:GetUploadArchiveStatus
                     - codecommit:UploadArchive
+        
+    CFServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub ${EnvironmentName}-CFServiceRole
+        Path: /
+        AssumeRolePolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - 
+              Effect: "Allow"
+              Principal: 
+                Service: 
+                  - "cloudformation.amazonaws.com"
+              Action: 
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - iam:PassRole
+                    - iam:CreateRole
+                    - iam:DetachRolePolicy
+                    - iam:AttachRolePolicy
+                    - iam:DeleteRole
+                    - iam:PassRole
+                    - iam:DeleteRolePolicy
+                    - iam:PutRolePolicy
+                    - ecs:RegisterTaskDefinition
+                    - ecs:DeregisterTaskDefinition
+                    - ecs:CreateService
+                    - ecs:UpdateService
+                    - ecs:UpdateService
+                    - ecs:DescribeServices
+                    - ecs:DeleteService
+                    - lambda:*
+                    - s3:GetObject
+                    - cloudformation:CreateStack
+                    - cloudformation:UpdateStack
+                    - cloudformation:SetStackPolicy
+                    - cloudformation:CreateChangeSet
+               
 Outputs:
 
     VPC: 
@@ -896,3 +944,7 @@ Outputs:
     IridiumTargetGroup:
         Description: Target Group ARN for Iridium
         Value: !Ref IridiumTargetGroup
+        
+    LoadBalancerDNSName:
+        Description: DNS Name for ALB
+        Value: !GetAtt LoadBalancer.DNSName
