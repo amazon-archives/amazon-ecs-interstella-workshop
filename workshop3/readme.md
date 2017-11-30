@@ -171,7 +171,7 @@ docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazona
 docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
 </pre>
 
-Back on the EC2 instance you logged into, navigate to the workshop3/code/monolith folder and build your Docker image. The build command below corresponds directly with the one that you got just a minute ago.
+Back on the EC2 instance you logged into, navigate to the monolith folder and build your Docker image. The build command below corresponds directly with the one that you got just a minute ago.
 
 <pre>
 $ cd monolith
@@ -1007,7 +1007,7 @@ phases:
         - cfn_nag_scan --input-path service.yml
   </pre>
   
-  A completed file is in the hints folder of workshop3. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
+  A completed file is in the hints folder. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
   <pre>
   $ cp hints/hint1-cfn-nag-buildspec.yml cfn-nag-buildspec.yml
   </pre>
