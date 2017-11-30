@@ -431,8 +431,8 @@ Before we log into CodeCommit, to avoid entering in a password every time, we're
 
 <pre>
 $ git config --global credential.helper "cache --timeout=7200"
-$ git config --global user.email "REPLACEMEWITHYOUREMAIL"
-$ git config --global user.name "REPLACEMEWITHYOURNAME"
+$ git config --global user.email "REPLACEWITHYOUREMAIL"
+$ git config --global user.name "REPLACEWITHYOURNAME"
 </pre>
 
 Now, clone your new repository and the amazon-ecs-interstella-workshop repository. Go back to the AWS CodeCommit console, click on your repository, and then copy the command to clone your empty repository.
@@ -1012,7 +1012,10 @@ Interstella GTC has heard a lot of people checking in their keys to repos. How c
   
   ![CodePipeline Create Test 2](images/3-cp-create-test-2.png)
   
-  We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. 
+  We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. Let's make it executable:
+  <pre>
+  $ chmod +x tests/checkaccesskeys.sh
+  </pre>
 
   Within the build section, add in a line to run a script in the test folder. Your accesskeys-buildspec.yml should now look like this:
 

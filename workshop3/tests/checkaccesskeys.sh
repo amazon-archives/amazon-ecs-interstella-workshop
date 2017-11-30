@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ACCESSKEYS=$(grep -EHn '[A-Z0-9]{20}' *)
-SECRETKEYS=$(grep -EHn '[A-Za-z0-9/\+=]{40}' *)
+ACCESSKEYS=$(grep -REHn '[A-Z0-9]{20}' *)
+SECRETKEYS=$(grep -REHn '[A-Za-z0-9/\+=]{40}' *)
 
 # By default, grep will show the output of the pattern matches, but since we don't want to log our access or secret keys anywhere, we're stripping them out before logging anything.
 
