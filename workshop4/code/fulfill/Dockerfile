@@ -12,7 +12,7 @@ RUN apt-get -y install \
 
 WORKDIR /root
 
-ENV PRODUCT monolith
+ENV PRODUCT fulfill
 
 RUN wget https://bootstrap.pypa.io/get-pip.py \
   && python get-pip.py
@@ -30,8 +30,8 @@ COPY ./requirements.txt .
 
 RUN bin/pip install -r requirements.txt
 
-COPY ./monolith.py .
+COPY ./fulfill.py .
 
 EXPOSE 80
 
-ENTRYPOINT ["bin/python", "monolith.py"]
+ENTRYPOINT ["bin/python", "fulfill.py"]

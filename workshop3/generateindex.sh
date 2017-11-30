@@ -22,4 +22,4 @@ Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 </body>
 </html>" >> index.html
 #zip -r bundle tests/ code/ hints/ -x "*.DS_Store"
-aws s3 sync . s3://www.interstella.trade/workshop3/ --acl public-read --exclude ".DS_Store"
+aws s3 sync . s3://www.interstella.trade/workshop3/ --acl public-read --exclude "*.DS_Store"
