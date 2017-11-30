@@ -1056,7 +1056,33 @@ By pushing to CodeCommit, the pipeline will automatically trigger.
 
 WHAT? THERE WERE ERRORS AGAIN?!?!? Ok go through and fix them all. 
 
+![CodePipeline Failed Tests](images/3-cp-failed-tests.png)
 
+Look at the outputs of both CodeBuild runs and you'll see the errors:
+<details>
+<summary>
+How to fix CFNNag errors
+</summary>
+The error is this:
+<pre>
+------------------------------------------------------------
+service.yml
+------------------------------------------------------------------------------------------------------------------------
+| FAIL F3
+|
+| Resources: ["ECSTaskRole"]
+|
+| IAM role should not allow * action on its permissions policy
+------------------------------------------------------------
+| WARN W11
+|
+| Resources: ["ECSTaskRole"]
+|
+| IAM role should not allow * resource on its permissions policy
+
+Failures count: 1
+Warnings count: 1
+</pre>
 
 
 

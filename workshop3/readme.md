@@ -869,10 +869,10 @@ For more background on the tool, please see: [Finding Security Problems Early in
 
 Now that the microservices are really split up, we should look into how to lock them down. One great way is to use IAM Roles for Tasks. We can give a specific task an IAM role so we know exactly what task assumed what role to do something instead of relying on the default EC2 instance profile.
 
-A complete and updated service.yml file is located in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/final-service.yml). Overwrite your existing service.yml with that one. 
+A complete and updated service.yml file is located in [hints/new-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/new-service.yml). Overwrite your existing service.yml with that one. 
 
 <pre>
-$ cp hints/final-service.yml service.yml
+$ cp hints/new-service.yml service.yml
 </pre>
 
 Here are the differences:
@@ -1045,7 +1045,18 @@ By pushing to CodeCommit, the pipeline will automatically trigger.
 
 WHAT? THERE WERE ERRORS AGAIN?!?!? Ok go through and fix them all. 
 
+![CodePipeline Failed Tests](images/3-cp-failed-tests.png)
 
+Look at the outputs of both CodeBuild runs and you'll see the errors:
+<details>
+<summary>
+How to fix CFNNag errors
+</summary>
+The error is this:
+
+![CodePipeline CFNNag Error](images/3-cp-cfn-nag-error.png)
+
+The permissions for my role ECSTaskRole are too wide open. Let's lock it down.
 
 
 
