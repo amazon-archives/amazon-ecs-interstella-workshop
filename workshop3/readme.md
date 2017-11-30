@@ -9,6 +9,8 @@ If you are not familiar with DevOps, there are multiple facets to the the word. 
 
 In this workshop, you will take Interstella's existing logistics platform and apply concepts of CI/CD to their environment. To do this, you will create a pipeline to automate all deployments using AWS CodeCommit or GitHub, AWS CodeBuild, AWS CodePipeline, and AWS CloudFormation. Today, the Interstella logistic platform runs on Amazon EC2 Container Service following a microservice architecture, meaning that there are very strict API contracts that are in place. As part of the move to a more continuous delivery model, they would like to make sure these contracts are always maintained.
 
+The tools that we use in this workshop are part of the AWS Dev Tools stack, but are by no means an end all be all. What you should focus on is the idea of CI/CD and how you can apply it to your environments.
+
 ### Requirements:  
 * AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/)
 * AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ALB, VPC, SNS, CloudWatch, AWS CodeCommit, AWS CodeBuild, AWS CodePipeline
@@ -593,18 +595,18 @@ As part of the initial bootstrapping, we've already created a target group for y
 
 Open the existing **buildspec.yml** for the **iridium** microservice. Update the buildspec to include the following:
 
-* Add a section for parameters and pull in the right parameters from parameter store. Specifically, we'll need to get the parameters iridiumTargetGroupArn, cloudWatchLogsGroup, and ecsClusterName so we can pass those to the CloudFormation stack later.
+- Add a section for parameters and pull in the right parameters from parameter store. Specifically, we'll need to get the parameters iridiumTargetGroupArn, cloudWatchLogsGroup, and ecsClusterName so we can pass those to the CloudFormation stack later.
 
-  * http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
+  - http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
 
-* Within the pre-build section, determine if the source is coming from CodeCommit direct or through CodePipeline so we can get the commit id.
+- Within the pre-build section, determine if the source is coming from CodeCommit direct or through CodePipeline so we can get the commit id.
 
-  * http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
-  * Specifically, look at CODEBUILD_INITIATOR. How can you use it to figure out where your object is coming from?
+  - http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+  - Specifically, look at CODEBUILD_INITIATOR. How can you use it to figure out where your object is coming from?
 
-* Within post-build, add a line to put all the parameters into JSON format and write it to disk as build.json. The parameters in this build.json file should map 1:1 to the parameters in service.yml
+- Within post-build, add a line to put all the parameters into JSON format and write it to disk as build.json. The parameters in this build.json file should map 1:1 to the parameters in service.yml
 
-* Add a section for artifacts and include the build.json file and also the service.yml CloudFormation template.
+- Add a section for artifacts and include the build.json file and also the service.yml CloudFormation template.
 
 <details>
   <summary>
@@ -803,13 +805,12 @@ Choose **Apply Policy**
 
 Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
 
-
-
 6\. Create two more stages. One gate and one to execute the change set.
 
 In the CodePipeline console, when you're looking at prod-iridium-service pipeline, click **Edit**. Add a stage at the bottom and name it **Approval**. Then click **+Add Action**.
 
 In the dialog that comes up on the right, populate the following values:
+
 - Action category: **Approval**
 - Action Name: **ChangeSetApproval**
 - Approval Type: **Manual Approval**
@@ -818,6 +819,7 @@ Leave the rest blank and click **Add action**.
 ![CodePipeline Create Gate](images/2-cp-create-gate.png)
 
 Add one more stage, name it **DeployToCFN**, and create an action. In the dialog that comes out, populate the following values:
+
 - Action category: **Deploy**
 - Action Name: **DeploytoCFN**
 - Deployment Provider: **AWS CloudFormation**
@@ -954,11 +956,11 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - gem install cfn-nag
+      - #[TODO]: Install cfn-nag
   build:
     commands:
       - echo 'In Build'
-      - cfn_nag_scan --input-path service.yml
+      - #[TODO]: Scan using cfn-nag
 </pre>
 
 <details>
@@ -979,10 +981,12 @@ phases:
         - cfn_nag_scan --input-path service.yml
   </pre>
   
-  A completed file is in the hints folder of workshop3. It's named hint1-test-buildspec.yml
+  A completed file is in the hints folder of workshop3. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-test-buildspec.yml">hint1-test-buildspec.yml</a>
 </details>
 
-You should be good to go for the cfn-nag build now, but why stop here? Let's add in a few more lines to look for any sort of AWS Access or Secret keys. Can you think of a way to do this? AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. Secret keys, however, can contain some special characters and are 40 characters long. How would you look through your code for anything like this and throw a warning up if something exists?
+3\. Check for access keys and secret keys being checked in.
+
+Interstella GTC has heard a lot of people checking in their keys to repos. How can we help in the fight to secure Interstella GTC? Let's add in a few more lines to look for any sort of AWS Access or Secret keys. Can you think of a way to do this? AWS Access keys (as of the writing of this workshop) are alphanumeric and 20 characters long. Secret keys, however, can contain some special characters and are 40 characters long. How would you look through your code for anything like this and throw a warning up if something exists?
 
 <details>
   <summary>
@@ -992,7 +996,7 @@ You should be good to go for the cfn-nag build now, but why stop here? Let's add
 
   Within the build section, add in a line to run a script in the test folder.
   <pre>
-  ./tests/checkaccesskeys.sh 
+    ./tests/checkaccesskeys.sh 
   </pre>
 
   Your test-build.yml should now look like this:
@@ -1022,7 +1026,7 @@ $ git commit -m "Adding in buildspec for cfn-nag"
 $ git push origin master
 </pre>
 
-3\. 
+By pushing to CodeCommit, the pipeline will automatically trigger.
 
 
 

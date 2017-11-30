@@ -814,13 +814,12 @@ Choose **Apply Policy**
 
 Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
 
-
-
 6\. Create two more stages. One gate and one to execute the change set.
 
 In the CodePipeline console, when you're looking at prod-iridium-service pipeline, click **Edit**. Add a stage at the bottom and name it **Approval**. Then click **+Add Action**.
 
 In the dialog that comes up on the right, populate the following values:
+
 - Action category: **Approval**
 - Action Name: **ChangeSetApproval**
 - Approval Type: **Manual Approval**
@@ -829,6 +828,7 @@ Leave the rest blank and click **Add action**.
 ![CodePipeline Create Gate](images/2-cp-create-gate.png)
 
 Add one more stage, name it **DeployToCFN**, and create an action. In the dialog that comes out, populate the following values:
+
 - Action category: **Deploy**
 - Action Name: **DeploytoCFN**
 - Deployment Provider: **AWS CloudFormation**
@@ -965,11 +965,11 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - gem install cfn-nag
+      - #[TODO]: Install cfn-nag
   build:
     commands:
       - echo 'In Build'
-      - cfn_nag_scan --input-path service.yml
+      - #[TODO]: Scan using cfn-nag
 </pre>
 
 <details>
@@ -1003,7 +1003,7 @@ You should be good to go for the cfn-nag build now, but why stop here? Let's add
 
   Within the build section, add in a line to run a script in the test folder.
   <pre>
-  ./tests/checkaccesskeys.sh 
+    ./tests/checkaccesskeys.sh 
   </pre>
 
   Your test-build.yml should now look like this:

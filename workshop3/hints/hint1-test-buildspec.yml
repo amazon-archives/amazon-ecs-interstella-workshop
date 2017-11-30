@@ -7,4 +7,4 @@ phases:
   build:
     commands:
       - echo 'In Build'
-      - cfn_nag_scan --input-path service.yaml
+      - cfn_nag_scan --input-path service.yml

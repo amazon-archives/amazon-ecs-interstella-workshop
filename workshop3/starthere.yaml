@@ -702,7 +702,7 @@ Resources:
           BuildSpec: "test-buildspec.yml"
         Environment:
           ComputeType: "BUILD_GENERAL1_SMALL"
-          Image: "aws/codebuild/ruby:2.1.10"
+          Image: "aws/codebuild/ruby:2.3.1"
           Type: "LINUX_CONTAINER"
         Name: !Sub ${EnvironmentName}-CodeBuildProject
         ServiceRole: !Ref CodeBuildServiceRole
@@ -748,6 +748,21 @@ Resources:
                     - ecr:InitiateLayerUpload
                     - ecr:UploadLayerPart
                     - ecr:CompleteLayerUpload
+                - Resource: 
+                    - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/${CloudWatchLogsGroup}/codebuild/tests/
+                    - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/${CloudWatchLogsGroup}/codebuild/tests:*
+                  Effect: Allow
+                  Action: 
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvent
+                - Resource:
+                    - !Sub arn:aws:s3:::codepipeline-${AWS::Region}-*
+                  Effect: Allow
+                  Action: 
+                    - s3:PutObject
+                    - s3:GetObject
+                    - s3:GetObjectVersion
     
 Outputs:
 
@@ -791,7 +806,7 @@ Outputs:
         Description: A reference to the ECS cluster
         Value: !Ref ECSCluster
 
-    CloudWatchLogGroup:
+    CloudWatchLogsGroup:
         Description: A reference to the CloudWatch Logs LogGroup
         Value: !Ref CloudWatchLogsGroup
         
