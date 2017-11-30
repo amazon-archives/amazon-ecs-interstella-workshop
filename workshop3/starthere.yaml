@@ -73,7 +73,7 @@ Parameters:
         Default: 10.177.21.0/24
 
     InstanceType: 
-        Description: Choose an instance type for ECS Cluster Instances - default is t2.medium
+        Description: Choose an instance type for ECS Cluster Instances - default is t2.micro
         Type: String
         Default: t2.micro
         AllowedValues:
@@ -87,7 +87,7 @@ Parameters:
     ClusterSize:
         Description: How many ECS hosts do you want to initially deploy?
         Type: Number
-        Default: 1
+        Default: 2
 
     InterstellaApiKey:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
