@@ -942,7 +942,7 @@ Select and populate the following Values:
 - Action Category - **Test**
 - Action Name - **CFNNag**
 - Test provider - **AWS CodeBuild**
-- Project Name - **CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
+- Project Name - **EnvironmentName-CFNNagCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
 - Input Artifact #1 - **MyApp**
 
 Click **Add Action**
@@ -1002,14 +1002,15 @@ Interstella GTC has heard a lot of people checking in their keys to repos. How c
   <summary>
     Click here for an answer that we've come up with.
   </summary>
-  
-  First, edit the CodeAnalysis stage of your pipeline so you can add another action right next to the CFNNag. Select and populate the following Values:
+  First, edit the CodeAnalysis stage of your pipeline so you can add another action right next to the CFNNag. Select and populate the following Values
 
-  - Action Category - **Test**
-  - Action Name - **CheckAccessKeys**
-  - Test provider - **AWS CodeBuild**
-  - Project Name - **CFN Value** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
+  - Action Category - **Test**<br/>
+  - Action Name - **CheckAccessKeys**<br/>
+  - Test provider - **AWS CodeBuild**<br/>
+  - Project Name - **EnvironmentName-GeneralCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Generic Ubuntu 14.04 Linux stack.*<br/>
   - Input Artifact #1 - **MyApp**
+  
+  ![CodePipeline Create Test 2](images/3-cp-create-test-2.png)
   
   We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. 
 
@@ -1027,16 +1028,19 @@ Interstella GTC has heard a lot of people checking in their keys to repos. How c
   A final version of this buildspec is also located in the hints folder. It's named accesskeys-buildspec.yml.
 </details>
 
-Let's check everything in and run the test. 
+4\. Let's check everything in and run the tests. 
 
 <pre>
-$ git add accesskeys-buildspec.yml 
-$ git commit -m "Adding in buildspec for cfn-nag"
+$ git add accesskeys-buildspec.yml cfn-nag-buildspec.yml
+$ git commit -m "Adding in buildspec for cfn-nag AND check for access key scans"
 $ git push origin master
 </pre>
 
 By pushing to CodeCommit, the pipeline will automatically trigger. 
 
+5\. Fix all the errors.
+
+WHAT? THERE WERE ERRORS AGAIN?!?!? Ok go through and fix them all. 
 
 
 
