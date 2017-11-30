@@ -779,6 +779,74 @@ Resources:
                     - s3:GetObject
                     - s3:GetObjectVersion
     
+    CodePipelineServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub ${EnvironmentName}-CodePipelineServiceRole
+        Path: /
+        AssumeRolePolicyDocument: |
+          {
+              "Statement": [{
+                  "Effect": "Allow",
+                  "Principal": { "Service": [ "codepipeline.amazonaws.com" ]},
+                  "Action": [ "sts:AssumeRole" ]
+              }]
+          }
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - s3:GetObject
+                    - s3:GetObjectVersion
+                    - s3:GetBucketVersioning
+                - Resource: "arn:aws:s3:::codepipeline*"
+                  Effect: Allow
+                  Action:
+                    - s3:PutObject
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - codebuild:StartBuild
+                    - codebuild:BatchGetBuilds
+                    - cloudformation:*
+                    - iam:PassRole
+                    - iam:CreateRole
+                    - iam:DetachRolePolicy
+                    - iam:AttachRolePolicy
+                    - iam:DeleteRole
+                    - iam:PassRole
+                    - iam:DeleteRolePolicy
+                    - iam:PutRolePolicy 
+                    - lambda:*
+                    - ecs:RegisterTaskDefinition
+                    - ecs:DeregisterTaskDefinition
+                    - ecs:CreateService
+                    - ecs:UpdateService
+                    - ecs:UpdateService
+                    - ecs:DescribeServices
+                    - ecs:DeleteService
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - ec2:*
+                    - elasticloadbalancing:*
+                    - autoscaling:*
+                    - cloudwatch:*
+                    - s3:*
+                    - sns:*
+                    - cloudformation:*
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - codecommit:CancelUploadArchive
+                    - codecommit:GetBranch
+                    - codecommit:GetCommit
+                    - codecommit:GetUploadArchiveStatus
+                    - codecommit:UploadArchive
 Outputs:
 
     VPC: 

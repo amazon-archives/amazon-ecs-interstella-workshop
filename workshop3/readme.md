@@ -1047,24 +1047,48 @@ WHAT? THERE WERE ERRORS AGAIN?!?!? Ok go through and fix them all.
 
 ![CodePipeline Failed Tests](images/3-cp-failed-tests.png)
 
-Look at the outputs of both CodeBuild runs and you'll see the errors:
+Look at the outputs of both CodeBuild runs and you'll see the errors. Go through and remediate them all.
 <details>
 <summary>
-How to fix CFNNag errors
+How to fix CFNNag errors:
 </summary>
 The error is this:
 
 ![CodePipeline CFNNag Error](images/3-cp-cfn-nag-error.png)
 
-The permissions for my role ECSTaskRole are too wide open. Let's lock it down.
+The permissions for my role ECSTaskRole are too wide open. Let's lock it down. Update the IAM policy to only allow access to your SSM parameters. The answer is in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/final-service.yml)
+
+<pre>
+$ cp hints/final-service.yml service.yml
+</pre>
+</details>
+
+<details>
+<summary>
+How to fix CheckAccessKeys errors:
+</summary>
+The build output will tell you exactly what file and what line the problems are on. Open the files and delete the lines specified.
+</details>
+
+Check everything in again:
+
+<pre>
+$ git add -A
+$ git commit -m "Locked down IAM roles for service.yml and removed hard coded credentials"
+$ git push origin master
+</pre>
 
 
+### Workshop Cleanup
 
+This is really important because if you leave stuff running in your account, it will continue to generate charges.  Certain things were created by CloudFormation and certain things were created manually throughout the workshop.  Follow the steps below to make sure you clean up properly.  
 
-
-
-
-
+1. Delete any manually created resources throughout the labs, e.g. CodePipeline Pipelines and CodeBuild projects.  Certain things like task definitions do not have a cost associated, so you don't have to worry about that.  If you're not sure what has a cost, you can always look it up on our website.  All of our pricing is publicly available, or feel free to ask one of the workshop attendants when you're done.
+2. Go to the CodePipeline console and delete prod-iridium-service. Hit Edit and then Delete.
+3. Delete any container images stored in ECR, delete CloudWatch logs groups, and delete ALBs and target groups (if you got to the bonus lab)
+4. In your ECS Cluster, edit all services to have 0 tasks and delete all services
+5. Delete the CloudFormation stack prod-iridium-service that CodePipeline created.
+6. Finally, delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
 
 
 
