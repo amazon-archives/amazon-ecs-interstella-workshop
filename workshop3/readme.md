@@ -7,7 +7,7 @@ We've already moved to a microservice based model, but are still not able to dev
 
 If you are not familiar with DevOps, there are multiple facets to the the word. One focuses on organizational values, such as small, well rounded agile teams focusing on owning a particular service, whereas one focuses on automating the software delivery process as much as possible to shorten the time between code check in and customers testing and providing feedback. This allows us to shorten the feedback loop and iterate based on customer requirements at a much quicker rate. 
 
-In this workshop, you will take Interstella's existing logistics platform and apply concepts of CI/CD to their environment. To do this, you will create a pipeline to automate all deployments using AWS CodeCommit or GitHub, AWS CodeBuild, AWS CodePipeline, and AWS CloudFormation. Today, the Interstella logistic platform runs on Amazon EC2 Container Service following a microservice architecture, meaning that there are very strict API contracts that are in place. As part of the move to a more continuous delivery model, they would like to make sure these contracts are always maintained.
+In this workshop, you will take Interstella's existing logistics platform and apply concepts of CI/CD to their environment. To do this, you will create a pipeline to automate all deployments using AWS CodeCommit or GitHub, AWS CodeBuild, AWS CodePipeline, and AWS CloudFormation. Today, the Interstella logistic platform runs on Amazon Elastic Container Service following a microservice architecture, meaning that there are very strict API contracts that are in place. As part of the move to a more continuous delivery model, they would like to make sure these contracts are always maintained.
 
 The tools that we use in this workshop are part of the AWS Dev Tools stack, but are by no means an end all be all. What you should focus on is the idea of CI/CD and how you can apply it to your environments.
 
@@ -246,9 +246,9 @@ Click **Add** and then **Create**.
 
 It's time to start up the monolith service. Let's create an ECS service. What's a service you ask? There are two ways of launching Docker containers with ECS. One is to create a service and the other is to run a task. 
 
-Services are for long running containers. ECS will make sure that they are always up for you. Great for things like apache/webservers.
+**Services** are for long running containers. ECS will make sure that they are always up for you. Great for things like apache/webservers.
 
-Tasks, however, are short lived, possibly periodic. Run once and that's it. ECS will not try to bring up new containers if it goes down. 
+**Tasks**, however, are short lived, possibly periodic. Run once and that's it. ECS will not try to bring up new containers if it goes down. 
 
 From the Task Definition page, click on **Actions** and choose **Create Service**. If you navigated away from the page, click on **Task Definitions** on the left menu and then click the task definition you just created.
 
@@ -286,7 +286,7 @@ Click **Create Service** and click **View Service** to get the status of your se
 
 9\. Confirm logging to CloudWatch Logs is working. 
 
-Once the monolith service is running, navigate back to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home), and click on your **Logs** on the left and then log group you created **EnvironmentName-LogGroup**.  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recentl one. You can test the service by sending some data to it:
+Once the monolith service is running, navigate back to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home), and click on your **Logs** on the left and then log group you created **EnvironmentName-LogGroup**.  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recent one. You can test the service by sending some data to it:
 
 <pre>
 $ curl LoadBalancerDNSName.eu-central-1.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
@@ -315,7 +315,7 @@ At this point, you've manually deployed a service to ECS. It works, and is going
 
 ### Lab 1 - Offload the application build from your dev machine
 
-In this lab, you will start the process of automating the entire software delivery process. The first step we're going to take is to automate the Docker container builds and push the container image into the EC2 Container Registry. This will allow you to develop and not have to worry too much about build resources. We will use AWS CodeCommit and AWS CodeBuild to automate this process. 
+In this lab, you will start the process of automating the entire software delivery process. The first step we're going to take is to automate the Docker container builds and push the container image into the Elastic Container Registry. This will allow you to develop and not have to worry too much about build resources. We will use AWS CodeCommit and AWS CodeBuild to automate this process. 
 
 We've already separated the code in the application, but it's time to move the code out of the monolith repo so we can work on it quicker. As part of the bootstrap process, CloudFormation has already created an AWS CodeCommit repository for you. It will be called EnvironmentName-iridium. We'll use this repository to break apart the iridium microservice code from the monolith. 
 
@@ -327,13 +327,13 @@ Here's a reference architecture for what you'll be building:
 
 *You may be thinking, why would I want this to automate when I could just do it on my local machine. Well, this is going to be part of your full production pipeline. We'll use the same build system process as you will for production deployments. In the event that something is different on your local machine as it is within the full dev/prod pipeline, this will catch the issue earlier. You can read more about this by looking into **Shift Left**.*
 
-In the AWS Management Console navigate to the AWS CodeBuild console. You'll see some CodeBuild projects there already. Disregard them as they're for later.
+In the AWS Management Console navigate to the AWS CodeBuild console. You'll see some CodeBuild projects there already. Disregard them as they're for later. Click on **Create Project**
 
 On the **Configure your project** page, enter in the following details:
 
 - Project Name: **dev-iridium-service**
 - Source Provider: **AWS CodeCommit**
-- Repository: **Your AWS CodeCommit repository name from above**
+- Repository: **Your AWS CodeCommit repository name from above** *e.g. interstella-iridium-repo*
 
 Environment:
 
@@ -357,7 +357,7 @@ Cache:
 Service Role:
 
 - Service Role: **Create a service role in your account**
-- Role Name: **codebuild-dev-iridium-service-role**
+- Role Name: **codebuild-dev-iridium-service-service-role** *This is pre-populated and CodeBuild will assume this role to build your application*
 
 VPC:
 
@@ -373,11 +373,11 @@ Expand the **Advanced** section:
 
 Click **Continue**, and then **Save**.
 
-When you click save, CodeBuild will create an IAM role to access other AWS resources to complete your build. By default, it doesn't include everything, so we will need to modify the newly created IAM Role to allow access to EC2 Container Registry (ECR). 
+When you click save, CodeBuild will create an IAM role to access other AWS resources to complete your build. By default, it doesn't include everything, so we will need to modify the newly created IAM Role to allow access to Elastic Container Registry (ECR). 
 
 2\. Modify IAM role to allow CodeBuild to access other resources like ECR.
 
-In the AWS Management Console, navigate to the [AWS IAM console](https://console.aws.amazon.com/iam/). Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **codebuild-dev-iridium-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. 
+In the AWS Management Console, navigate to the [AWS IAM console](https://console.aws.amazon.com/iam/). Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **codebuild-dev-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. 
 
 ![CodeBuild Modify IAM Role](images/1-cb-modify-iam.png)
 
@@ -408,15 +408,15 @@ Choose **Custom Policy**. Name it **AccessECR** and enter in:
 
 Choose **Apply Policy**
 
-3\. Get details on EC2 Container Repository where we will be pushing and pulling Docker images to/from.
+3\. Get details on Elastic Container Repository where we will be pushing and pulling Docker images to/from.
 
-We now have the building blocks in place to start automating the builds of our Docker images. Now it's time to figure out how to use the Amazon EC2 Container Registry. 
+We now have the building blocks in place to start automating the builds of our Docker images. Now it's time to figure out how to use the Amazon Elastic Container Registry. 
 
-In the AWS Management Console, navigate to the Amazon EC2 Container Service console. On the left, click on Repositories. This time, we'll use the **iridium repository** instead of the monolith repository.
+In the AWS Management Console, navigate to the Amazon Elastic Container Service console. On the left, click on Repositories. This time, we'll use the **iridium repository** instead of the monolith repository.
 
 Copy the login, build, tag, and push commands to use later.
 
-![ECR Get Iridium Commands](1-ecr-get-iridium-commands.png)
+![ECR Get Iridium Commands](images/1-ecr-get-iridium-commands.png)
 
 4\. Connect to your AWS CodeCommit repository.
 
@@ -433,7 +433,7 @@ Scroll down to the **HTTPS Git credentials for AWS CodeCommit** section and clic
 
 Save the **User name** and **Password** as you'll never be able to get this again. 
 
-5\. Download microservice code and commit one microservice to your CodeCommit repo
+5\. On the EC2 Instance, download microservice code and commit one microservice to your CodeCommit repo
 
 Before we log into CodeCommit, to avoid entering in a password every time, we're going to cache the password. SSH back into the EC2 instance you were in earlier and run the following command to cache the password for the next two hours. While we're at it, we'll also set up a git name and email:
 
@@ -478,9 +478,12 @@ If we go back to the AWS CodeCommit dashboard, we should now be able to look at 
 
 AWS CodeBuild uses a definition file called a buildspec Yaml file. The contents of the buildspec will determine what AWS actions CodeBuild should perform. The key parts of the buildspec are Environment Variables, Phases, and Artifacts. 
 
+- See [Build Specification Reference for AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) for more details.
+
 **At Interstella, we want to follow best practices, so there are 2 requirements:**
 
 1. We don't use the ***latest*** tag for Docker images. We have decided to use the Commit ID from our source control instead as the tag so we know exactly what image was deployed.
+
 2. We want this buildspec to be generalized to multiple environments but use different CodeBuild projects to build our Docker containers. You have to figure out how to do this
 
 Again, one of your lackeys has started a buildspec file for you, but never got to finishing it. Add the remaining instructions to the buildspec.yml.draft. The file should be in your EnvironmentName-iridium-repo folder and already checked in. Copy the draft to a buildspec.yml file.
@@ -489,13 +492,13 @@ Again, one of your lackeys has started a buildspec file for you, but never got t
 $ cp buildspec.yml.draft buildspec.yml
 </pre>
 
-Now that you have a copy of the draft as your buildspec, you can start editing it. If you get stuck, look at the [hintspec.yml](hints/hintspec.yml) file also in the hints folder.
+Now that you have a copy of the draft as your buildspec, you can start editing it. If you get stuck, look at the [hintspec.yml](hints/hintspec.yml) file in the hints folder.
 
-Here are some links to the documentation and hints:
-Add the remaining instructions to Dockerfile.draft.  Here are links to documentation and hints to help along the way: 
+Add the remaining instructions to buildspec.yml.  Here are links to documentation and hints to help along the way: 
 
 *#[TODO]: Command to log into ECR. Remember, it has to be executed $(maybe like this?)*
 
+* The ECR login command you copied earlier includes a **no-include-email** flag. **Do not include it** as CodeBuild is using an earlier version of the CLI.
 * http://docs.aws.amazon.com/AmazonECR/latest/userguide/Registries.html
 * http://docs.aws.amazon.com/codebuild/latest/userguide/sample-docker.html#sample-docker-docker-hub
 
@@ -513,30 +516,36 @@ Add the remaining instructions to Dockerfile.draft.  Here are links to documenta
 * https://docs.docker.com/engine/reference/builder/#entrypoint
 
 <details>
-  <summary>
-    Click here for the answer!
-  </summary>
-  There are many ways to achieve what we're looking for. In this case, the buildspec looks like this:
-  <pre>
-  version: 0.2
+<summary>
+  Click here for the answer!
+</summary>
+There are many ways to achieve what we're looking for. In this case, the buildspec looks like this:
+<pre>
+version: 0.2
 
-  phases:
-    pre_build:
-      commands:
-        - echo Logging in to Amazon ECR...
-        - $(aws ecr get-login --region $AWS_DEFAULT_REGION) # <b><i>This is the login command from earlier</i></b>
-    build:
-      commands:
-        - echo Build started on `date`
-        - echo Building the Docker image...          
-        - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION . # <b><i>There are a number of variables that are available directly in the CodeBuild build environment. We specified IMAGE_REPO_NAME earlier, but CODEBUILD_SOURCE_VERSION is there by default.</i></b>
-        - docker tag $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <b><i>This is the tag command from earlier</i></b>
-    post_build:
-      commands:
-        - echo Build completed on `date`
-        - echo Pushing the Docker image...
-        - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <b><i>This is the push command from earlier</i></b>
-  </pre><br />
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION) # <b><i>This is the login command from earlier</i></b>
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...          
+      - docker build -t $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION . # <b><i>There are a number of variables that are available directly in the CodeBuild build environment. We specified IMAGE_REPO_NAME earlier, but CODEBUILD_SOURCE_VERSION is there by default.</i></b>
+      - docker tag $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <b><i>This is the tag command from earlier</i></b>
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <b><i>This is the push command from earlier</i></b>
+</pre>
+
+If you get stuck, you can copy in the answer:
+
+<pre>
+$ cp hints/hintspec.yml buildspec.yml
+</pre>
 </details> 
 
 Notice that when we build the image, it's looking to name it $IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION. What is CODEBUILD_SOURCE_VERSION? You can find out in the [Environment Variables for Build Environments](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html) documentation. How does this change when we use CodePipeline?
@@ -560,7 +569,7 @@ $ git push origin dev
 
 9\. Test your build.
 
-In the AWS CodeBuild console, choose the dev-iridium-service project and build it. After you click **dev-iridium-service**, choose **Start Build**. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build**. 
+In the AWS CodeBuild console, choose the **dev-iridium-service** project and build it. After you click **dev-iridium-service**, choose **Start Build**. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build**. 
 
 If all goes well, you should see a lot of successes and your image in the ECR console. Inspect the **Build Log** if there were any failures. You'll also see these same logs in the CloudWatch Logs console. This will take a few minutes.
 
@@ -573,9 +582,9 @@ What CodeBuild has done is follow the steps in your buildspec. If you now look a
 
 ### Lab 2 - Automate end to end deployments
 
-In this lab, you will build upon the process that you've already started by introducing an orchestration layer to control builds, deployments, and more. To do this, you will create a pipeline to automate all deployments using AWS CodeCommit or GitHub, AWS CodeBuild, AWS CodePipeline, and AWS CloudFormation. Today, the Interstella logistic platform runs on Amazon EC2 Container Service following a microservice architecture, so we will be deploying to an individual service. 
+In this lab, you will build upon the process that you've already started by introducing an orchestration layer to control builds, deployments, and more. To do this, you will create a pipeline to automate all deployments using AWS CodeCommit or GitHub, AWS CodeBuild, AWS CodePipeline, and AWS CloudFormation. Today, the Interstella logistic platform runs on Amazon Elastic Container Service following a microservice architecture, so we will be deploying to an individual service. 
 
-There are a few changes we'll need to make to the code that we used as part of Lab 1. For example, the buildspec we used had no artifacts, but we will need artifacts to pass variables on to the next stage. 
+There are a few changes we'll need to make to the code that we used as part of Lab 1. For example, the buildspec we used had no artifacts, but we will need artifacts to pass variables on to the next stage of our deployment pipeline (AWS CodePipeline). 
 
 1\. Create a master branch and check in your new code including the buildspec.
 
@@ -586,12 +595,12 @@ $ cd EnvironmentName-iridium-repo
 $ git checkout -b master
 <i> You may see this:
 Your branch is based on 'origin/master', but the upstream is gone.
-  (use "git branch --unset-upstream" to fixup)</i> - It's ok.
+  (use "git branch --unset-upstream" to fixup)</i> - It's ok. You can disregard the warning.
 $ git merge dev
 $ git push origin master
 </pre>
 
-2\. Take a look at the AWS CloudFormation template named service.yml in the iridium folder. 
+2\. Take a look at the AWS CloudFormation template named service.yml in the iridium folder of our GitHub repo: 
 
 - https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/code/iridium/service.yml
 
@@ -601,7 +610,7 @@ Take a bit of time to understand what this is doing. What parts of the manual pr
 
 While using AWS CodePipeline, we will need a way of passing variables to different stages. The buildspec you created earlier had no artifacts, but now there will be two artifacts. One for the AWS CloudFormation template and one will be for parameters to pass to AWS CloudFormation when launching the stack. As part of the build, you'll also need to create the parameters to send to AWS CloudFormation and output them in JSON format. 
 
-As part of the initial bootstrapping, we've already created a target group for you for the Application Load Balancer. The name of the target group can be accessed from the EC2 Parameter Store under **interstella/iridium-target-group**. You'll need to pull in those parameters as part of the buildspec. How will you do it?
+*As part of the initial bootstrapping, we've already created a target group for you for the Application Load Balancer. The name of the target group can be accessed from the EC2 Parameter Store under* ***interstella/iridium-target-group***. *You'll need to pull in those parameters as part of the buildspec. How will you do it?*
 
 Open the existing **buildspec.yml** for the **iridium** microservice. Update the buildspec to include the following:
 
@@ -664,7 +673,7 @@ CwlPrefix: <i> This is to specify what prefix you want in CloudWatch Logs. prod 
   Type: String
 </pre>
 
-Now let's write a **build.json** file that will map my parameters to that of the CloudFormation template. 
+Within the buildspec commands section, you can write a **build.json** file that will map my parameters to that of the CloudFormation template. 
 
 <pre>
 ...
@@ -685,6 +694,7 @@ artifacts:
 If you get stuck, look at the file [finalhelpspec.yml](https://raw.githubusercontent.com/aws-samples/amazon-ecs-interstella-workshop/master/workshop3/hints/finalhintspec.yml)
 <br />
 
+You can also copy it in from the hints folder. Overwrite the initial buildspec.
 <pre>
 $ cp hints/finalhintspec.yml buildspec.yml
 </pre>
@@ -696,11 +706,11 @@ Now it's time to hook everything together. In the AWS Management Console, naviga
 
 *Note: If this is your first time visiting the AWS CodePipeline console in the region, you will need to click "**Get Started**"*
 
-We're going to make this a production pipeline. Name the pipeline "**prod-iridium-service**". Click Next.
+We're going to make this a production pipeline. Name the pipeline "**prod-iridium-service**". Click **Next**.
 
 ![CodePipeline Name](images/2-cp-create-name.png)
 
-For the Source Location, choose **AWS CodeCommit**. Then, choose the repository you created as in Step 1. 
+For the Source Location, choose **AWS CodeCommit**. Then, choose the repository you created as in Step 1. Select **master** branch. and click **Next Step**.
 
 *Here, we are choosing what we want AWS CodePipeline to monitor. Using Amazon CloudWatch Events, AWS CodeCommit will trigger when something is pushed to a repo.*
 
@@ -717,12 +727,12 @@ Scroll down further. In the Environment: How to build section, select values for
 
 ![CodePipeline Create CodeBuild](images/2-cp-create-cb.png)
 
-Ensure **Create a service role in your account** is selected and leave the name as default. When you're done, choose **Save build project**. Expand the **Advanced** section.
+Ensure **Create a service role in your account** is selected and leave the name as default. When you're done, expand the **Advanced** section. 
 
 Under Environment Variables, enter three variables:
 
 - Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext** *Earlier, when we created the buildspec, it looked for some existing environment variables like this one. Find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
-- Name: **IMAGE_REPO_NAME** Value: **EnvironmentName-iridium** Type: **Plaintext** 
+- Name: **IMAGE_REPO_NAME** Value: **EnvironmentName-iridium** Type: **Plaintext** *This is the name of your ECR repo for iridium*
 - Name: **ENV_TYPE** Value: **prod** Type: **Plaintext** *This is a new environment variable which we're going to use to prefix our log stream. You'll see in lab 3 why this is needed*
 
 ![CodePipeline Create CodeBuild P2](images/2-cp-create-cb-2.png)
@@ -780,7 +790,7 @@ Once the pipeline is created, CodePipeline will automatically try to get the mos
 
   In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **code-build-prod-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br/><br/>
 
-  Choose **Custom Policy**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:<br/><br/>
+  Choose **Custom Policy**. Click **Select**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:<br/><br/>
 
 <pre>
 {
