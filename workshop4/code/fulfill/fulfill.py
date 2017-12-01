@@ -10,6 +10,7 @@ from urllib2 import urlopen
 import logging
 import sys
 
+
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # Get API Key and parameters from SSM
 region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
@@ -39,6 +40,8 @@ def fulfill(apiKey, endpoint, iridium, magnesite):
             print e
             response = e
     return response
+
+app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def index():

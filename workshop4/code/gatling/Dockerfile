@@ -4,14 +4,16 @@ FROM openjdk:8-jdk-alpine
 COPY ./run.sh /usr/local/bin
 
 # install aws cli
-RUN apk add --update python py-pip
-RUN bin/pip install awscli
+RUN apk -v --update add \
+        python \
+        py-pip &&\
+        pip install awscli
 
 # working directory for gatling
-WORKDIR /opt
+WORKDIR /opt  
 
 # gating version
-ENV GATLING_VERSION 2.2.5
+ENV GATLING_VERSION 2.3.0
 
 # create directory for gatling install
 RUN mkdir -p gatling
@@ -28,9 +30,6 @@ RUN apk add --update wget bash && \
 
 # change context to gatling directory
 WORKDIR  /opt/gatling
-#RUN mkdir -p /user-files/simulations/interstella
-#COPY ./advancedSim.scala /user-files/simulations/interstella
-#COPY ./basicSim.scala /user-files/simulations/interstella
 
 # set directories below to be mountable from host
 VOLUME ["/opt/gatling/conf", "/opt/gatling/results", "/opt/gatling/user-files"]

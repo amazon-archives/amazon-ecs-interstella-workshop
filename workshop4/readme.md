@@ -138,7 +138,7 @@ $ mkdir -p code/fullfill
 $ cd code/fulfill
 $ curl -O https://www.interstella.trade/workshop4/code/fulfill/Dockerfile
 $ curl -O https://www.interstella.trade/workshop4/code/fulfill/requirements.txt
-$ curl -O https://www.interstella.trade/workshop4/code/fulfill/iridium.py
+$ curl -O https://www.interstella.trade/workshop4/code/fulfill/fulfill.py
 </pre>
 
 3\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.  Note the trailing period.
@@ -161,11 +161,11 @@ Successfully built 7f51e5d00cee
 
 In the AWS Management Console, navigate to the ECS dashboard and click on **Repositories** in the left menu.  You should see the Docker image repositories created by CloudFormation for the fullfill and resource microservices prefixed by the EnvironmentName you specified in the CloudFormation template.  Here's an example where 'interstella' is used as the EnvironmentName:  
 
-![ECR repositories](images/1-ecr-repos.png)
+![ECR repositories](images/ws4lab1_repo.png)
 
 Click on the repository name containing '-fulfill', and note the Repository URI:
 
-![ECR monolith repo](images/1-ecr-monolith-uri.png)
+![ECR monolith repo](images/ecr_fulfill_uri.png)
 
 *Note: Your repository URI will be unique.  Copy it somewhere, you will need it in the following commands and again later in the lab.*
 
@@ -180,9 +180,28 @@ When you issue the push command, Docker pushes the layers up to ECR, and if you 
 
 *Note: that you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the EC2 instance.  This was done as a bootstrap action when launching the EC2 instances.  Review the CloudFormation template and you will see where this is done.  You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
 
-![ECR push complete](images/1-ecr-latest.png)
+![ECR push complete](images/ws4l1_push_success.png)
 
 5\.  **Repeat steps 2 through 4 for Iridium and Magnesite**. 
+
+Here are the commands to download necessary files for Iridium and Magnesite for your convenience. 
+
+<pre>
+$ cd
+$ mkdir -p code/iridium 
+$ cd code/iridium
+$ curl -O https://www.interstella.trade/workshop4/code/iridium/Dockerfile
+$ curl -O https://www.interstella.trade/workshop4/code/iridium/requirements.txt
+$ curl -O https://www.interstella.trade/workshop4/code/iridium/iridium.py
+$ cd
+$ mkdir -p code/magnesite 
+$ cd code/magnesite
+$ curl -O https://www.interstella.trade/workshop4/code/magnesite/Dockerfile
+$ curl -O https://www.interstella.trade/workshop4/code/magnesite/requirements.txt
+$ curl -O https://www.interstella.trade/workshop4/code/magnesite/magnesite.py
+</pre>
+
+**Remember you still have to go to each directory to build, tag, and push to respective ECR repositories!**
 
 6\.  Now you're ready to create a an ECS task definition and deploy the fulfill container.
 
@@ -199,20 +218,20 @@ Click **Add container**.  Enter values for the following fields:
 
 *Note: This assigns a soft limit of 128MB of RAM to the container, but since it's a soft limit, it does have the ability to consume more available memory if needed.  A hard limit will kill the container if it exceeds the memory limit.  You can define both for flexible memory allocations.  Resource availability is one of the factors that influences container placement.  You can read more about [ContainerDefinitions](http://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html) in our documentation*
 
-* **Port mappings** - enter **5000** for the container port and leave the host port field empty.  
+* **Port mappings** - enter **80** for the container port and leave the host port field empty.  
 
 *Note: ECS offers a dynamic port mapping feature when using the ALB as a load balancer for your container service.  To use this feature you need to leave host port field empty and ALB will automatically assign an ephemeral port to it.  This means you can run multiple copies of a container on a single host.  ECS also takes care of mapping your containers to the ALB target group.*
 
 Your container definition should look something like this so far:
 
-![Add container example](images/1-task-def-add-container.png) 
+![Add container example](images/ws4lab1_fulfill_taskdef.png) 
 
 Expand the **Advanced container configuration** to set the **Log Configuration** and configure these settings.  
 
 * **Log driver** - select **awslogs** from the drop-down
 * **Log options** - enter the name of the CloudWatch log group that you created in the last step, and enter the AWS region of the log group.  You can leave stream prefix blank; this setting is useful when you want to log multiple log sources to a single log group.  We could have done that, but opted for distinct CloudWatch log groups because we are breaking apart the monolith into microservices after all.  
 
-![CloudWatch Logs integration](images/1-awslogs-config.png)
+![CloudWatch Logs integration](images/ws4l1_taskdef_logconfig.png)
 
 Leave the remaining fields as is and click **Add** to associate this container with the task definition. 
 
@@ -225,7 +244,7 @@ In the **Actions** dropdown, select **Create Service**.
 Fill in the following fields:
 
 * **Service Name** - this is a logical identifier for your service, e.g. interstella-fulfill
-* **Number of tasks** - set to **1** for now; you will horizontally scale this service in the last lab with a new ECS service
+* **Number of tasks** - set to **2**
 
 *Note: There are many options to explore in the Task Placement section of the Run Task action, and while we will not touch on every configuration in this workshop, you can read more about [Scheduling Tasks](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduling_tasks.html) in our documentation.*
 
@@ -235,11 +254,7 @@ On the next page, select **Application Load Balancer** for **Load balancer type*
 
 You'll see a **Load balancer name** drop-down menu appear.  Select the ALB created from the initial CloudFormation template. 
 
-In the **Container to load balance** section, select the **Container name : port** combo from the drop-down menu that corresponds to the task definition you edited in step 3.
-
-Your progress so far should look similar to this: 
-
-![ECS Load Balancing](images/3-ecs-service-elb.png)
+In the **Container to load balance** section, select the **Container name : port** combo from the drop-down menu that corresponds to the task definition you created before. 
 
 Click **Add to load balancer** to add the container.  More fields related to the container will appear.
 
@@ -249,27 +264,27 @@ For the **Target Group Name**, select the target group created from the initial 
 
 Your fields should look similar to this:
 
-![Create ECS Network Container Conf](images/3-ecs-service-container.png)
+![Create ECS Network Container Conf](images/ws4l1_loadbalancer.png)
 
 Leave the other fields as defaults and click **Next Step**.
 
-Skip the Auto Scaling configuration by clicking **Next Step**.
+Skip auto scaling configuration and click **Next Step**.
 
 *Note: ECS supports Task auto scaling which can automatically increased and describe your desired task count based on dynamic metrics.  We'll skip this for now; you can experiment with this later if you have time.*
 
 Click **Create Service** and click **View Service** to get the status of your service launch.  The *Last Status* will show **RUNNING** once your container has launched.  
 
-![ECS Service Monolith](images/1-ecs-service-mono.png)
+![ECS Service Monolith](images/ws4l1_fulfill_working.png)
 
 9\. Confirm logging to CloudWatch Logs is working. 
 
 Once the monolith service is running, navigate back to the CloudWatch Logs dashboard, and click on your log group.  As your container processes orders, you'll see a log stream appear in the log group reflecting the HTTP POST logs written to stdout you saw earlier.  
 
-![CloudWatch Log Stream](images/1-cwl-confirm.png)
+![CloudWatch Log Stream](images/ws4l1loggroups.png)
 
 Click on the log stream to view log entries.    
 
-![CloudWatch Log Entries](images/1-cwl-logs.png)
+![CloudWatch Log Entries](images/ws4l1_fulfill_working_cloudwatchlog.png)
 
 10\. **Repeat steps 6 through 10 for Iridium and Magnesite.** 
 
@@ -284,13 +299,13 @@ You've also implemented an ALB as a way to distribute incoming HTTP orders to mu
 
 In this lab, you'll be load testing the microservices created in Lab 1 using a load test tool called [Gatling](https://gatling.io) 
 
-1\. SSH into an EC2 instance launched for the purpose of using Gatling to get started.
+1\.  SSH into an EC2 instance launched from cloudformation. It should have a name tag with value equal to your environment + ECS Gatling host.
 
 Go to the EC2 Dashboard in the Management Console and click on **Instances** in the left menu.  Select either an EC2 instances created by the CloudFormation stack, note down the **Public IP** and SSH into the instance.
 
 *Tip: If your instances list is cluttered with other instances, type the **EnvironmentName** you used when running your CloudFormation template into the filter search bar to reveal only those instances.  Look for an instance whose name tag includes the word Gatling*  
 
-![EC2 Public IP](images/1-ec2-IP.png)
+![EC2 Public IP](images/ws4l2_ec2.png)
 
 *Note: Keep the public IP handy because you will use this instance again for building the microservices images and modifying the monolith code in the next lab.*
 
@@ -306,38 +321,169 @@ RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
 Are you sure you want to continue connecting (yes/no)? 
 </pre>
 
-2\. Once logged onto the instance, create a working directory for the gatling code, and download the logistics application source, requirements file, and Dockerfile from Interstella's site.  
+2\.  Once logged onto the instance, create a working directory for the gatling code, and download the logistics application source, requirements file, and Dockerfile from Interstella's site, edit Gatling scenario files, and set up a special directory structure for Gatling to test it locally. 
 
 Note: the flag for the curl command below is a capital O, not a zero.   
 
 <pre>
-$ mkdir -p code/gatling
-$ cd code/gatling
-$ curl -O https://www.interstella.trade/workshop4/code/gatling/gatling.py
-$ curl -O https://www.interstella.trade/workshop4/code/gatling/requirements.txt
+$ curl -O https://www.interstella.trade/workshop4/code/gatling/run.sh
+$ curl -O https://www.interstella.trade/workshop4/code/gatling/gatling.conf
 $ curl -O https://www.interstella.trade/workshop4/code/gatling/Dockerfile
+$ curl -O https://www.interstella.trade/workshop4/code/gatling/advancedSim.scala
+$ curl -O https://www.interstella.trade/workshop4/code/gatling/basicSim.scala
 </pre>
 
-3\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.  Note the trailing period.
+Change the permission of the executable run.sh so that it can be run using Docker container. 
+
+<pre>
+$ chmod +x run.sh
+</pre>
+
+*If you are not familiar with linux commands, chmod will change the file mode. With this particular command we are adding (+) execution permission (x) so that entities other than the creator have permission to execute this shell script.*
+
+*Note that we have downloaded many more files than just a Dockerfile to build this container.  run.sh is the shell script that the Gatling container will be using for its [CMD](https://docs.docker.com/engine/reference/builder/#cmd) command.  CMD is a Docker command that provides default execution process and parameters for Docker containers. For the rest, gatling.conf is a Gatling configuration file,   advancedSim.scala and basicSim.scala provides test [scenarios](https://gatling.io/docs/2.3/general/simulation_structure/) for Gatling.  Notice that Gatling scenarios are essentially a chain of HTTP requests described in Gatling framework. We recommend taking a look at basicSim.scala and advancedSim.scala to see the test cases we are running.*
+
+*Notice that advancedSim.scala will be simulating 1000 users sending mixed HTTP GET and POST to /iridium/ and /magnesite/ with valid and invalid orders. basicSim.scala is a much simpler test case with only HTTP GET to /iridium/ and /magnesite/, which are all valid GET requests.*
+
+We also need to create the proper directory structure that Gatling is looking for to find its test scenarios. Note that Gatling will look for a configuration file named gatling.conf in ./conf, store results in ./results, and try to find simulation classes under ./user-files/simulations/(package name)/(classname.scala). For example, basicSim.scala will need to be placed in ./user-files/simulations/interstella/basicSim.scala. That is because if you open up basicSim.scala, you'll see that it belongs to the package "interstella" and it is in a class called "basicSim".
+
+<pre>
+$ cd
+$ mkdir conf
+$ mkdir results
+$ mkdir -p user-files/simulations/basic
+$ mkdir -p user-files/simulations/advanced
+$ mv gatling.conf conf
+$ mv basicSim.scala user-files/simulations/basic
+$ mv advancedSim.scala user-files/simulations/advanced
+</pre>
+
+Now we need to open up the scenario files to make sure Gatling is targeting the right end point. Use your favorite editor to open up basicSim.scala and advancedSim.scala. We need to change the baseURL property of the http object found in Gatling Simulation classes. We need to update it to the endpoint we want to test. 
+
+![gatlingbaseurl](images/gatling_baseurl.png)
+
+Now let's edit that baseURL and set that URL to the application load balancer that was created for you during the workshop setup.  Before you insert that URL, make sure to paste that URL in browser and try to reach it to make sure that endpoint is valid to serve HTTP GET requests. You should see a welcome to the iridium/magnesite service message with HTTP GET requests. The idea is that we're going to use that base URL to send load tests to /iridium/ and /magnesite/ end points. Make that edit to both basicSim.scala and advancedSim.scala.  
+
+3\.  Create an S3 bucket to store Gatling load test results. Note down the bucket name for next step. 
+
+4\.  Open up run.sh and edit the script to send gatling test results to the bucket you created in step 3. Notice the script you downloaded from interstella.trade website will not work unless you supply an S3 bucket. The default script you downloaded should look like the following. You need to replace (insert S3 bucket name) with an actual S3 bucket you own.
+
+<pre>
+#! /bin/sh
+
+# Invoke gatling
+gatling.sh -s advancedSim
+# Copy results back up to s3 bucket
+aws s3 cp results s3://(insert S3 bucket name) --recursive
+</pre>
+
+
+5\.  Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.  Note the trailing period.
 
 <pre>
 $ docker build -t gatling .
 </pre> 
 
-You'll see a bunch of output as Docker builds all the layers to the image.  If there is a problem along the way, the build process will fail and stop.  You may see some warnings during build process; for this workshop, don't worry about it unless the build process stops.  You'll see a success message at the end of the build output like this:
+
+
+6\.  Let's test this Gatling container locally on this EC2 to see if it is working correctly. Notice we'll be using a combination of Docker commands to not only run the container, but we'll be mounting host volumes to container to expose the data on host machine to containers and passing in parameters for the default execution process for this particular container.
 
 <pre>
-Step 15/15 : ENTRYPOINT bin/python fulfill.py
----> Running in 188e00e5c1af
----> 7f51e5d00cee
-Removing intermediate container 188e00e5c1af
-Successfully built 7f51e5d00cee
+docker run -it --rm -v /home/ec2-user/conf:/opt/gatling/conf \
+-v /home/ec2-user/user-files:/opt/gatling/user-files \
+-v /home/ec2-user/results:/opt/gatling/results \
+gatling interstella.advancedSim (insert s3 bucket name)
 </pre>
 
-*Note: Your output will not be exactly like this, but it will be similar.*
+*Note that once a simulation has kicked off successfully, you'll see a lots of output from gatling and the process may run for 2-5 minutes.*
+
+7\.  Let's review the results in S3 bucket. First we need to make sure the bucket is public because Gatling has posted html and image files that need to be public for you to be able to view the web page properly. 
+
+Go back to bucket created in step 4, find the folder that represents your test result and make its content public.
+
+![s3public](images/ws4l2_makepublic.png)
+
+8\.  Find index.html file in that result folder. Select that object to go to object view then right click the link to open in new tab or new window. 
+
+![s3htmllink](images/ws4l2_htmllink.png)
+
+![gatlingresult](images/ws4l2_gatlingresults.png)
+
+Now that you have Gatling running locally on EC2, have you noticed something awkward about the process? What if you have to run the same scenario multiple times? What if you want to run different scenarios? With the current setup, you would have to edit the run.sh script everytime, rebuild container, tag and push container, then run it. This slow process kind of defeat the purpose of using a container doesn't it? 
+
+Don't worry, let's figure out a way to centrally store your test cases and have you pass the name of the scenario you want to run and the bucket you want to send the results to.
+
+9\.  Let's open up the Dockerfile and change the entry point to make the container stand up a shell script runtimen environment as opposed to executing an executable like gatling.sh.
+
+Change this:
+
+<pre>
+ENTRYPOINT ["/usr/local/bin/run.sh"]
+</pre>
+
+to this:
+
+<pre>
+ENTRYPOINT ["sh", "-c"] 
+</pre>
+
+10\.  Now let's rebuild, tag, and push that container to the gatling repository but do not build a task definition yet. We think you're pretty familiar with this process now so we're not going to bore you with detailed instructions.
+
+Remember when we ran the container locally we were exposing host machine directory using a docker run -v parameter? That -v parameter allows docker containers to mount host machine directories as if they were containers own volume. How do we do that -v in ECS? 
+
+11\.  Build the Gatling task definition like how you normally would but after you configured the Container Definitions, scroll down a bit to find a Volumes section.
+
+![volumes](images/ws4l2_volumes.png) 
+
+Click on "Add volume".
+
+Enter a name, e.g. Conf, then enter the path on the host machine.
+
+![volpopup](images/ws4l2_vol_popup.png)
+
+Repeat this step 3 times to make a volumes for:
+
+<pre>
+/home/ec2-user/conf
+/home/ec2-user/results
+/home/ec2-user/user-files
+</pre>
+
+Now we didn't specifically tell you to output container logs to a Cloudwatch log group. Do you think you should? Do you remember how to do that? 
+
+12\.  Do not create the task definition yet. Return to container configuration by clicking on the container. Find the Storage and Logging section and add mount points. Add mount points to the three volumes you created in last step. It should look like this when you're done. 
+
+![mountpoints](images/ws4l2_mount_vols.png)
+
+Create task definition.
+
+13\.  Now you should be at a place where you can run the newly created task definition. Do not run it yet. Make sure you select the right ECS cluster. We created two ECS cluster for you using cloudformation and you should have a cluster that is named after your cloudformation environment name + "-Gatling". Scroll down a bit further expand Advaned Options to find Container Overrides. We are interested in supplying a shell script in the Command Overrides textbox. 
+
+![commandoverride](images/ws4l2_override.png)
+
+14\.  Enter the following string into the textbox. 
+
+<pre>
+gatling.sh -s interstella.advancedSim && aws s3 cp results s3://(insert S3 bucket name) --recursive
+</pre>
+
+Do you see how this is a much easier and flexible process now? 
+
+<details>
+<summary>HINT</summary>
+We've updated the process to send the name of simulation, that's what the -s parameter stands for, right before we kick off task executions. This means you don't have to modify the shell script that was used in the Dockerfile and have to rebuild, retag and repush to kick off a different simulation with Gatling. 
+
+We've also mounted Gatling container to host machine directories so you have a central location to store all the simulation files. We would recommend you store the simulation cases back in S3 to make sure it is not lost once you terminate the EC2. 
+</details>
+
+*NOTE:For Command override, type the command override to send. If your container definition does not specify an ENTRYPOINT, the format should be a comma-separated list of non-quoted strings. If your container definition does specify an ENTRYPOINT (such as sh,-c), the format should be an unquoted string, which is surrounded with double quotes and passed as an argument to the ENTRYPOINT command. Please refer to this ECS [documentation](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_run_task.html) for more details.*
+
+15\. After your task runs successfully. You can review your results in the S3 bucket you created. If your task failed. You know where to look for logs now right?
 
 ### Checkpoint:  
-todo
+In this lab, we have used a load testing tool - Gatling - that lets you simulate interaction with your application on ECS. Gatling not only lets you simulate number of users, their behavior, and request body, it also produces a visual report that allows you to quickly understand how your containers will behave under stress. 
+
+We've now also deployed Gatling to a container so that we can leverage container's agile deployment model to quickly scale up Gatling load tests or quickly switch out test simulations. 
 
 * * *
 
@@ -345,19 +491,17 @@ todo
 
 In this lab, you will wrap up the journey to microservices by monitoring and error tracing the ECS cluster you've built using [AWS X-Ray](https://aws.amazon.com/xray/).
 
+We've begun to see how useful it is to perform simulations and gather metrics to understand how your containers will behave under stress. Now let's go deeper with an AWS service that will not only show you the relationships between distributed components within your system, but beyond it as well. Onwards with AWS X-Ray!
+
 AWS X-Ray makes it easy for developers to analyze the behavior of their production, distributed applications with end-to-end tracing capabilities.  You can use X-Ray to identify performance bottlenecks, edge case errors, and other hard to detect issues.  X-Ray supports applications, either in development or in production, of any type or size, from simple asynchronous event calls and three-tier web applications to complex distributed applications built using a microservices architecture.  This enables developers to quickly find and address problems in their applications and improve the experience for end users of their applications.
 
 To use X-Ray, we'll have to use X-Ray SDK to intrument our container code to trace incoming HTTP calls and outgoing calls for supported clients.  For Python 3rd party libraries, X-Ray currently support boto3, botocore, requests, sqlite3, mysql-connector-python.  When we say instrumentation, we mean that we're going to edit the python code for iridium, magnesite and fulfill containers to reference X-Ray SDK and middleware for our containers. Notice we're only adding middleware because we're running Python code inside our containers. For other platforms - Java, .NET, and node.js - there are other ways to inject intrumentation. 
 
 After instrumentation, we'll also have to host an X-Ray daemon process near the containers. This is because X-Ray SDK inside your code does not push telemetry data straight to X-Ray service. Instead, X-Ray SDK will push to a nearby X-Ray daemon process to reduce latency. X-Ray daemon will then push that data to X-Ray service.  You have the option to install XRay daemon on a host or in a standalone container. Can you guess which option we're going to go with? At then end, you'll have a dashboard that provides a view of connections between services in your application and aggregated data for each service, including average latency and failure rates 
 
-Here is a reference architecture for what you will be implementing in the Lab 3:
-
-![Lab 3 Architecture](images/workshop2-lab3.png)
-
 Let's start by adding intrumentation to iridium and magnesite containers.
 
-1\. First, make the following updates in the requirements.txt files for both iridium and magnesite:
+1\. First, SSH into the EC2 instance where you built the container for microservices and make the following updates in the requirements.txt files for both iridium and magnesite:
 
 * Add a reference to aws-xray-sdk in requirements.txt
 * Add references to AWS X-Ray SDK inside application code
@@ -515,22 +659,17 @@ more code...
 
 2\. **Repeat step 1 for Magnesite.**
 
-3\. Now we need to deploy an X-Ray daemon in a container on ECS.
-
-SSH into one of the launched EC2 instances to get started. 
-
-<pre>
-$ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
-</pre>  
-
-4\.  Once logged onto the instance, create a working directory.  Download the Dockerfile from interstella website. Download the X-Ray daemon Linux executable into the same folder as your Dockerfile and build it to create an image.  
+3\. Now we need to host X-Ray daemon process on a container so your microservices can send that Daemon traces and the Daemon will then send those traces to AWS X-Ray. Create a working directory.  Download the Dockerfile from interstella website. Download the X-Ray daemon Linux executable into the same folder as your Dockerfile and build it to create an image.  
 
 Note: the flag for the curl command below is a capital O, not a zero.   
 
 <pre>
+$ cd
 $ mkdir -p code/xray
 $ cd code/xray
+$ sudo yum install wget
 $ wget https://s3.dualstack.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-linux-2.x.zip
+$ sudo yum install unzip
 $ unzip aws-xray-daemon-linux-2.x.zip
 $ curl -O https://www.interstella.trade/workshop4/code/xray/Dockerfile
 $ docker build -t xray .
@@ -551,14 +690,12 @@ Click **Add container**.  Enter values for the following fields:
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
 
-* **Port mappings** - enter **2000** for the container port and leave the host port field empty.  
+* **Port mappings** - enter **2000** for host and container port and select **UDP**. Note that X-Ray daemon listens on UDP protocol. Port number may vary but we cannot use TCP or other protocol.  
 
 Expand the **Advanced container configuration** to set the **Log Configuration** and configure these settings.  
 
 * **Log driver** - select **awslogs** from the drop-down
-* **Log options** - enter the name of the CloudWatch log group that you created in the last step, and enter the AWS region of the log group.  You can leave stream prefix blank; this setting is useful when you want to log multiple log sources to a single log group.  We could have done that, but opted for distinct CloudWatch log groups because we are breaking apart the monolith into microservices after all.  
-
-![CloudWatch Logs integration](images/1-awslogs-config.png)
+* **Log options** - we've created a log group named after your environement name plus "-xray". Please refer to cloudformation output or resources pane to find the exact name of log group.
 
 Leave the remaining fields as is and click **Add** to associate this container with the task definition. 
 
@@ -571,9 +708,7 @@ In the **Actions** dropdown, select **Create Service**.
 Fill in the following fields:
 
 * **Service Name** - this is a logical identifier for your service, e.g. interstella-xray
-* **Number of tasks** - set to **2** for now; you will horizontally scale this service in the last lab with a new ECS service
-
-*Note that we want to run a xray daemon on every container instance. By setting number of tasks to 2 and using our default task placement strategy of spreading across AZs, we are able to do so.*
+* **Number of tasks** - set to **2** because you want a xray daemon running on every container because you tasks can be deployed on any instance in the ECS cluster.
 
 Leave the other fields as default and click **Next step**
 
@@ -583,24 +718,47 @@ Leave the other fields as defaults and click **Next Step**.
 
 Skip the Auto Scaling configuration by clicking **Next Step**.
 
-*Note: ECS supports Task auto scaling which can automatically increased and describe your desired task count based on dynamic metrics.  We'll skip this for now; you can experiment with this later if you have time.*
-
 Click **Create Service** and click **View Service** to get the status of your service launch.  The *Last Status* will show **RUNNING** once your container has launched.  
-
-![ECS Service Monolith](images/1-ecs-service-mono.png)
 
 9\. Confirm logging to CloudWatch Logs is working. 
 
 Once the xray service is running, navigate back to the CloudWatch Logs dashboard, and click on your log group.  As your container processes orders, you'll see a log stream appear in the log group reflecting the HTTP POST logs written to stdout you saw earlier.  
 
-10\. Open UDP port 2000 on ECS container instances.
+![xraylog](/images/ws4l3_xray_log.png)
+
+10\. Go to X-Ray console and see.... nothing? What happened?
+
+11\. Remember we had to set the X-Ray Daemon address inside your application code and we had it set to 0.0.0.0:2000. Do you think your containers are able to access localhost correctly if they are using virtualized networking resources on the host machine? We need to go set the x-ray daemon address to the public IPs of the container instances that containers are sitting on. How do we do that?
+
+Edit both Magnesite.py and Iridium.py to add the following lines:
+
+<pre>
+xrayIp = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
+</pre>
+
+Update your X-Ray recorder so it looks like the following:
+
+<pre>
+app = Flask(__name__)
+xray_recorder.configure(
+    sampling=True,
+    context_missing='LOG_ERROR',
+    plugins=('EC2Plugin', 'ECSPlugin'),
+    service='iridium',
+    daemon_address=xrayIp + ":2000"
+)
+XRayMiddleware(app, xray_recorder)
+patch_all()
+</pre>
+
+11\. Open UDP port 2000 on ECS container instances.
 
 Go to EC2 console and find the two EC2s that belong to the ECS cluster and edit security group inbound rule to allow traffic to come into instance through UDP protocol on port 2000.
 
 
 
 ### Checkpoint: 
-TODO
+In this lab you've learned to use X-Ray with ECS and got a good feel for how to setup instrumentation, standing up an X-Ray daemon, and reviewing the metrics gathered by X-Ray. We know it can be difficult to prepare your distributed application for the unknown but a tool like X-Ray can help you make a more informed decision about how to scale your infrastructure based on the experience you want to deliver. 
 
 * * *
 

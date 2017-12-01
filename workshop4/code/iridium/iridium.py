@@ -63,6 +63,8 @@ def fulfill(endpoint, number):
             response = e
     return response
 
+app = Flask(__name__)
+
 # Effectively, our subscriber service.
 @app.route('/'+resource+'/', methods=['POST', 'GET'])
 def order():
