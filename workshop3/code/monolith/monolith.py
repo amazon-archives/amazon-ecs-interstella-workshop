@@ -60,6 +60,9 @@ def index():
 # Fulfillment service
 # Expects a POST of {'thing': '1'} from microservice until we separate fulfillment into its own microservice as well
 # def fulfill(apiKey, endpoint, iridium, magnesite)
+@app.route('/fulfill', methods=['POST'])
+def reroute():
+    return "Please make sure you send requests to /fulfill/ and not /fulfill"
 @app.route('/fulfill/', methods=['POST'])
 def glueFulfill():
     if request.method == 'POST':

@@ -73,9 +73,9 @@ Parameters:
         Default: 10.177.21.0/24
 
     InstanceType: 
-        Description: Choose an instance type for ECS Cluster Instances - default is t2.medium
+        Description: Choose an instance type for ECS Cluster Instances - default is t2.micro
         Type: String
-        Default: t2.medium
+        Default: t2.micro
         AllowedValues:
             - t2.micro
             - t2.small
@@ -87,7 +87,7 @@ Parameters:
     ClusterSize:
         Description: How many ECS hosts do you want to initially deploy?
         Type: Number
-        Default: 1
+        Default: 2
 
     InterstellaApiKey:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
@@ -448,6 +448,8 @@ Resources:
                       -
                         Effect: "Allow"
                         Action: 
+                            - "s3:Get*"
+                            - "s3:List*"
                             - "ecs:CreateCluster"
                             - "ecs:DeregisterContainerInstance"
                             - "ecs:DiscoverPollEndpoint"
@@ -692,19 +694,34 @@ Resources:
       Type: AWS::S3::Bucket
       DeletionPolicy: Delete
       
-    CodeBuildProject:
+    CFNNagCodeBuildProject:
       Type: AWS::CodeBuild::Project
       Properties:
         Artifacts:
           Type: "CODEPIPELINE"
         Source:
           Type: "CODEPIPELINE"
-          BuildSpec: "test-buildspec.yml"
+          BuildSpec: "cfn-nag-buildspec.yml"
         Environment:
           ComputeType: "BUILD_GENERAL1_SMALL"
           Image: "aws/codebuild/ruby:2.3.1"
           Type: "LINUX_CONTAINER"
-        Name: !Sub ${EnvironmentName}-CodeBuildProject
+        Name: !Sub ${EnvironmentName}-CFNNagCodeBuild-project
+        ServiceRole: !Ref CodeBuildServiceRole
+        
+    GenericCodeBuildProject:
+      Type: AWS::CodeBuild::Project
+      Properties:
+        Artifacts:
+          Type: "CODEPIPELINE"
+        Source:
+          Type: "CODEPIPELINE"
+          BuildSpec: "accesskeys-buildspec.yml"
+        Environment:
+          ComputeType: "BUILD_GENERAL1_SMALL"
+          Image: "aws/codebuild/ubuntu-base:14.04"
+          Type: "LINUX_CONTAINER"
+        Name: !Sub ${EnvironmentName}-GeneralCodeBuild-project
         ServiceRole: !Ref CodeBuildServiceRole
     
     CodeBuildServiceRole:
@@ -764,6 +781,120 @@ Resources:
                     - s3:GetObject
                     - s3:GetObjectVersion
     
+    CodePipelineServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub ${EnvironmentName}-CodePipelineServiceRole
+        Path: /
+        AssumeRolePolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - 
+              Effect: "Allow"
+              Principal: 
+                Service: 
+                  - "codepipeline.amazonaws.com"
+              Action: 
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - s3:GetObject
+                    - s3:GetObjectVersion
+                    - s3:GetBucketVersioning
+                - Resource: "arn:aws:s3:::codepipeline*"
+                  Effect: Allow
+                  Action:
+                    - s3:PutObject
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - codebuild:StartBuild
+                    - codebuild:BatchGetBuilds
+                    - iam:PassRole
+                    - iam:CreateRole
+                    - iam:DetachRolePolicy
+                    - iam:AttachRolePolicy
+                    - iam:DeleteRole
+                    - iam:PassRole
+                    - iam:DeleteRolePolicy
+                    - iam:PutRolePolicy
+                    - ecs:RegisterTaskDefinition
+                    - ecs:DeregisterTaskDefinition
+                    - ecs:CreateService
+                    - ecs:UpdateService
+                    - ecs:UpdateService
+                    - ecs:DescribeServices
+                    - ecs:DeleteService
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - ec2:*
+                    - elasticloadbalancing:*
+                    - autoscaling:*
+                    - cloudwatch:*
+                    - s3:*
+                    - sns:*
+                    - cloudformation:*
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - codecommit:CancelUploadArchive
+                    - codecommit:GetBranch
+                    - codecommit:GetCommit
+                    - codecommit:GetUploadArchiveStatus
+                    - codecommit:UploadArchive
+        
+    CFServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub ${EnvironmentName}-CFServiceRole
+        Path: /
+        AssumeRolePolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - 
+              Effect: "Allow"
+              Principal: 
+                Service: 
+                  - "cloudformation.amazonaws.com"
+              Action: 
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: 2012-10-17
+              Statement:
+                - Resource: "*"
+                  Effect: Allow
+                  Action:
+                    - iam:PassRole
+                    - iam:CreateRole
+                    - iam:DetachRolePolicy
+                    - iam:AttachRolePolicy
+                    - iam:DeleteRole
+                    - iam:PassRole
+                    - iam:DeleteRolePolicy
+                    - iam:PutRolePolicy
+                    - ecs:RegisterTaskDefinition
+                    - ecs:DeregisterTaskDefinition
+                    - ecs:CreateService
+                    - ecs:UpdateService
+                    - ecs:UpdateService
+                    - ecs:DescribeServices
+                    - ecs:DeleteService
+                    - lambda:*
+                    - s3:GetObject
+                    - cloudformation:CreateStack
+                    - cloudformation:UpdateStack
+                    - cloudformation:SetStackPolicy
+                    - cloudformation:CreateChangeSet
+               
 Outputs:
 
     VPC: 
@@ -813,3 +944,7 @@ Outputs:
     IridiumTargetGroup:
         Description: Target Group ARN for Iridium
         Value: !Ref IridiumTargetGroup
+        
+    LoadBalancerDNSName:
+        Description: DNS Name for ALB
+        Value: !GetAtt LoadBalancer.DNSName

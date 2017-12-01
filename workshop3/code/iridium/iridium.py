@@ -71,6 +71,9 @@ app = Flask(__name__)
 def order():
     #This is for health checking
     if request.method == 'GET':
+        # What is this even doing here? We should be using IAM Roles! Good thing your static analysis found me.
+        ACCESSKEY = 'AKIA1234567901EXAMPL' 
+        SECRETKEY = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
         return 'Welcome to the '+resource+' microservice'
     #Real requests
     elif request.method == 'POST':

@@ -286,6 +286,7 @@ Enter a name for your Task Definition, e.g. interstella-monolith.  Leave Task Ro
 Add a container to the task definition.  
 
 Click **Add container**.  Enter values for the following fields:
+
 * **Container name** - this is a logical identifier, not the name of the container image, e.g. monolith
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
@@ -887,7 +888,7 @@ and
 
 Click **Update** and click **Create**.
 
-8\. Now we're ready to tie it all together by creating a new ECS service for the iridium microservice.  Follow the instructions from step 4 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".
+8\. Now we're ready to tie it all together by creating a new ECS service for the iridium microservice.  Follow the instructions from step 5 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".  Once you get to adding the iridium container to the ALB, continue here.  
 
 **NOTE:** in "Step 2: Configure Network" of the ALB wizard, once you add the iridium container to the load balancer, rather than select a **Target group name**, leave the drop-down as "create new" and enter **iridium**.
 
