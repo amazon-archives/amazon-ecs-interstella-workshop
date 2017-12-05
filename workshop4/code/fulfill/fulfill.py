@@ -10,6 +10,7 @@ from urllib2 import urlopen
 import logging
 import sys
 
+portNum = 80
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # Get API Key and parameters from SSM
@@ -18,7 +19,6 @@ ssmClient = boto3.client('ssm',region_name=region[:-1])
 
 apiKey = ssmClient.get_parameter(Name='/interstella/apiKey')['Parameter']['Value']
 endpoint = ssmClient.get_parameter(Name='/interstella/apiEndpoint')['Parameter']['Value']
-portNum = 80
 
 def fulfill(apiKey, endpoint, iridium, magnesite):
     if apiKey == '':

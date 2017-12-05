@@ -11,32 +11,12 @@ from urllib2 import urlopen
 import logging
 import sys
 
+portNum = 80
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Change this to change the resource
 resource = 'iridium'
-
-# Get all necessary parameters
-region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
-ssmClient = boto3.client('ssm',region_name=region[:-1])
-
-fulfillmentUrl = ssmClient.get_parameter(Name='/interstella/fulfillmentEndpoint')['Parameter']['Value']
-orderTopic = ssmClient.get_parameter(Name='/interstella/'+resource+'SubscriptionArn')['Parameter']['Value']
-
-# This should be the endpoint of the monolith
-orderTopicRegion = orderTopic.split(':')[3]
-portNum = 80
-
-snsClient = boto3.client('sns',region_name=orderTopicRegion)
-#ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
-ip = 'http://'+fulfillmentUrl+'/'+resource+'/'
-
-response = snsClient.subscribe(
-    TopicArn=str(orderTopic),
-    Protocol='http',
-    Endpoint=ip
-)
 
 def produceResource():
     # print "Producing "+resource
@@ -74,7 +54,6 @@ def order():
     #Real requests
     elif request.method == 'POST':
         try: 
-            
             # Is this a normal SNS payload? Try to get JSON out of it
             payload = request.get_json(force=True)
             if 'SubscribeURL' in payload:

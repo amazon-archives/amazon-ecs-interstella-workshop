@@ -73,7 +73,7 @@ Parameters:
     InstanceType: 
         Description: Choose an instance type for ECS Cluster Instances - default is t2.micro
         Type: String
-        Default: t2.micro
+        Default: t2.medium
         AllowedValues:
             - t2.micro
             - t2.small

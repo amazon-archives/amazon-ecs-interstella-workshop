@@ -14,6 +14,8 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
+portNum = 80
+
 xrayIp = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 
 app = Flask(__name__)
@@ -28,34 +30,12 @@ XRayMiddleware(app, xray_recorder)
 patch_all()
 
 # Start a segment
-segment = xray_recorder.begin_segment('iridium')
-subsegment = xray_recorder.begin_subsegment('iridium_subsegment') 
+segment = xray_recorder.begin_segment('magnesite_general_segment') 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Change this to change the resource
 resource = 'magnesite'
-
-# Get all necessary parameters
-region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
-ssmClient = boto3.client('ssm',region_name=region[:-1])
-
-fulfillmentUrl = ssmClient.get_parameter(Name='/interstella/fulfillmentEndpoint')['Parameter']['Value']
-orderTopic = ssmClient.get_parameter(Name='/interstella/'+resource+'SubscriptionArn')['Parameter']['Value']
-
-# This should be the endpoint of the monolith
-orderTopicRegion = orderTopic.split(':')[3]
-portNum = 80
-
-snsClient = boto3.client('sns',region_name=orderTopicRegion)
-#ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
-ip = 'http://'+fulfillmentUrl+'/'+resource+'/'
-
-response = snsClient.subscribe(
-    TopicArn=str(orderTopic),
-    Protocol='http',
-    Endpoint=ip
-)
 
 @xray_recorder.capture()
 def produceResource():
@@ -83,21 +63,6 @@ def fulfill(endpoint, number):
         except Exception as e:
             response = e
     return response
-
-app = Flask(__name__)
-xray_recorder.configure(
-    sampling=True,
-    context_missing='LOG_ERROR',
-    plugins=('EC2Plugin', 'ECSPlugin'),
-    service='Interstella',
-    daemon_address='0.0.0.0:2000'
-    #dynamic_naming='*mysite.com*'
-)
-XRayMiddleware(app, xray_recorder)
-patch_all()
-    
-# Start a segment
-segment = xray_recorder.begin_segment('magnesite')
 
 # Effectively, our subscriber service.
 @app.route('/'+resource+'/', methods=['POST', 'GET'])
@@ -148,7 +113,6 @@ def order():
             #print 'The data sent was %s' % payload['Message']
             app.logger.error('Something really bad happened. This was definitely not a fulfillment request. Expected {"%s":"1"} but got %s instead', resource, payload['Message'])
             return 'We were unable to place your order'
-            
 
         return 'This was not a fulfillment request. This microservice is expecting exactly {"'+resource+'": 1}'
         
@@ -156,7 +120,7 @@ def order():
         # We should never get here
         return "This is not the page you are looking for"
 
-# Close the segment
+#close xray segments
 xray_recorder.end_segment()
 
 if __name__ == '__main__':

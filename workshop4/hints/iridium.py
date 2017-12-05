@@ -14,6 +14,8 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
+portNum = 80
+
 xrayIp = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 
 app = Flask(__name__)
@@ -29,33 +31,11 @@ patch_all()
 
 # Start a segment
 segment = xray_recorder.begin_segment('iridium_general_segment')
-subsegment = xray_recorder.begin_subsegment('iridium_subsegment') 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # Change this to change the resource
 resource = 'iridium'
-
-# Get all necessary parameters
-region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
-ssmClient = boto3.client('ssm',region_name=region[:-1])
-
-fulfillmentUrl = ssmClient.get_parameter(Name='/interstella/fulfillmentEndpoint')['Parameter']['Value']
-orderTopic = ssmClient.get_parameter(Name='/interstella/'+resource+'SubscriptionArn')['Parameter']['Value']
-
-# This should be the endpoint of the monolith
-orderTopicRegion = orderTopic.split(':')[3]
-portNum = 80
-
-snsClient = boto3.client('sns',region_name=orderTopicRegion)
-#ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
-ip = 'http://'+fulfillmentUrl+'/'+resource+'/'
-
-response = snsClient.subscribe(
-    TopicArn=str(orderTopic),
-    Protocol='http',
-    Endpoint=ip
-)
 
 @xray_recorder.capture()
 def produceResource():
@@ -93,13 +73,10 @@ def order():
     #Real requests
     elif request.method == 'POST':
         try: 
-            
             # Is this a normal SNS payload? Try to get JSON out of it
             payload = request.get_json(force=True)
             if 'SubscribeURL' in payload:
                 app.logger.info('Incoming sub request from SNS...')
-                segment.put_metadata('key', dict, 'namespace')
-                subsegment.put_annotation('key', 'value')
                 # print 'Incoming subscription request from SNS...'
                 # print payload['SubscribeURL']
                 # print 'Sending subscription confirmation to SNS...'
@@ -136,9 +113,9 @@ def order():
             #print 'This was not a fulfillment request. This microservice is expecting exactly {"'+resource+'": 1}'
             #print 'The data sent was %s' % payload['Message']
             app.logger.error('Something really bad happened. This was definitely not a fulfillment request. Expected {"%s":"1"} but got %s instead', resource, payload['Message'])
+            
             return 'We were unable to place your order'
             
-
         return 'This was not a fulfillment request. This microservice is expecting exactly {"'+resource+'": 1}'
         
     else:
@@ -146,7 +123,6 @@ def order():
         return "This is not the page you are looking for"
 
 #close xray segments
-xray_recorder.end_subsegment()
 xray_recorder.end_segment()
 
 if __name__ == '__main__':

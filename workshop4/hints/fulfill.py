@@ -13,6 +13,8 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core import patch_all
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
+portNum = 80
+
 xrayIp = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
 
 app = Flask(__name__)
@@ -36,7 +38,6 @@ ssmClient = boto3.client('ssm',region_name=region[:-1])
 
 apiKey = ssmClient.get_parameter(Name='/interstella/apiKey')['Parameter']['Value']
 endpoint = ssmClient.get_parameter(Name='/interstella/apiEndpoint')['Parameter']['Value']
-portNum = 80
 
 @xray_recorder.capture()
 def fulfill(apiKey, endpoint, iridium, magnesite):
@@ -60,8 +61,6 @@ def fulfill(apiKey, endpoint, iridium, magnesite):
             response = e
     return response
 
-
-
 @app.route('/', methods=['GET'])
 def index():
     return "Welcome to the fulfillment service"
@@ -74,7 +73,6 @@ def glueFulfill():
     if request.method == 'POST':
         iridium = 0
         magnesite = 0
-
         try: 
             # The payload should always be {"item": "1"}. Any other format is wrong, so discard.
             payload = request.get_json(force=True)
