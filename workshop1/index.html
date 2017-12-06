@@ -9,16 +9,16 @@
     <body>
     <textarea theme="cerulean" style="display:none;">
 
-# Interstella 8888: Learn How to Use Docker on AWS
+# Interstella GTC: Learn How to Use Docker on AWS
 
 ## Overview:
-Welcome to the Interstella 8888 team!  Interstella 8888 is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of containers and very much want to head in that direction.  Can you help us get there? 
+Welcome to the Interstella Galactic Trading Company (GTC) team!  [Interstella GTC](https://interstella.trade/) is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of containers and very much want to head in that direction.  Can you help us get there? 
 
 If you are not familiar with containers, think of it as a way to package and run software (e.g. web server, proxy, database) in isolation alongside other containers on a server.  You might be thinking, wait, isn't that a virtual machine (VM)?  Containers do not contain the full OS stack like a VM.  Instead, a container is a portable unit of work that includes everything it needs to run as its own process - e.g. executable, dependencies.  To learn more - [What is a Container?](https://www.docker.com/what-container).  Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  It is also important to point out that the container running on the developer's machine can also run in production as is.  
 
 This workshop will walk you through creating and deploying containers using the standard Docker APIs to get you familar with that process.  Once you're comfortable with that, you'll learn how to take your newly minted container image and deploy it to scalable infrastructure using [Amazon EC2 Container Service](https://aws.amazon.com/ecs/) (ECS).
 
-The software that you'll be containerizing is Interstella's legacy logistics platform, which accepts orders via Amazon Simple Notification Service (SNS).  Once containerized, we'll be able to quickly deploy changes quicker to production.  ECS is also integrated with AWS Elastic Load Balancing (ELB), so if you have time, you'll also tie in an Application Load Balancer (ALB) and use the ECS Service scheduler to run the platform as a long-running application and maintain set resources.  If you are feeling ambitious, see if you can implement task auto scaling into the mix.  Good luck and thank you for helping out Interstella 8888!
+The software that you'll be containerizing is Interstella's legacy logistics platform, which accepts orders via Amazon Simple Notification Service (SNS).  Once containerized, we'll be able to quickly deploy changes quicker to production.  ECS is also integrated with AWS Elastic Load Balancing (ELB), so if you have time, you'll also tie in an Application Load Balancer (ALB) and use the ECS Service scheduler to run the platform as a long-running application and maintain set resources.  If you are feeling ambitious, see if you can implement task auto scaling into the mix.  Good luck and thank you for helping out Interstella GTC!
 
 ### Requirements:  
 * AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/)
@@ -713,7 +713,7 @@ Once the 2nd container is launced, you'll see the **Running Count** show as **2*
 ![Review update complete](images/bonus-ecs-service-updated-2.png)
 
 ### Checkpoint: 
-In this bonus lab, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella 8888's logistics platform container.  
+In this bonus lab, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella GTC's logistics platform container.  
 
 * * *
 
@@ -725,9 +725,9 @@ If you've got extra time and don't feel like rushing off just yet, try implement
 
 ## Finished! Please fill out evaluation cards!
 
-Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella 8888 regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.
+Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.
 
-Interstella 8888 has bigger goals of refactoring their software to run as a microservices architecture.  If you liked this workshop and want to take on the challenge of breaking up the logistics platform into to microservices, check out Workshop 2 in the series - Interstella 8888: Monolith to Microservices with Amazon ECS.
+Interstella GTC has bigger goals of refactoring their software to run as a microservices architecture.  If you liked this workshop and want to take on the challenge of breaking up the logistics platform into to microservices, check out Workshop 2 in the series - [Interstella GTC: Monolith to Microservices with Amazon ECS](https://www.interstella.trade/workshop2/).
 
 * * * 
 
@@ -735,10 +735,14 @@ Interstella 8888 has bigger goals of refactoring their software to run as a micr
 
 This is really important because if you leave stuff running in your account, it will continue to generate charges.  Certain things were created by CloudFormation and certain things were created manually throughout the workshop.  Follow the steps below to make sure you clean up properly.  
 
-1. Delete any manually created resources throughout the labs, e.g. ALBs (if you got to the bonus lab).  Certain things like task definitions do not have a cost associated, so you don't have to worry about that.  If you're not sure what has a cost, you can always look it up on our website.  All of our pricing is publicly available, or feel free to ask one of the workshop attendants when you're done.
-2. If you got to the bonus lab, you created an ECS service.  To delete that, first update the desired task count to 0, and then delete the ECS service.  
-3. Delete any container images stored in ECR, delete CloudWatch logs groups, and delete ALBs and target groups (if you got to the bonus lab)
-4. Finally, delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
+Delete manually created resources throughout the labs:
+
+* ECS service - first update the desired task count to be 0.  Then delete the ECS service itself.
+* ECR - delete any Docker images pushed to your ECR repository
+* CloudWatch logs groups
+* ALBs and associated target groups
+
+Finally, [delete the CloudFormation stack](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
 ## Credits
 Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 

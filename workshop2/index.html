@@ -9,12 +9,12 @@
     <body>
     <textarea theme="cerulean" style="display:none;">
 
-# Interstella 8888: Monolith to Microservices with Amazon ECS
+# Interstella GTC: Monolith to Microservices with Amazon ECS
 
 ## Overview:
-Welcome back from your first mission where you helped Interstella 8888 maintain its status as the premier intergalactic shipping company in the universe by containerizing our logistics platform and running it on Amazon Elastic Container Service (ECS). We could use your help again!
+Welcome back from your first mission where you helped [Interstella Galactic Trading Company (GTC)](https://interstella.trade/) maintain its status as the premier intergalactic shipping company in the universe by containerizing our logistics platform and running it on Amazon Elastic Container Service (ECS). We could use your help again!
 
-*Note: if you are brand new to Docker containers and ECS, check out the first workshop in the series where you containerize an application, tag/push the image to a Docker image repository, deploy the container with ECS, and scale with an ALB - http://interstella.trade/workshop1/)*
+*Note: if you are brand new to Docker containers and ECS, check out the first workshop in the series where you containerize an application, tag/push the image to a Docker image repository, deploy the container with ECS, and scale with an ALB - [Interstella GTC: Learn How to Use Docker on AWS](http://interstella.trade/workshop1/)*
 
 A new architecture pattern for applications is trending in the industry - microservices. The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits like being able to scale processes independently, adopt multiple programming languages, and add agility to our development pipeline are appealing. The dev team reviewed the logistics platform code and determined that we could decouple our logstics platform to individual services for fulfilling resource orders and containers are a great fit in this case.
 
@@ -297,6 +297,7 @@ Enter a name for your Task Definition, e.g. interstella-monolith.  Leave Task Ro
 Add a container to the task definition.  
 
 Click **Add container**.  Enter values for the following fields:
+
 * **Container name** - this is a logical identifier, not the name of the container image, e.g. monolith
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.  
@@ -898,7 +899,7 @@ and
 
 Click **Update** and click **Create**.
 
-8\. Now we're ready to tie it all together by creating a new ECS service for the iridium microservice.  Follow the instructions from step 4 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".
+8\. Now we're ready to tie it all together by creating a new ECS service for the iridium microservice.  Follow the instructions from step 5 above when you created an ECS service for the monolith, replacing references of "monolith" with "iridium".  Once you get to adding the iridium container to the ALB, continue here.  
 
 **NOTE:** in "Step 2: Configure Network" of the ALB wizard, once you add the iridium container to the load balancer, rather than select a **Target group name**, leave the drop-down as "create new" and enter **iridium**.
 
@@ -932,13 +933,15 @@ Once the endpoint is subscribed, you should start seeing orders come in as HTTP 
 10\. By now you should have two ECS services with ALB completed, the monolith for order fulfillment and the iridium service processing iridium orders.  Try to implement the magnesite service similar to how you implemented the iridium service.  
 
 ### Checkpoint: 
-In lab 3, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella 8888's services.  In addition, you're benefiting from ECS/ALB integration for dynamic port mapping to run multiple containers on the same host and path-based routing which allows you to have one ALB endpoint for multiple services.
+In lab 3, you implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella GTC's services.  In addition, you're benefiting from ECS/ALB integration for dynamic port mapping to run multiple containers on the same host and path-based routing which allows you to have one ALB endpoint for multiple services.
 
 * * *
 
 ## Finished! Please fill out evaluation cards!
 
-Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella 8888 regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.
+Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.
+
+Interstella GTC has bigger goals of implementing an automated CI/CD pipeline for its microservices architecture.  If you liked this workshop and want to take on the CI/CD challenge, check out Workshop 3 in the series - [Interstella GTC: CI/CD for Containers on AWS](https://www.interstella.trade/workshop3/).
 
 * * * 
 
@@ -946,10 +949,14 @@ Congratulations on completing the labs or at least giving it a good go.  Thanks 
 
 This is really important because if you leave stuff running in your account, it will continue to generate charges.  Certain things were created by CloudFormation and certain things were created manually throughout the workshop.  Follow the steps below to make sure you clean up properly.  
 
-1. Delete any manually created resources throughout the labs, e.g. ALBs (if you got to the bonus lab).  Certain things like task definitions do not have a cost associated, so you don't have to worry about that.  If you're not sure what has a cost, you can always look it up on our website.  All of our pricing is publicly available, or feel free to ask one of the workshop attendants when you're done.
-2. If you got to the bonus lab, you created an ECS service.  To delete that, first update the desired task count to 0, and then delete the ECS service.  
-3. Delete any container images stored in ECR, delete CloudWatch logs groups, and delete ALBs and target groups (if you got to the bonus lab)
-4. Finally, delete the CloudFormation stack launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
+Delete manually created resources throughout the labs for monolith and microservices:
+
+* ECS service(s) - first update the desired task count to be 0.  Then delete the ECS service itself.
+* ECR - delete any Docker images pushed to your ECR repositories
+* CloudWatch logs groups
+* ALBs and associated target groups
+
+Finally, [delete the CloudFormation stack](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
 ## Credits
 Markdown rendering by [Strapdown.js]('http://strapdownjs.com/')
 
