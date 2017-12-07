@@ -12,9 +12,11 @@ import logging
 import sys
 
 portNum = 80
-
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
+# Get all necessary parameters
+region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
+ssmClient = boto3.client('ssm',region_name=region[:-1])
+fulfillmentUrl = ssmClient.get_parameter(Name='/interstella/fulfillmentEndpoint')['Parameter']['Value']
 # Change this to change the resource
 resource = 'iridium'
 
