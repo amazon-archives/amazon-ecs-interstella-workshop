@@ -197,71 +197,72 @@ Add the remaining instructions to Dockerfile.draft.
 
 <details>
 <summary>HINT: Helpful links for completing Dockefile.draft</summary>
-
+<pre>
 Here are links to external documentation to give you some ideas:
 
-*#[TODO]: Copy monolith.py and requirements file into container image*
+#[TODO]: Copy monolith.py and requirements file into container image
 
-* Consider the [COPY](https://docs.docker.com/engine/reference/builder/#copy) command
-* You're copying both the monlith.py and requirements.txt from the monolith directory on your EC2 instance into the working directory of the container, which can be specified as "."
+- Consider the [COPY](https://docs.docker.com/engine/reference/builder/#copy) command
+- You're copying both the monlith.py and requirements.txt from the monolith directory on your EC2 instance into the working directory of the container, which can be specified as "."
 
-*#[TODO]: Install dependencies listed in the requirements.txt file using pip*
+#[TODO]: Install dependencies listed in the requirements.txt file using pip
 
-* Consider the [RUN](https://docs.docker.com/engine/reference/builder/#run) command
-* More on [pip and requirements files](https://pip.pypa.io/en/stable/user_guide/#requirements-files)
-* We're using pip and python binaries from virtualenv, so use "bin/pip" for your command
+- Consider the [RUN](https://docs.docker.com/engine/reference/builder/#run) command
+- More on [pip and requirements files](https://pip.pypa.io/en/stable/user_guide/#requirements-files)
+- We're using pip and python binaries from virtualenv, so use "bin/pip" for your command
 
-*#[TODO]: Specify a listening port for the container*
+#[TODO]: Specify a listening port for the container
 
-* Consider the [EXPOSE](https://docs.docker.com/engine/reference/builder/#expose) command
-* App listening portNum can be found in the app source - monolith.py
+- Consider the [EXPOSE](https://docs.docker.com/engine/reference/builder/#expose) command
+- App listening portNum can be found in the app source - monolith.py
 
-*#[TODO]: Run monolith.py as the final step. We want this container to run as an executable. Looking at ENTRYPOINT for this?*
+#[TODO]: Run monolith.py as the final step. We want this container to run as an executable. Looking at ENTRYPOINT for this?
 
-* Consider the [ENTRYPOINT](https://docs.docker.com/engine/reference/builder/#entrypoint) command
-* Our ops team typically runs 'bin/python monolith.py' to launch the application on our servers; note that we use the python binary that comes with virtualenv.
+- Consider the [ENTRYPOINT](https://docs.docker.com/engine/reference/builder/#entrypoint) command
+- Our ops team typically runs 'bin/python monolith.py' to launch the application on our servers; note that we use the python binary that comes with virtualenv.
+</pre>
 </details>
 
 Once you're happy with your additions OR if you get stuck, you can check your work by comparing your work with the hint below.
 
 <details>
 <summary>HINT: Completed Dockerfile</summary>
+<pre>
+FROM ubuntu:14.04
+RUN apt-get -y update
+RUN apt-get -y install \
+    git \
+    wget \
+    python-dev \
+    python-virtualenv \
+    libffi-dev \
+    libssl-dev
 
-    FROM ubuntu:14.04
-    RUN apt-get -y update
-    RUN apt-get -y install \
-      git \
-      wget \
-      python-dev \
-      python-virtualenv \
-      libffi-dev \
-      libssl-dev
+WORKDIR /root
 
-    WORKDIR /root
+ENV PRODUCT monolith
 
-    ENV PRODUCT monolith
+RUN wget https://bootstrap.pypa.io/get-pip.py \
+    && python get-pip.py
 
-    RUN wget https://bootstrap.pypa.io/get-pip.py \
-      && python get-pip.py
+WORKDIR interstella
 
-    WORKDIR interstella
+RUN virtualenv ${PRODUCT}
 
-    RUN virtualenv ${PRODUCT}
+WORKDIR ${PRODUCT}
 
-    WORKDIR ${PRODUCT}
+RUN bin/pip install --upgrade pip && \
+    bin/pip install requests[security]
 
-    RUN bin/pip install --upgrade pip && \
-        bin/pip install requests[security]
+COPY ./monolith.py .
+COPY ./requirements.txt .
 
-    COPY ./monolith.py .
-    COPY ./requirements.txt .
+RUN bin/pip install -r requirements.txt
 
-    RUN bin/pip install -r requirements.txt
+EXPOSE 5000
 
-    EXPOSE 5000
-
-    ENTRYPOINT ["bin/python", "monolith.py"]
-
+ENTRYPOINT ["bin/python", "monolith.py"]
+</pre>
 </details>
 
 If your Dockerfile looks good, rename your file from "Dockerfile.draft" to "Dockerfile" and continue to the next step.
@@ -340,44 +341,44 @@ Edit your Dockerfile with what you think will improve build times and compare it
 
 <details>
 <summary>HINT: Final Dockerfile</summary>
+<pre>
+FROM ubuntu:14.04
+RUN apt-get -y update
 
-    FROM ubuntu:14.04
-    RUN apt-get -y update
+RUN apt-get -y install \
+    git \
+    wget \
+    python-dev \
+    python-virtualenv \
+    libffi-dev \
+    libssl-dev
 
-    RUN apt-get -y install \
-      git \
-      wget \
-      python-dev \
-      python-virtualenv \
-      libffi-dev \
-      libssl-dev
+WORKDIR /root
 
-    WORKDIR /root
+ENV PRODUCT monolith
 
-    ENV PRODUCT monolith
+RUN wget https://bootstrap.pypa.io/get-pip.py \
+    && python get-pip.py
 
-    RUN wget https://bootstrap.pypa.io/get-pip.py \
-      && python get-pip.py
+WORKDIR interstella
 
-    WORKDIR interstella
+RUN virtualenv ${PRODUCT}
 
-    RUN virtualenv ${PRODUCT}
+WORKDIR ${PRODUCT}
 
-    WORKDIR ${PRODUCT}
+RUN bin/pip install --upgrade pip && \
+    bin/pip install requests[security]
 
-    RUN bin/pip install --upgrade pip && \
-        bin/pip install requests[security]
+COPY ./requirements.txt .
 
-    COPY ./requirements.txt .
+RUN bin/pip install -r requirements.txt
 
-    RUN bin/pip install -r requirements.txt
+COPY ./monolith.py .
 
-    COPY ./monolith.py .
+EXPOSE 5000
 
-    EXPOSE 5000
-
-    ENTRYPOINT ["bin/python", "monolith.py"]
-
+ENTRYPOINT ["bin/python", "monolith.py"]
+</pre>
 </details>
 
 In order to see the benefit, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 4).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You'll see something similar to below:
@@ -517,7 +518,7 @@ INFO:werkzeug:96.40.120.185 - - [06/Feb/2018 10:14:02] "POST /order/ HTTP/1.1" 2
 
 In the sample output, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  For now, kill the container using **Ctrl-C** now that we know it's working properly.
 
-6\. Now that you have a working Docker image, tag and push the image to [EC2 Container Registry (ECR)](https://aws.amazon.com/ecr/).  This allow for version control and persistence, and ECS will reference the image from ECR in the next lab to deploy it.
+6\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  This allow for version control and persistence, and ECS will reference the image from ECR in the next lab to deploy it.
 
 In the AWS Management Console, navigate to the Elastic Container Service dashboard and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
 
@@ -670,10 +671,11 @@ Click on the Container Instance for your running task to load details of the EC2
 
 <details>
 <summary>HINT: curl refresher</summary>
+<pre>
 *Mac or Linux Users*: cURL should come bundled with the OS, so open a new Terminal window to run the following curl command.
 
 *Windows Users*: SSH into the other EC2 instance launched by CloudFormation and run the following curl command.
-
+</pre>
 <pre>
 $ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}}' http://<b><i>EC2_PUBLIC_IP_ADDRESS</b></i>:5000/order/
 </pre>
@@ -806,7 +808,7 @@ Once the Service is created, click **View Service** and you'll see your task def
 
 ![ECS Service Confirmation](images/03-ecs-service-confirm.png)
 
-4\. Subscribe the ALB endpoint to the SNS order topic using the [API Key Management Portal](https://www.interstella.trade/getkey.html) to start receiving orders from Interstella HQ and test your service.
+4\. Subscribe the ALB endpoint to the SNS order topic using the [API Key Management Portal](https://www.interstella.trade/getkey.html) to start receiving orders from Interstella HQ to test your service.
 
 First you need the public DNS name of your ALB endpoint.  Go to the EC2 Dashboard, click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
 
@@ -852,7 +854,7 @@ When moving to microservices, there are some patterns that are fairly common. On
 
 Hence, Interstella has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it strangled down to just a fulfillment service; this too could eventually be modernized and replaced.
 
-The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to service fulfillment as well as each microservice.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
+The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
 
 Here's what you will be implementing:
 
@@ -1036,7 +1038,7 @@ If you look in the ECR repository for the monolith, you'll see the pushed image 
 
 10\. Create a new revision of the monolith task definition to use the new monolith container image tagged as noiridium.
 
-Navigate to the EC2 Container Service dashboard and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
+Navigate to the Elastic Container Service dashboard and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
 
 In the **Container Definitions** section, click on the container name to edit the container image for the task definition.
 
