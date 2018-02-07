@@ -73,7 +73,7 @@ Parameters:
         Default: 10.177.21.0/24
 
     InstanceType: 
-        Description: Choose an instance type for ECS Cluster Instances - default is t2.medium
+        Description: Choose an instance type for ECS Cluster Instances - default is t2.micro
         Type: String
         Default: t2.micro
         AllowedValues:
