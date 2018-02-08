@@ -43,7 +43,7 @@ def fulfill(endpoint, number):
     if endpoint == '':
         return 'Missing endpoint'
     else:
-        fullEndpoint = 'http://'+str(endpoint)+':5000/fulfill/'
+        fullEndpoint = 'http://'+str(endpoint)+'/fulfill/'
         data = {resource : number}
         try:
             response = requests.post(fullEndpoint, data=json.dumps(data))
