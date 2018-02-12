@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+    Event publisher for admin stack **DO NOT DELETE RESOURCES OUTSIDE OF CLOUDFORMATION**
+    Last Modified: Feb 12 2017
+Parameters:
+  WaitTime:
+    Description: The number of seconds to wait before sending another message
+    Type: Number
+    Default: 30
+Resources:
+  PublishToSNSLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: !Sub |
+          from __future__ import print_function
+
+          import json
+          import boto3
+
+          print('Loading function')
+
+          dynamodb = boto3.resource('dynamodb', region_name='${AWS::Region}')
+          table = dynamodb.Table('requestRates')
+          snsClient = boto3.client('sns',region_name='${AWS::Region}')
+
+          iridiumArn = 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:iridium'
+          orderTopicArn = 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:orderTopic'
+          magnesiteArn = 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:magnesite'
+
+          def lambda_handler(event, context):
+            response = table.scan()
+            #print response
+            for i in range(0, response['Count']):
+              print('=========================================')
+              print('Publishing to...')
+              print('Resource: '+ response['Items'][i]['resource'])
+              print('Rate: ' + str(response['Items'][i]['rate']))
+              if response['Items'][i]['resource'] == 'orderTopic':
+                data = '{"bundle": 1}'
+                arn = orderTopicArn
+              elif response['Items'][i]['resource'] == 'iridium':
+                data = '{"iridium": 1}'
+                arn = iridiumArn
+              elif response['Items'][i]['resource'] == 'magnesite':
+                data = '{"magnesite": 1}'
+                arn = magnesiteArn
+              else:
+                data = '{"bundle": 1}'
+                arn = orderTopicArn
+              for j in xrange(response['Items'][i]['rate']):
+                snsResponse = snsClient.publish(TopicArn=arn, Message=data)
+                print(snsResponse)
+      Runtime: python2.7
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            - sns:*
+            - dynamodb:*
+            Resource: '*'
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+  PublishToSNSStateMachine:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "An example of the Amazon States Language using wait states",
+              "StartAt": "FirstState",
+              "States": {
+                "FirstState": {
+                  "Type": "Task",
+                  "Resource": "${lambdaArn}",
+                  "Next": "wait_using_seconds"
+                },
+                "wait_using_seconds": {
+                  "Type": "Wait",
+                  "Seconds": ${waitTime},
+                  "Next": "FinalState"
+                },
+                "FinalState": {
+                  "Type": "Task",
+                  "Resource": "${lambdaArn}",
+                  "End": true
+                }
+              }
+            }
+          - {lambdaArn: !GetAtt [ PublishToSNSLambdaFunction, Arn ], waitTime: !Ref WaitTime}
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
+  CWECronRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action: "sts:AssumeRole"  
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: 
+                  - !Sub ${PublishToSNSStateMachine}
+  CWECron: 
+    Type: "AWS::Events::Rule"
+    Properties: 
+      Description: "Rule to run step functions once a minute to publish to SNS"
+      ScheduleExpression: "rate(1 minute)"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: 
+            Ref: PublishToSNSStateMachine
+          Input: ""
+          RoleArn: !GetAtt CWECronRole.Arn
+          Id: "SomeId"
