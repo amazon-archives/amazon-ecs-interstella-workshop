@@ -544,6 +544,14 @@ Resources:
             Type: String
             Value: !Ref InterstellaApiEndpoint
 
+    InterstellaCloud9Environment:
+        Type: "AWS::Cloud9::EnvironmentEC2"
+        Properties:
+            Description: Cloud9 Environment for Interstella Workshop
+            AutomaticStopTimeMinutes: 30
+            InstanceType: t2.micro
+            Name: Interstella-Cloud9
+            SubnetId: !Ref PublicSubnet1
 Outputs:
 
     VPC: 

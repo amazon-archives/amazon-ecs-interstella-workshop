@@ -87,6 +87,7 @@ The CloudFormation template will launch the following:
 * EC2 Instances with security groups (inbound tcp 22, 80, 5000) and joined to an ECS cluster
 * ECR repositories for your container images
 * Parameter store to hold values for API Key and fulfillment API endpoint
+* Cloud9 Development Environment
 
 ![CloudFormation Starting Stack](images/00-arch.png)
 
@@ -146,25 +147,21 @@ In this lab, you will containerize and test Interstella's logistics platform, wh
 
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
 
-1\. SSH into one of the launched EC2 instances.
+1\. Access your AWS Cloud9 Development Environment.
 
-Go to the EC2 Dashboard in the Management Console and click on **Instances** in the left menu.  Select either one of the EC2 instances created by the CloudFormation stack, note the public IP, and SSH into the instance.
+Go to the Cloud9 Dashboard in the Management Console and find your environment. The name will be in the CloudFormation outputs section. Click "**Open IDE**"
 
-*Tip: If your instances list is cluttered with other instances, type the **EnvironmentName** you used as a parameter in your CloudFormation template into the filter search bar to reveal only those instances.*
+![Cloud9 Env](images/01-c9.png)
 
-![EC2 Public IP](images/01-ec2-IP.png)
+2\. Familiarize yourself with the Cloud9 Environment. 
 
-<pre>
-$ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
-</pre>
+On the left pane, you'll see a folder navigation structure where you'll see some files that will be downloaded later. In the middle pane, any documents you open will show up here. Double click on README.md in the left folder pane and edit the file a bit in the middle. Then save it by clicking **File** and **Save**.
 
-If you see something similar to the following message (host IP address and fingerprint will be different, this is just an example) when trying to initiate an SSH connection, this is normal when trying to SSH to a server for the first time.  The SSH client just does not recognize the host and is asking for confirmation.  Just type **yes** and hit **enter** to continue:
+![Cloud9 Editing](images/01-c9-2.png)
 
-<pre>
-The authenticity of host '52.15.243.19 (52.15.243.19)' can't be established.
-RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
-Are you sure you want to continue connecting (yes/no)?
-</pre>
+On the bottom, you will see a shell. For the remainder of the lab, use this shell to enter all commands.
+
+![Cloud9 Shell](images/01-c9-3.png)
 
 2\. Once logged into the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella HQ.
 
