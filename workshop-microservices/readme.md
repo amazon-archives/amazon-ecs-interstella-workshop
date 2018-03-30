@@ -155,13 +155,11 @@ Go to the Cloud9 Dashboard in the Management Console and find your environment. 
 
 2\. Familiarize yourself with the Cloud9 Environment. 
 
-On the left pane, you'll see a folder navigation structure where you'll see some files that will be downloaded later. In the middle pane, any documents you open will show up here. Double click on README.md in the left folder pane and edit the file a bit in the middle. Then save it by clicking **File** and **Save**.
+On the left pane (Blue), you'll see a folder navigation structure where you'll see some files that will be downloaded later. In the middle (Red) pane, any documents you open will show up here. Double click on README.md in the left folder pane and edit the file a bit in the middle. Then save it by clicking **File** and **Save**.
 
 ![Cloud9 Editing](images/01-c9-2.png)
 
-On the bottom, you will see a shell. For the remainder of the lab, use this shell to enter all commands.
-
-![Cloud9 Shell](images/01-c9-3.png)
+On the bottom, you will see a shell (Yellow). For the remainder of the lab, use this shell to enter all commands.
 
 2\. Once logged into the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella HQ.
 
