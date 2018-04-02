@@ -2,52 +2,56 @@
 
 ## Overview:
 
-Welcome to the Interstella Galactic Trading Company (GTC) team!  [Interstella GTC](https://interstella.trade/) is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of microservices implemented as containers and feel it would be a good fit for our business.
+Welcome to the Interstella Intergalactic Trading Company team.
 
-The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits like being able to scale processes independently, adopt multiple programming languages, and add agility to our development pipeline are appealing.  The dev team reviewed the logistics platform code and determined that we could decouple our logstics platform to individual services for fulfilling resource orders.  Can you help us get there?
+Interstella is an trading company specializing in inter-system exchange of rare minerals and other goods. Several wise acquisitions made before the Great Ravine have given us unrestricted access on mining in several systems and business is booming.
+
+But our logistics platform wasn't built to handle this load and we're at risk of losing our trade routes. Our engineers have suggested we look at using modern application architectures, containers, and devops, but they don't know anything about implementing them. Can you help us update our logistics platform and become the largest trading consortium in the galaxy?
 
 ### Requirements:  
 
-* AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/)
-* AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ELB/ALB, VPC, SNS, CloudWatch
+* AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/).
+* AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ELB/ALB, VPC, SNS, CloudWatch. [Learn how](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html).
 * A workstation or laptop with an ssh client installed, such as [putty](http://www.putty.org/) on Windows; or terminal or iterm on Mac
-* Familiarity with Python, vim/emacs/nano, [Docker](https://www.docker.com/), and AWS - not required but a bonus
+* Familiarity with [Python](https://wiki.python.org/moin/BeginnersGuide/Programmers), [vim](https://www.vim.org/about.php)/[emacs](https://www.gnu.org/software/emacs/)/[nano](https://www.nano-editor.org/), [Docker](https://www.docker.com/), and [AWS](httpts://aws.amazon.com) - *not required but a bonus*.
 
-### Labs:
+### What you'll do:
 
-These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop attendants will give you a high level run down of the labs and be around to answer any questions.  Don't worry if you get stuck, we provide hints along the way.
+These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop staff will give you a high-level overview of the labs and help answer any questions.  Don't worry if you get stuck, we provide hints along the way.
 
-* **Workshop Setup:** Setup working environment on AWS
-* **Lab 1:** Containerize the Interstella logistics software
-* **Lab 2:** Deploy containers using Amazon ECR and Amazon ECS
-* **Lab 3:** Scale the logistics platform with an ALB
-* **Lab 4:** Incrementally build and deploy each resource microservice
+* **Workshop Setup:** [Setup working environment on AWS](#lets-begin)
+* **Lab 1:** [Containerize the Interstella logistics software](#lab-1---containerize-interstellas-logistics-platform)
+* **Lab 2:** [Deploy containers using Amazon ECR and Amazon ECS](#lab-2---deploy-your-container-using-ecrecs)
+* **Lab 3:** [Scale the logistics platform with an ALB](#lab-3---scale-the-logistics-platform-with-an-alb)
+* **Lab 4:** [Incrementally build and deploy each resource microservice](#lab-4-incrementally-build-and-deploy-each-microservice)
+* **Cleanup** [Put everything away nicely](#workshop-cleanup)
 
 ### Conventions:
 
-Throughout this workshop, we provide commands for you to run in the terminal.  These commands will look like this: 
+Throughout this workshop, we will provide commands for you to run in the terminal.  These commands will look like this:
 
 <pre>
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_DNS_NAME</i></b>
 </pre>
 
-The command starts after the $.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, the ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created in your account, and the ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by navigating to the specific service dashboard in the AWS management console.
+The command starts after the `$`.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created in your account, and ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by navigating to the specific service dashboard in the [AWS management console](https://console.aws.amazon.com).
 
-Hints are also provided along the way and will look like:
+Hints are also provided along the way and will look like this:
 
 <details>
 <summary>HINT</summary>
 
-Sweet, you just revealed a hint!
+**Nice work, you just revealed a hint!**
 </details>
 
-Click on the arrow to show the contents of the hint.
+
+*Click on the arrow to show the contents of the hint.*
 
 ### IMPORTANT: Workshop Cleanup
 
-You will be deploying infrastructure on AWS which will have an associated cost.  If you're attending an AWS event, credits will be provided.  When you're done with the workshop, follow the steps at the very end of the instructions to make sure everything is cleaned up.
+You will be deploying infrastructure on AWS which will have an associated cost. If you're attending an AWS event, credits will be provided.  When you're done with the workshop, [follow the steps at the very end of the instructions](#workshop-cleanup) to make sure everything is cleaned up and avoid unnecessary charges.
 
-* * * 
+* * *
 
 ## Let's Begin!
 
@@ -55,13 +59,13 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
 
-The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio**, **Oregon**, or **Ireland**.
 
 2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.
 
-If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.
+*If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.*
 
-Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.
+Go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home) and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.
 
 *Mac or Linux Users*:  Change the permissions of the .pem file to be less open using this command:
 
@@ -71,7 +75,7 @@ Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Networ
 
 3\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
-Open the [Interstella API Key Portal](http://www.interstella.trade/getkey.html) in a new tab and click on **Sign up Here** to create a new account.  Enter a username and password and click **Sign up**.  Note your login information because you will use this page again later in the workshop.  Click **Sign in**, enter your login information and click **Login**.
+Open the [Interstella API Key Portal](http://www.interstella.trade/getkey.html) in a new tab and click on **Sign up Here** to create a new account.  Enter a username and password and click **Sign up**.  Note and save your login information because you will use this page again later in the workshop.  Click **Sign in**, enter your login information and click **Login**.
 
 Note down the unique API key that is generated.
 
@@ -91,27 +95,24 @@ The CloudFormation template will launch the following:
 
 ![CloudFormation Starting Stack](images/00-arch.png)
 
-*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in a separate admin CloudFormation template, so you will be able to run this workshop at your office, home, etc.*
+*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in a separate admin CloudFormation template, so you will be able to run this workshop without at your office or home.*
 
-Right-click on the CloudFormation launch template link below for the region you selected in Step 1 and open in a new tab.  The link will load the CloudFormation Dashboard and start the stack creation process in the chosen region.
+Open the CloudFormation launch template link below for the region you selected in Step 1 in a new tab.  The link will load the CloudFormation Dashboard and start the stack creation process in the chosen region.
 
 Region | Launch Template
 ------------ | -------------
-**Ohio** (us-east-2) | [Launch Interstella CloudFormation Stack in Ohio](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Oregon** (us-west-2) | [Launch Interstella CloudFormation Stack in Oregon](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Ireland** (eu-west-1) | [Launch Interstella CloudFormation Stack in Ireland](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Ohio** (us-east-2) | [![Launch Interstella CloudFormation Stack in Ohio](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Oregon** (us-west-2) | [!][Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Ireland** (eu-west-1) | [![Launch Interstella CloudFormation Stack in Ireland](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
 
-You should be on the Select Template page, notice an S3 URL link to the CloudFormation template is already populated.  Do not modify any fields, and click **Next** to continue.
+The template will automatically bring you to the CloudFormation Dashboard and start the stack creation process in the specified region. Do not change anything on the first screen. Click **Next** to continue.
 
 5\. On the Specify Details step of the Create Stack process, enter values for the following fields:
 
 * **Stack Name** - the stack name is an identifier that helps you find a particular stack from a list of stacks, e.g. interstella
-* **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella
-
-*IMPORTANT NOTE: for this field, please use only lowercase letters because the ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.  We are working on fixing this.*
-
-* **KeyPairName** - select the SSH key pair created in Step 2
-* **InterstellaApiKey** - enter the API key generated in Step 3
+* **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella  *Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
+* **KeyPairName** - select the *SSH key pair* created in Step 2
+* **InterstellaApiKey** - enter the *API key* generated in Step 3
 * **InterstellaApiEndpoint** - keep this as default UNLESS the workshop admins provide you with a different fulfillment API endpoint to use
 
 All other fields can be left as their default values.
@@ -135,17 +136,24 @@ If there was an [error](http://docs.aws.amazon.com/AWSCloudFormation/latest/User
 
 Go ahead and start reading the next section while your stack creates.
 
+[*^ back to top*](#interstella-gtc-monolith-to-microservices-with-containers)
 * * *
 
-### Lab 1 - Containerize Interstella's logistics platform:
+## Lab 1 - Containerize Interstella's logistics platform:
 
-If you are not familiar with containers, think of it as a way to package and run software (e.g. web server, proxy, database) in isolation alongside other containers on a server.  You might be thinking, wait, isn't that a virtual machine (VM)?  Containers do not contain the full OS stack like a VM.  Instead, a container is a portable unit of work that includes everything it needs to run as its own process - e.g. executable, dependencies.  To learn more - [What is a Container?](https://www.docker.com/what-container).  Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  It is also important to point out that the container running on a developer's machine can also run in production as is.
+Woah! Turns out Interstella's infrastructure has been running directly on EC2 virtual machines this entire time! Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The EC2 instances provisioned by CloudFormation have the Docker engine running on them, so you can use either one to author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
 
-In this lab, you will containerize and test Interstella's logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for Docker to build a container image.  The EC2 instances provisioned by CloudFormation have Docker running on them, so you can use either one to author the Dockerfile, build the monolith container image, and run it to confirm it's able to process orders.
+[Containers](https://aws.amazon.com/what-are-containers/), are a way to package software (e.g. web server, proxy, database) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  Importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
+
+### Here's what we're going to build:
 
 ![Lab 1 Architecture](images/01-arch.png)
 
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
+
+
+=======
+### Instructions
 
 1\. Access your AWS Cloud9 Development Environment.
 
@@ -161,7 +169,7 @@ On the left pane (Blue), you'll see a folder navigation structure where you'll s
 
 On the bottom, you will see a shell (Yellow). For the remainder of the lab, use this shell to enter all commands.
 
-2\. Once logged into the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella HQ.
+2\. Once logged into the instance, download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ.
 
 <pre>
 $ aws s3 sync s3://www.interstella.trade/awsloft/code/monolith/ monolith/
@@ -172,7 +180,7 @@ $ cd monolith
 
 3\. Review the draft Dockerfile and add the missing instructions indicated by comments in the file.
 
-*Note: If you're already familiar with how Dockerfiles work and want to focus on breaking the monolith apart into microservices, skip down to "HINT: Final Dockerfile" near the end of step 4, create a Dockerfile in the monolith directory with the hint contents, build the "monolith" image, and continue to step 5.  Otherwise continue on to get hands on with Dockerfiles.*
+*Note: If you're already familiar with how Dockerfiles work and want to focus on breaking the monolith apart into microservices, skip down to ["HINT: Final Dockerfile"](#final-dockerfile) near the end of step 4, create a Dockerfile in the monolith directory with the hint contents, build the "monolith" image, and continue to step 5.  Otherwise continue on...*
 
 One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control (which also explains why you're pulling code from S3).
 
@@ -182,11 +190,11 @@ Use your favorite text editor (vi, nano, emacs are installed) on the instance to
 
 Review the contents, and you'll see a few comments at the end of the file noting what still needs to be done.  Comments are denoted by a "#".
 
-Docker builds container images by stepping through the instructions listed in the Dockerfile.  Docker is built on this idea of layers starting with a base and executing each instruction that introduces change as a new layer.  It caches each layer, so as you develop and rebuild the image, Docker will reuse layers (often referred to as intermediate layers) from cache if no modifications were made.  Once it reaches the layer where edits are introduced, it will build a new intermediate layer and associate it with this particular build.  This makes tasks like image rebuild very efficient and you can maintain multiple build versions.
+Docker builds container images by stepping through the instructions listed in the Dockerfile.  Docker is built on this idea of layers starting with a base and executing each instruction that introduces change as a new layer.  It caches each layer, so as you develop and rebuild the image, Docker will reuse layers (often referred to as intermediate layers) from cache if no modifications were made.  Once it reaches the layer where edits are introduced, it will build a new intermediate layer and associate it with this particular build.  This makes tasks like image rebuild very efficient and you can easily maintain multiple build versions.
 
 ![Docker Container Image](images/01-container-image.png)
 
-For example, in the draft file, the first line - "FROM ubuntu:14.04" - specifies a base image as a starting point.  The next instruction - "RUN apt-get -y update" - creates a new layer where Docker updates package lists from the Ubuntu repositories.  This continues until you reach the last instruction which in most cases is an ENTRYPOINT (hint hint) or executable being run.
+For example, in the draft file, the first line - `FROM ubuntu:14.04` - specifies a base image as a starting point.  The next instruction - `RUN apt-get -y update` - creates a new layer where Docker updates package lists from the Ubuntu repositories.  This continues until you reach the last instruction which in most cases is an `ENTRYPOINT` *(hint hint)* or executable being run.
 
 Add the remaining instructions to Dockerfile.draft.
 
@@ -268,7 +276,7 @@ $ mv Dockerfile.draft Dockerfile
 
 4\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.
 
-This command needs to be run in the same directory where your Dockerfile is and **note the trailing period** which tells the build command to look in the current directory for the Dockerfile.
+This command needs to be run in the same directory where your Dockerfile is. **Note the trailing period** which tells the build command to look in the current directory for the Dockerfile.
 
 <pre>
 $ docker build -t monolith .
@@ -288,13 +296,15 @@ Successfully built 7f51e5d00cee
 
 Awesome, your Dockerfile built successfully, but our developer didn't optimize the Dockefile for the microservices effort later.  Since you'll be breaking apart the monolith codebase into microservices, you will be editing the source code (i.e. monolith.py) often and rebuilding this image a few times.  Looking at your existing Dockerfile, what is one thing you can do to improve build times?
 
+Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
+
 <details>
 <summary>HINT</summary>
 Remember that Docker tries to be efficient by caching layers that have not changed.  Once change is introduced, Docker will rebuild that layer and all layers after it.
 
 Edit monolith.py by adding an arbitrary comment somewhere in the file.  If you're not familiar with Python, [comments](https://docs.python.org/2/tutorial/introduction.html) start with the hash character, '#' and are essentially ignored when the code is interpreted.
 
-For example, here a comment ('# Author: Mr Bean') was added before importing the time module:
+For example, here a comment (`# Author: Mr Bean`) was added before importing the time module:
 <pre>
 # Author: Mr Bean
 
@@ -332,8 +342,7 @@ Collecting Flask==0.12.2 (from -r requirements.txt (line 1))
 Try reordering the instructions in your Dockerfile to copy the monolith code over after the requirements are installed.  The thinking here is that monolith.py will see more changes than the dependencies noted in requirements.txt, so why rebuild requirements every time when we can just have it be another cached layer.
 </details>
 
-Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
-
+##### Final Dockerfile
 <details>
 <summary>HINT: Final Dockerfile</summary>
 <pre>
@@ -376,7 +385,7 @@ ENTRYPOINT ["bin/python", "monolith.py"]
 </pre>
 </details>
 
-In order to see the benefit, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 4).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You'll see something similar to below:
+To see the benefit of your optimizations, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 4).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You should see something similar to below:
 
 <pre>
 Step 11/15 : COPY ./requirements.txt .
@@ -451,7 +460,7 @@ $ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}
 
 *Note: The EC2_PUBLIC_IP_ADDRESS value is the public IP address of the EC2 instance running your monolith container*
 
-The monolith container runs in the foreground with stdout/stderr printing to the screen, so when the simulated order payload {"Message":{"bundle":"1"}} is received, you should see the order get processed and return a 200 OK.
+The monolith container runs in the foreground with stdout/stderr printing to the screen, so when the simulated order payload `{"Message":{"bundle":"1"}}` is received, you should see the order get processed and return a `200`. "OK".
 
 Here is sample output:
 
@@ -511,11 +520,11 @@ Bundle fulfilled
 INFO:werkzeug:96.40.120.185 - - [06/Feb/2018 10:14:02] "POST /order/ HTTP/1.1" 200 -
 </pre>
 
-In the sample output, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  For now, kill the container using **Ctrl-C** now that we know it's working properly.
+In the sample output, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  Kill the container using **Ctrl-C** now that we know it's working properly.
 
-6\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  This allow for version control and persistence, and ECS will reference the image from ECR in the next lab to deploy it.
+6\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  ECR is a fully-managed Docker container registry that makes it easy to store, manage, and deploy Docker container images. In the next lab, we'll use ECS to pull your image from ECR.
 
-In the AWS Management Console, navigate to the Elastic Container Service dashboard and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
 
 ![ECR repositories](images/01-ecr-repo.png)
 
@@ -540,20 +549,20 @@ Here's sample output from these commands:
 [ec2-user@ip-10-177-10-116 monolith]$ docker tag monolith:latest 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
 [ec2-user@ip-10-177-10-116 monolith]$ docker push 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
 The push refers to a repository [873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith]
-0f03d692d842: Pushed 
-ddca409d6822: Pushed 
-d779004749f3: Pushed 
-4008f6d92478: Pushed 
-e0c4f058a955: Pushed 
-7e33b38be0e9: Pushed 
-b9c7536f9dd8: Pushed 
-43a02097083b: Pushed 
-59e73cf39f38: Pushed 
-31df331e1f23: Pushed 
-630730f8c75d: Pushed 
-827cd1db9e95: Pushed 
-e6e107f1da2f: Pushed 
-c41b9462ea4b: Pushed 
+0f03d692d842: Pushed
+ddca409d6822: Pushed
+d779004749f3: Pushed
+4008f6d92478: Pushed
+e0c4f058a955: Pushed
+7e33b38be0e9: Pushed
+b9c7536f9dd8: Pushed
+43a02097083b: Pushed
+59e73cf39f38: Pushed
+31df331e1f23: Pushed
+630730f8c75d: Pushed
+827cd1db9e95: Pushed
+e6e107f1da2f: Pushed
+c41b9462ea4b: Pushed
 latest: digest: sha256:a27cb7c6ad7a62fccc3d56dfe037581d314bd8bd0d73a9a8106d979ac54b76ca size: 3252
 </pre>
 
@@ -566,41 +575,50 @@ If you refresh the ECR repository page in the console, you'll see a new image up
 ### Checkpoint:
 At this point, you should have a working container for the monolith codebase stored in an ECR repository and ready to deploy with ECS in the next lab.
 
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
+
 * * *
 
-### Lab 2 - Deploy your container using ECR/ECS:
+## Lab 2 - Deploy your container using ECR/ECS:
 
-Deploying individual containers is not difficult.  However, when you need to coordinate many container deployments, a cluster manager and scheduler like ECS can greatly simplify the task (no pun intended).
+Deploying individual containers is not difficult.  However, when you need to coordinate many container deployments, a container management tool like ECS can greatly simplify the task (no pun intended).
 
-ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or unit of work.  Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations like the container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
+ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or service.  The task definition is the recipe that ECS uses to run your containers as a **task** on your EC2 instances or AWS Fargate.
+
+<details>
+<summary>What is a task?</summary>
+A task is a running set of containers on a single host. You may hear or see 'task' and 'container' used interchangeably. Often, we refer to tasks instead of containers because a task is the unit of work that ECS launches and manages on your cluster. A task can be a single container, or multiple containers that run together. *Fun fact: a task is very similar to a Kubernetes 'pod'*.
+</details>
+
+Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations including which container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
 
 In this lab, you will create a task definition and configure logging to serve as a foundation for deploying the containerized logistics platform stored in ECR with ECS.
 
 ![Lab 2 Architecture](images/02-arch.png)
 
-*Note: You will use the AWS Management Console for this lab, but remember that you can programmatically accomplish the same thing using the AWS CLI or SDKs or CloudFormation.*
+*Note: You will use the AWS Management Console for this lab, but remember that you can programmatically accomplish the same thing using the AWS CLI, SDKs, or CloudFormation.*
 
 1\. Create an ECS task definition that describes what is needed to run the monolith and enable logging.
 
-In the AWS Management Console, navigate to the Elastic Container Service dashboard.  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
 
-Enter a name for your Task Definition, e.g. interstella-monolith.  Leave Task Role and Network Mode as defaults.
+Enter a name for your Task Definition, (e.g.: `interstella-monolith`).  Leave Task Role and Network Mode as defaults.
 
 Scroll down to Container Definitions and click **Add container**.
 
 Enter values for the following fields:
 
-* **Container name** - this is a logical identifier for your container, not the name of the container image, e.g. interstella-monolith
+* **Container name** - this is a logical identifier for your container, not the name of the container image.
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
-* **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.
+* **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
 
 *Note: This assigns a soft limit of 128MB of RAM to the container, but since it's a soft limit, it does have the ability to consume more available memory if needed.  A hard limit will kill the container if it exceeds the memory limit.  You can define both for flexible memory allocations.  Resource availability is one of the factors that influences container placement.  You can read more about [Container Definitions](http://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html) in our documentation*
 
-* **Port mappings** - enter **5000** for both the host and container port.
+* **Port mappings** - enter `5000` for both host and container port.
 
 *Note: You might be wondering how you can more than one of the same container on a single host since there could be conflicts based on the port mappings configuration.  ECS offers a dynamic port mapping feature when using the ALB as a load balancer for your container service.  We'll visit this in the next lab when adding an ALB to the picture*
 
-Here's an example of what the container definition should look like up until this point (don't click Add yet, there's still logging which is covered in the next step):
+Here's an example of what the container definition should look like up until this point (don't click **Add** yet, there's still logging which is covered in the next step):
 
 ![Add container example](images/02-task-def-add-container.png)
 
@@ -608,7 +626,7 @@ Here's an example of what the container definition should look like up until thi
 
 2\. Configure logging to CloudWatch Logs in the container definition.
 
-In the previous lab, you attached to the running container to get stdout, but no one should be doing that in production and it's good operational practice to implement a centralized logging solution.  ECS offers integration with CloudWatch logs through an awslogs driver that can be enabled in the container definition.
+In the previous lab, you attached to the running container to get *stdout*, but no one should be doing that in production and it's good operational practice to implement a centralized logging solution.  ECS offers integration with [CloudWatch logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) through an awslogs driver that can be enabled in the container definition.
 
 In the Advanced container configuration, scroll down until you get to the **Storage and Logging** section where you'll find **Log Configuration**.
 
@@ -616,17 +634,18 @@ Select **awslogs** from the *Log driver* dropdown.
 
 For *Log options*, enter values for the following:
 
-* **awslogs-group** - enter ***EnvironmentName*-monolith**
+* **awslogs-group** - enter `[EnvironmentName]-monolith`
 
-*Note: The CloudFormation template created a [CloudWatch log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html) for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the monolith would be "interstella-monolith".
+*Note: The CloudFormation template created a [CloudWatch log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html) for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the monolith would be "interstella-monolith".*
 
-* **awslogs-region** - enter the AWS region of the log group (i.e. the current region you're working in); the expected value is the region code.
+* **awslogs-region** - enter the AWS region of the log group (i.e.: the current region you're working in); the expected value is the region code.
 <details>
 <summary>HINT: Region codes</summary>
 US East (Ohio) = us-east-2<br>
 US West (Oregon) = us-west-2<br>
 EU (Ireland) = eu-west-1<br>
 </details>
+
 
 For example, if you ran the CloudFormation stack in Ireland, you would enter 'eu-west-1' for the awslogs-region.
 
@@ -682,7 +701,7 @@ If you're still confused, refer back to Lab 1 Step 5 as a reminder.
 
 Run the curl command and check the CloudWatch log group for the monolith to confirm the test order was processed.
 
-Navigate to the CloudWatch Logs dashboard, and click on the monolith log group, e.g. interstella-monolith.  Logging statements are written to log streams within the log group.  Click on the most recent log stream to view the logs.  This should look very familiar from your testing in Lab 1 Step 5.
+Navigate to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home#logs:), and click on the monolith log group (e.g.: interstella-monolith).  Logging statements are written to log streams within the log group.  Click on the most recent log stream to view the logs.  This should look very familiar from your testing in Lab 1 Step 5.
 
 ![CloudWatch Log Entries](images/02-cloudwatch-logs.png)
 
@@ -691,23 +710,25 @@ If the curl command was successful, stop the task by going to your cluster, sele
 ![Stop Task](images/02-stop-task.png)
 
 ### Checkpoint:
-Success!  You've created a task definition and are able to deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container works as expected.
+Nice work!  You've created a task definition and are able to deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container works as expected.
+
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
-### Lab 3 - Scale the logistics platform with an ALB:
+## Lab 3 - Scale the logistics platform with an ALB:
 
-The Run Task method you used in the last lab is good for testing, but we need to keep the logistics platform running as a long running process.  In addition, it would be helpful to maintain capacity in case any of our EC2 instances were to have an issue (always design and plan for failure).
+The Run Task method you used in the last lab is good for testing, but we need to keep run the logistics platform as a long running process.  In addition, it would be helpful to maintain capacity in case any of our EC2 instances were to have an issue (always design and plan for failure).
 
-In this lab, you will implement an ALB to front-end and distribute incoming orders to your container fleet.  ALB/ECS integration offers a feature called dynamic port mapping for containers, which allows you to run multiple copies of the same container with the same listening port on the same host...say that 10 times fast.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
+In this lab, you will implement an Elastic Load Balancing [Appliction Load Balancer (ALB)](https://aws.amazon.com/elasticloadbalancing/) to front-end and distribute incoming orders to your running containers.  The integration between ECS and ALB offers a feature called dynamic port mapping for containers, which allows you to run multiple copies of the same container with the same listening port on the same host...*say that 10 times fast*.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
 
-What ties this all together is an ECS Service, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB).  You could take it even further by implementing task auto scaling, but let's set up the foundation first.  And finally, you will subscribe the ALB endpoint to the orders SNS topic to start the order flow.
+What ties this all together is an **ECS Service**, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB). Now you will start the service, configure the ALB, and then subscribe the ALB endpoint to the orders SNS topic to start the order flow.
 
 ![Lab 3 Architecture](images/03-arch.png)
 
 1\. Create an Application Load Balancer.
 
-In the AWS Management Console, navigate to the EC2 dashboard.  Click on **Load Balancers** in the left menu under the **Load Balancing** section.  Click on **Create Load Balancer**.  Click on **Create** for an Application Load Balancer.
+In the AWS Management Console, navigate to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home).  Click on **Load Balancers** in the left menu under the **Load Balancing** section.  Click on **Create Load Balancer**.  Click on **Create** for an Application Load Balancer.
 
 Give your ALB a name, e.g. interstella.
 
@@ -741,7 +762,7 @@ Remember that one of the goals with the ALB is to be able to distribute orders t
 
 In order to take advantage of dynamic port mapping, create a new revision of your monolith task definition and remove the host port mapping in the container definition.  By leaving the host port blank, an ephemeral port will be assigned and ECS/ALB integration will handle the mapping and target group registration.
 
-Go to the Elastic Container Service dashboard, click on **Task Definitions** in the left menu.
+Go to the [ECS dashboard](https://console.aws.amazon.com/ecs/), click on **Task Definitions** in the left menu.
 
 Select the monolith task definition and click **Create new revision**.
 
@@ -805,7 +826,7 @@ Once the Service is created, click **View Service** and you'll see your task def
 
 4\. Subscribe the ALB endpoint to the SNS order topic using the [API Key Management Portal](https://www.interstella.trade/getkey.html) to start receiving orders from Interstella HQ to test your service.
 
-First you need the public DNS name of your ALB endpoint.  Go to the EC2 Dashboard, click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
+First you need the public DNS name of your ALB endpoint.  Go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home), click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
 
 ![ALB DNS Name](images/03-alb-dns.png)
 
@@ -827,29 +848,31 @@ Navigate to the CloudWatch Logs dashboard and review the latest log stream for t
 
 ![CloudWatch Logs Confirmation](images/03-logs-confirm.png)
 
-### Checkpoint: 
-You've implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella's containerized logistics platform deployed as an ECS Service.
+### Checkpoint:
+Sweet! You've implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella's containerized logistics platform deployed as an ECS Service.
+
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
-### Lab 4: Incrementally build and deploy each microservice
+## Lab 4: Incrementally build and deploy each microservice
 
-In this lab, you will break apart Interstella's monolith logistics platform into microservices. To help with this, the first thing we'll do is explain how the monolith works in more detail.
+It's time to break apart Interstella's monolith logistics platform into microservices. To help with this, let's see how the monolith works in more detail.
 
-When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
+> When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
 
-We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
+> We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
 
-* Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON, e.g.{"iridium": 1}.
-* The ALB will deliver the order payload according to the request path
-* Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
-* This integration hook is in monolith.py and is named glueFulfill()
+> 1. Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON (e.g.`{"iridium": 1}`).
+> 2. The ALB will deliver the order payload according to the request path
+> 3. Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
+> 4. This integration hook is in monolith.py and is named _glueFulfill()_.
 
-When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
+> When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
 
-Hence, Interstella has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it strangled down to just a fulfillment service; this too could eventually be modernized and replaced.
+> Hence, Interstella's lead engineer has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it Strangler down to just a fulfillment service; this too could eventually be modernized and replaced.
 
-The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
+> The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
 
 Here's what you will be implementing:
 
@@ -857,7 +880,7 @@ Here's what you will be implementing:
 
 *Note: The capital 'M' denotes the monolith and 'm' a microservice*
 
-1\. First, build the Iridium microservice container image and push it to ECR.
+1\. First, build the Iridium service container image and push it to ECR.
 
 Open to the SSH session to the EC2 instance you used to build the monolith container image earlier.
 
@@ -865,7 +888,7 @@ Open to the SSH session to the EC2 instance you used to build the monolith conta
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
 </pre>
 
-Our dev team already prepared microservices code and Dockerfile for iridium production, so you just have to build the Docker image.  These are similar to the docker build steps from Lab 1 when you built the monolith.  Create a working directory for the iridium code, and download the iridium application source, requirements file, and Dockerfile from Interstella HQ.
+Our dev team already prepared the service code and Dockerfile for iridium production, so you just have to build the Docker image.  These are similar to the docker build steps from Lab 1 when you built the monolith.  Create a working directory for the iridium code, and download the iridium application source, requirements file, and Dockerfile from Interstella HQ.
 
 <pre>
 $ aws s3 sync s3://www.interstella.trade/awsloft/code/iridium/ iridium/
@@ -880,7 +903,7 @@ $ docker build -t iridium .
 
 3\. Tag and push the image to the ECR repository for iridium.
 
-To find the iridium ECR repo URI, navigate to the ECS dashboard in the management console, click on **Respositories** and find the repo with '-iridium' in the name.  Click on the iridium repository and copy the repository URI.
+To find the iridium ECR repo URI, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) in the management console, click on **Respositories** and find the repo with '-iridium' in the name.  Click on the iridium repository and copy the repository URI.
 
 ![Getting Iridium Repo](images/04-ecr-iridium.png)
 
@@ -891,7 +914,7 @@ $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:latest
 
 4\. Create a new **Task Definition** for the iridium service using the image pushed to ECR.
 
-In the AWS Management Console, navigate to the Elastic Container Service dashboard.  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
 
 Enter a name for your Task Definition, e.g. interstella-iridium.
 
@@ -899,21 +922,21 @@ Click **Add container** to add the iridium container to the task.
 
 Enter values for the following fields:
 
-* **Container name** - this is a logical identifier, not the name of the container image, e.g. interstella-iridium
+* **Container name** - this is a logical identifier, not the name of the container image (e.g. `interstella-iridium`).
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the iridium container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
-* **Memory Limits** - select **Soft limit** from the drop down, and enter **128**
-* **Port mapping** - set host port to be **0** and container ports to be **80**
+* **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
+* **Port mapping** - set host port to be **0** and container ports to be `80`.
 
 The iridium app code is designed to send order fulfillment to the fulfillment service running on the monolith.  It references an environment variable called "monolithURL" to know where to send fulfillment.
 
-Scroll down to the **Advanced container configuration** section, and in the **Environment** section, create an environment variable using "monolithUrl" for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.
+Scroll down to the **Advanced container configuration** section, and in the **Environment** section, create an environment variable using `monolithUrl` for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.
 
 Here's an example of what this should look like:
 ![monolith env var](images/04-env-var.png)
 
-*Note: The env var value field can't be expanded, but the ALB endpoint in my case is "interstella-745660778.us-east-2.elb.amazonaws.com"; yours will be unique, but this is the expected format*
+*Note: The env var value field can't be expanded, but the ALB endpoint in my case is "interstella-745660778.us-east-2.elb.amazonaws.com"; yours will be unique, this is the expected format.*
 
-Finally, add logging to CloudWatch Logs similar to how you set up logging for the monolith.
+Finally, add logging to CloudWatch Logs similar in the same way you set up logging for the monolith in Lab 3.
 
 Scroll down to the **Log configuration** section, and select "awslogs" from the **Log driver** dropdown.
 
@@ -921,9 +944,9 @@ Select **awslogs** from the *Log driver* dropdown.
 
 For *Log options*, enter values for the following:
 
-* **awslogs-group** - enter ***EnvironmentName*-iridium**
+* **awslogs-group** - enter `EnvironmentName*-iridium`
 
-*Note: The CloudFormation template created a CloudWatch log group for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the iridium service would be "interstella-iridium".
+*Note: The CloudFormation template created a CloudWatch log group for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the iridium service would be "interstella-iridium".*
 
 * **awslogs-region** - enter the AWS region of the log group (i.e. the current region you're working in); the expected value is the region code.
 <details>
@@ -933,7 +956,7 @@ US West (Oregon) = us-west-2<br>
 EU (Ireland) = eu-west-1<br>
 </details>
 
-For example, if you ran the CloudFormation stack in Ireland, you would enter 'eu-west-1' for the awslogs-region.
+For example, if you ran the CloudFormation stack in Ireland, you would enter `eu-west-1` for the awslogs-region.
 
 Click **Add** to associate the container definition, and click **Create** to create the task definition.
 
@@ -941,7 +964,7 @@ Click **Add** to associate the container definition, and click **Create** to cre
 
 You should still be on the screen showing the new revision of the iridium task definition you just created.  Under the **Actions** drop down, choose **Create Service**.
 
-Enter a name for the service, e.g. interstella-iridium, and set **Number of tasks** to be **1**.  Leave other settings as defaults and click **Next Step**
+Enter a name for the service (e.g. `interstella-iridium`), and set **Number of tasks** to be **1**.  Leave other settings as defaults and click **Next Step**
 
 On the next page, select **Application Load Balancer** for **Load balancer type**.
 
@@ -959,9 +982,9 @@ For the **Listener Port**, select **80:HTTP** from the drop-down.
 
 For the **Target Group Name**, you'll need to create a new group for the iridium containers, so leave it as "create new" and replace the auto-generated value with **interstella-iridium**.  This is a logical identifier, so any value that relates the iridium microservice will do.
 
-Change the path pattern to "/iridium*".  The ALB uses this path to route traffic to the iridium target group.  This is how multiple services are being served from the same ALB listener.  Note the existing default path routes to the monolith target group.
+Change the path pattern to `/iridium*`.  The ALB uses this path to route traffic to the iridium target group.  This is how multiple services are being served from the same ALB listener.  Note the existing default path routes to the monolith target group.
 
-For **Evaluation order** enter **1**.  And finally edit the **Health check path** to be **/iridium/**.  You need the trailing forward slash for health checks to be successful.
+For **Evaluation order** enter `1`.  And finally edit the **Health check path** to be **/iridium/**.  You need the trailing forward slash for health checks to be successful.
 
 Your configuration should look similar to this:
 
@@ -975,17 +998,17 @@ Skip the Auto Scaling configuration by clicking **Next Step**.
 
 Click **Create Service** on the Review page.
 
-Once the Service is created, click **View Service** and you'll see your task definition has been deployed as a service.  If your configuration is successful, the service will enter a RUNNING state.
+Once the Service is created, click **View Service** and you'll see your task definition has been deployed as a service.  If your configuration is successful, the service will enter the **RUNNING** state.
 
 7\. Test processing iridium orders by subscribing the ALB endpoint with iridium path to the iridium SNS topic.
 
 Subscribe the ALB endpoint to the SNS order topic using the [API Key Management Portal](https://www.interstella.trade/getkey.html) to start receiving orders from Interstella HQ and test your service.
 
-You should already have your ALB public DNS name noted down, but if not, go to the EC2 Dashboard, click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
+You should already have your ALB public DNS name noted down, but if not, go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home), click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
-Enter the ALB endpoint in the SNS Subscription text field using the following format, only this time use the path "/iridium/":
+Enter the ALB endpoint in the SNS Subscription text field using the following format, only this time use the path `/iridium/`:
 
 <pre>
 http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/iridium/
@@ -1019,7 +1042,7 @@ Save your changes and close the file.
 
 9\. Build, tag and push the monolith image to the monolith ECR repository.
 
-Use the tag "noiridium" instead of "latest".  This is a best practice because it makes the specific deployment unique and easily referenceable.
+Use the tag `noiridium` instead of "latest".  This is a best practice because it makes the specific deployment unique and easily referenceable.
 
 <pre>
 $ docker build -t monolith:noiridium .
@@ -1033,11 +1056,11 @@ If you look in the ECR repository for the monolith, you'll see the pushed image 
 
 10\. Create a new revision of the monolith task definition to use the new monolith container image tagged as noiridium.
 
-Navigate to the Elastic Container Service dashboard and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
+Navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
 
 In the **Container Definitions** section, click on the container name to edit the container image for the task definition.
 
-Modify the image tag from "latest" to "noiridium".
+Modify the image tag from "latest" to `noiridium`.
 
 ![Task Def Modify Container](images/04-modify-image.png)
 
@@ -1047,22 +1070,22 @@ Click **Update**, and click **Create**.
 
 11\. Update the monolith service to use the new task definition you just created.
 
-In the ECS dashboard, click on **Clusters** in the left menu.  Click on your workshop cluster.  You should see the monolith service running in the **Services** tab.  Select the monolith service and click **Update**.
+In the [ECS dashboard](https://console.aws.amazon.com/ecs/), click on **Clusters** in the left menu.  Click on your workshop cluster.  You should see the monolith service running in the **Services** tab.  Select the monolith service and click **Update**.
 
 ![Update monolith service](images/04-service-update.png)
 
-Change the **Task Definition** to be the newest version you just created.  If your earlier task definition was "interstella-monolith:1" for example, you should see a "interstella-monolith:2" in the drop-down menu.  If you're unsure, you can always go back to the **Task Definitions** section of the ECS dashboard to check.
+Change the **Task Definition** to be the newest version you just created.  If your earlier task definition was "interstella-monolith:1" for example, you should see a "interstella-monolith:2" in the drop-down menu.  If you're unsure, you can always go back to the **Task Definitions** section of the [ECS dashboard](https://console.aws.amazon.com/ecs/) to check.
 
 Click **Next step** for this step and remaining steps without making any additional modifications.  Click **Update Service** to deploy your new monolith container.  Click on **View Service** and then on the **Tasks** tab.  You should see ECS launching a new task based on the new version of the task definition, begin to drain the old task version, and eventually stop the old version.
 
 ### Checkpoint:
-Congratulations, you've successfully rolled out the iridium microservice from the monolith.  If you have time, you can repeat this lab to break out the magnesite microservice following the same steps only replacing any reference to iridium with magnesite.  Otherwise, please remember to follow the steps below in the **Workshop Cleanup** to make sure all assets created during the workshop are removed so you do not see unexpected charges. 
+Congratulations, you've successfully rolled out the iridium microservice from the monolith.  If you have time, you can repeat this lab to break out the magnesite microservice following the same steps only replacing any reference to iridium with magnesite.  Otherwise, please remember to follow the steps below in the **Workshop Cleanup** to make sure all assets created during the workshop are removed so you do not see unexpected charges.
 
 * * *
 
 ## Finished! Please fill out evaluation cards!
 
-Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.  You can reach us at <aws-interstella-team@amazon.com>
+Congratulations on completing the labs, or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation... ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.  You can reach us at <aws-interstella-team@amazon.com>
 
 * * *
 
@@ -1078,3 +1101,5 @@ Delete manually created resources throughout the labs:
 * ALBs and associated target groups
 
 Finally, [delete the CloudFormation stack](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
+
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)

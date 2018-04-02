@@ -1,12 +1,21 @@
 ![ECS Interstella Workshop](/images/splash.png)
-# Interstella Intergalactic Trading Co!
+# Do you have what it takes to code for Interstella?
 
-Welcome to the Interstella Intergalactic Trading Co. team!  Interstella is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of containers and devops and very much want to head in that direction.  Can you help us get there? 
+Welcome to the Interstella Intergalactic Trading Company team.  
 
-In this workshop series, we'll guide you through four workshops:
-1. Learn how to Use Docker on AWS [Introductory]
-2. Monolith to Microservices with Amazon ECS [Intermediate]
-3. CI/CD for Containers on AWS [Intermediate/Advanced]
-4. Advanced Microservices Operations: Load testing, Monitoring, Service Mesh [Advanced]
+Interstella is an trading company specializing in inter-system exchange of rare minerals and other goods.  Several wise acquisitions made before the Great Ravine have given us unrestricted access on mining in several systems and business is booming.
 
-Hope you have fun!
+But our logistics platform wasn't built to handle this load and we're at risk of losing our trade routes.  Our engineers have suggested we look at using modern application architectures, containers, and devops, but they don't know anything about implementing them.  Can you help us update our logistics platform and become the largest trading consortium in the galaxy?
+
+## Learning Paths:
+**Monolith to Microservices (Fast Labs)**
+1. Monolith to Microservices with AWS Fargate *coming soon!*
+2. [Monolith to Microservices with EC2](/workshop-microservices)
+
+**Complete Path (Original Labs)**:
+1. [Learn how to Use Docker on AWS (Introductory)](/workshop1)
+2. [Monolith to Microservices with Amazon ECS (Intermediate)](/workshop2)
+3. [CI/CD for Containers on AWS (Intermediate/Advanced)](/workshop3)
+4. [Advanced Microservices Operations: Load testing, Monitoring, Service Mesh (Advanced)](/workshop4)
+
+Have fun, we need you to make history!
