@@ -61,19 +61,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio**, **Oregon**, or **Ireland**.
 
-2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.
-
-*If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.*
-
-Go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home) and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.
-
-*Mac or Linux Users*:  Change the permissions of the .pem file to be less open using this command:
-
-<pre>$ chmod 400 <b><i>PRIVATE_KEY.PEM</i></b></pre>
-
-*Windows Users*: Convert the .pem file to .ppk format to use with Putty.  Here is a link to instructions for the file conversion - [Connecting to Your Linux Instance from Windows Using PuTTY](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html)
-
-3\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
+2\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
 Open the [Interstella API Key Portal](http://www.interstella.trade/getkey.html) in a new tab and click on **Sign up Here** to create a new account.  Enter a username and password and click **Sign up**.  Note and save your login information because you will use this page again later in the workshop.  Click **Sign in**, enter your login information and click **Login**.
 
@@ -83,7 +71,7 @@ For example:
 
 ![Example API Key](images/00-api-key.png)
 
-4\. Launch the [CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) template for your selected region to stand up the core workshop infrastructure.
+3\. Launch the [CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) template for your selected region to stand up the core workshop infrastructure.
 
 The CloudFormation template will launch the following:
 
@@ -102,7 +90,7 @@ Open the CloudFormation launch template link below for the region you selected i
 Region | Launch Template
 ------------ | -------------
 **Ohio** (us-east-2) | [![Launch Interstella CloudFormation Stack in Ohio](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Oregon** (us-west-2) | [!][Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Oregon** (us-west-2) | [![Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
 **Ireland** (eu-west-1) | [![Launch Interstella CloudFormation Stack in Ireland](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
 
 The template will automatically bring you to the CloudFormation Dashboard and start the stack creation process in the specified region. Do not change anything on the first screen. Click **Next** to continue.
@@ -111,7 +99,6 @@ The template will automatically bring you to the CloudFormation Dashboard and st
 
 * **Stack Name** - the stack name is an identifier that helps you find a particular stack from a list of stacks, e.g. interstella
 * **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella  *Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
-* **KeyPairName** - select the *SSH key pair* created in Step 2
 * **InterstellaApiKey** - enter the *API key* generated in Step 3
 * **InterstellaApiEndpoint** - keep this as default UNLESS the workshop admins provide you with a different fulfillment API endpoint to use
 
@@ -152,7 +139,7 @@ Woah! Turns out Interstella's infrastructure has been running directly on EC2 vi
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
 
 
-=======
+* * *
 ### Instructions
 
 1\. Access your AWS Cloud9 Development Environment.
