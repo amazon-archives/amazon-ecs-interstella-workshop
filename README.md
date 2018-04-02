@@ -6,12 +6,12 @@ Welcome to the Interstella Intergalactic Trading Co. team!  Interstella is an in
 ## Learning Paths:
 **Monolith to Microservices (Fast Labs)**
 1. Monolith to Microservices with AWS Fargate
-2. [Monolith to Microservices with EC2](/master/workshop-microservices)
+2. [Monolith to Microservices with EC2](/workshop-microservices)
 
 **Complete Path (Original Labs)**:
-1. [Learn how to Use Docker on AWS (Introductory)](/master/workshop1)
-2. [Monolith to Microservices with Amazon ECS (Intermediate)](/master/workshop2)
-3. [CI/CD for Containers on AWS (Intermediate/Advanced)](/master/workshop3)
-4. [Advanced Microservices Operations: Load testing, Monitoring, Service Mesh (Advanced)](/master/workshop4)
+1. [Learn how to Use Docker on AWS (Introductory)](/workshop1)
+2. [Monolith to Microservices with Amazon ECS (Intermediate)](/workshop2)
+3. [CI/CD for Containers on AWS (Intermediate/Advanced)](/workshop3)
+4. [Advanced Microservices Operations: Load testing, Monitoring, Service Mesh (Advanced)](/workshop4)
 
 Have fun, you're going to make history!
