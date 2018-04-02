@@ -157,7 +157,7 @@ Woah! Turns out Interstella's infrastructure has been running directly on EC2 vi
 
 1\. Access your AWS Cloud9 Development Environment.
 
-Go to the Cloud9 Dashboard in the Management Console and find your environment. The name will be in the CloudFormation outputs section. Click "**Open IDE**"
+In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment. The name will be in the CloudFormation outputs section under Cloud9EnvName. Click "**Open IDE**"
 
 ![Cloud9 Env](images/01-c9.png)
 

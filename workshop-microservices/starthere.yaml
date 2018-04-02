@@ -550,7 +550,7 @@ Resources:
             Description: Cloud9 Environment for Interstella Workshop
             AutomaticStopTimeMinutes: 30
             InstanceType: t2.micro
-            Name: Interstella-Cloud9
+            Name: !Sub ${EnvironmentName}-Interstella-Cloud9
             SubnetId: !Ref PublicSubnet1
             
     AddRoleToInstance:
@@ -722,5 +722,9 @@ Outputs:
     Cluster:
         Description: A reference to the ECS cluster
         Value: !Ref ECSCluster
+        
+    Cloud9EnvName:
+        Description: Name of your Interstella Cloud9 Development Environment
+        Value: !Sub ${EnvironmentName}-Interstella-Cloud9
 
     
