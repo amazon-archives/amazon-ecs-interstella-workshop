@@ -2,9 +2,11 @@
 
 ## Overview:
 
-Welcome to the Interstella Galactic Trading Company (GTC) team!  [Interstella GTC](https://interstella.trade/) is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of microservices implemented as containers and feel it would be a good fit for our business.
+Welcome to the Interstella Intergalactic Trading Company team.
 
-The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits are appealing.  Microservices will allow us to scale processes independently, adopt multiple programming languages within a single application, and make it easier to push code changes. Our dev team reviewed the logistics platform code and determined that we could decouple our logistics platform to individual services for fulfilling resource orders.  Can you help us get there?
+Interstella is an trading company specializing in inter-system exchange of rare minerals and other goods. Several wise acquisitions made before the Great Ravine have given us unrestricted access on mining in several systems and business is booming.
+
+But our logistics platform wasn't built to handle this load and we're at risk of losing our trade routes. Our engineers have suggested we look at using modern application architectures, containers, and devops, but they don't know anything about implementing them. Can you help us update our logistics platform and become the largest trading consortium in the galaxy?
 
 ### Requirements:  
 
