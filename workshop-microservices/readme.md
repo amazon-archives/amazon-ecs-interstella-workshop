@@ -861,13 +861,18 @@ Sweet! You've implemented an ALB as a way to distribute incoming HTTP orders to 
 It's time to break apart Interstella's monolith logistics platform into microservices. To help with this, let's see how the monolith works in more detail.
 
 > When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
+
 > We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
-> * Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON, e.g.{"iridium": 1}.
-> * The ALB will deliver the order payload according to the request path
-> * Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
-> * This integration hook is in monolith.py and is named glueFulfill()
+
+> 1. Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON (e.g.`{"iridium": 1}`).
+> 2. The ALB will deliver the order payload according to the request path
+> 3. Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
+> 4. This integration hook is in monolith.py and is named _glueFulfill()_.
+
 > When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
-> Hence, Interstella has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it strangled down to just a fulfillment service; this too could eventually be modernized and replaced.
+
+> Hence, Interstella's lead engineer has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it Strangler down to just a fulfillment service; this too could eventually be modernized and replaced.
+
 > The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
 
 Here's what you will be implementing:
@@ -876,7 +881,7 @@ Here's what you will be implementing:
 
 *Note: The capital 'M' denotes the monolith and 'm' a microservice*
 
-1\. First, build the Iridium microservice container image and push it to ECR.
+1\. First, build the Iridium service container image and push it to ECR.
 
 Open to the SSH session to the EC2 instance you used to build the monolith container image earlier.
 
@@ -884,7 +889,7 @@ Open to the SSH session to the EC2 instance you used to build the monolith conta
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
 </pre>
 
-Our dev team already prepared microservices code and Dockerfile for iridium production, so you just have to build the Docker image.  These are similar to the docker build steps from Lab 1 when you built the monolith.  Create a working directory for the iridium code, and download the iridium application source, requirements file, and Dockerfile from Interstella HQ.
+Our dev team already prepared the service code and Dockerfile for iridium production, so you just have to build the Docker image.  These are similar to the docker build steps from Lab 1 when you built the monolith.  Create a working directory for the iridium code, and download the iridium application source, requirements file, and Dockerfile from Interstella HQ.
 
 <pre>
 $ aws s3 sync s3://www.interstella.trade/awsloft/code/iridium/ iridium/
@@ -918,21 +923,21 @@ Click **Add container** to add the iridium container to the task.
 
 Enter values for the following fields:
 
-* **Container name** - this is a logical identifier, not the name of the container image, e.g. interstella-iridium
+* **Container name** - this is a logical identifier, not the name of the container image (e.g. `interstella-iridium`).
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the iridium container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
-* **Memory Limits** - select **Soft limit** from the drop down, and enter **128**
-* **Port mapping** - set host port to be **0** and container ports to be **80**
+* **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
+* **Port mapping** - set host port to be **0** and container ports to be `80`.
 
 The iridium app code is designed to send order fulfillment to the fulfillment service running on the monolith.  It references an environment variable called "monolithURL" to know where to send fulfillment.
 
-Scroll down to the **Advanced container configuration** section, and in the **Environment** section, create an environment variable using "monolithUrl" for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.
+Scroll down to the **Advanced container configuration** section, and in the **Environment** section, create an environment variable using `monolithUrl` for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.
 
 Here's an example of what this should look like:
 ![monolith env var](images/04-env-var.png)
 
-*Note: The env var value field can't be expanded, but the ALB endpoint in my case is "interstella-745660778.us-east-2.elb.amazonaws.com"; yours will be unique, but this is the expected format*
+*Note: The env var value field can't be expanded, but the ALB endpoint in my case is "interstella-745660778.us-east-2.elb.amazonaws.com"; yours will be unique, this is the expected format.*
 
-Finally, add logging to CloudWatch Logs similar to how you set up logging for the monolith.
+Finally, add logging to CloudWatch Logs similar in the same way you set up logging for the monolith in Lab 3.
 
 Scroll down to the **Log configuration** section, and select "awslogs" from the **Log driver** dropdown.
 
@@ -940,9 +945,9 @@ Select **awslogs** from the *Log driver* dropdown.
 
 For *Log options*, enter values for the following:
 
-* **awslogs-group** - enter ***EnvironmentName*-iridium**
+* **awslogs-group** - enter `EnvironmentName*-iridium`
 
-*Note: The CloudFormation template created a CloudWatch log group for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the iridium service would be "interstella-iridium".
+*Note: The CloudFormation template created a CloudWatch log group for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the iridium service would be "interstella-iridium".*
 
 * **awslogs-region** - enter the AWS region of the log group (i.e. the current region you're working in); the expected value is the region code.
 <details>
@@ -952,7 +957,7 @@ US West (Oregon) = us-west-2<br>
 EU (Ireland) = eu-west-1<br>
 </details>
 
-For example, if you ran the CloudFormation stack in Ireland, you would enter 'eu-west-1' for the awslogs-region.
+For example, if you ran the CloudFormation stack in Ireland, you would enter `eu-west-1` for the awslogs-region.
 
 Click **Add** to associate the container definition, and click **Create** to create the task definition.
 
@@ -960,7 +965,7 @@ Click **Add** to associate the container definition, and click **Create** to cre
 
 You should still be on the screen showing the new revision of the iridium task definition you just created.  Under the **Actions** drop down, choose **Create Service**.
 
-Enter a name for the service, e.g. interstella-iridium, and set **Number of tasks** to be **1**.  Leave other settings as defaults and click **Next Step**
+Enter a name for the service (e.g. `interstella-iridium`), and set **Number of tasks** to be **1**.  Leave other settings as defaults and click **Next Step**
 
 On the next page, select **Application Load Balancer** for **Load balancer type**.
 
@@ -978,9 +983,9 @@ For the **Listener Port**, select **80:HTTP** from the drop-down.
 
 For the **Target Group Name**, you'll need to create a new group for the iridium containers, so leave it as "create new" and replace the auto-generated value with **interstella-iridium**.  This is a logical identifier, so any value that relates the iridium microservice will do.
 
-Change the path pattern to "/iridium*".  The ALB uses this path to route traffic to the iridium target group.  This is how multiple services are being served from the same ALB listener.  Note the existing default path routes to the monolith target group.
+Change the path pattern to `/iridium*`.  The ALB uses this path to route traffic to the iridium target group.  This is how multiple services are being served from the same ALB listener.  Note the existing default path routes to the monolith target group.
 
-For **Evaluation order** enter **1**.  And finally edit the **Health check path** to be **/iridium/**.  You need the trailing forward slash for health checks to be successful.
+For **Evaluation order** enter `1`.  And finally edit the **Health check path** to be **/iridium/**.  You need the trailing forward slash for health checks to be successful.
 
 Your configuration should look similar to this:
 
@@ -994,7 +999,7 @@ Skip the Auto Scaling configuration by clicking **Next Step**.
 
 Click **Create Service** on the Review page.
 
-Once the Service is created, click **View Service** and you'll see your task definition has been deployed as a service.  If your configuration is successful, the service will enter a RUNNING state.
+Once the Service is created, click **View Service** and you'll see your task definition has been deployed as a service.  If your configuration is successful, the service will enter the **RUNNING** state.
 
 7\. Test processing iridium orders by subscribing the ALB endpoint with iridium path to the iridium SNS topic.
 
@@ -1004,7 +1009,7 @@ You should already have your ALB public DNS name noted down, but if not, go to t
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
-Enter the ALB endpoint in the SNS Subscription text field using the following format, only this time use the path "/iridium/":
+Enter the ALB endpoint in the SNS Subscription text field using the following format, only this time use the path `/iridium/`:
 
 <pre>
 http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/iridium/
@@ -1038,7 +1043,7 @@ Save your changes and close the file.
 
 9\. Build, tag and push the monolith image to the monolith ECR repository.
 
-Use the tag "noiridium" instead of "latest".  This is a best practice because it makes the specific deployment unique and easily referenceable.
+Use the tag `noiridium` instead of "latest".  This is a best practice because it makes the specific deployment unique and easily referenceable.
 
 <pre>
 $ docker build -t monolith:noiridium .
@@ -1056,7 +1061,7 @@ Navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click *
 
 In the **Container Definitions** section, click on the container name to edit the container image for the task definition.
 
-Modify the image tag from "latest" to "noiridium".
+Modify the image tag from "latest" to `noiridium`.
 
 ![Task Def Modify Container](images/04-modify-image.png)
 
@@ -1081,7 +1086,7 @@ Congratulations, you've successfully rolled out the iridium microservice from th
 
 ## Finished! Please fill out evaluation cards!
 
-Congratulations on completing the labs or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.  You can reach us at <aws-interstella-team@amazon.com>
+Congratulations on completing the labs, or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation... ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.  You can reach us at <aws-interstella-team@amazon.com>
 
 * * *
 
