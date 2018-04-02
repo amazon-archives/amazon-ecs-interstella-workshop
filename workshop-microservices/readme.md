@@ -4,28 +4,28 @@
 
 Welcome to the Interstella Galactic Trading Company (GTC) team!  [Interstella GTC](https://interstella.trade/) is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of microservices implemented as containers and feel it would be a good fit for our business.
 
-The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits like being able to scale processes independently, adopt multiple programming languages, and add agility to our development pipeline are appealing.  The dev team reviewed the logistics platform code and determined that we could decouple our logstics platform to individual services for fulfilling resource orders.  Can you help us get there?
+The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits like being able to scale processes independently, adopt multiple programming languages, and add agility to our development pipeline are appealing.  Our dev team reviewed the logistics platform code and determined that we could decouple our logstics platform to individual services for fulfilling resource orders.  Can you help us get there?
 
 ### Requirements:  
 
-* AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/)
-* AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ELB/ALB, VPC, SNS, CloudWatch
+* AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/).
+* AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ELB/ALB, VPC, SNS, CloudWatch. [Learn how](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html).
 * A workstation or laptop with an ssh client installed, such as [putty](http://www.putty.org/) on Windows; or terminal or iterm on Mac
-* Familiarity with Python, vim/emacs/nano, [Docker](https://www.docker.com/), and AWS - not required but a bonus
+* Familiarity with [Python](https://wiki.python.org/moin/BeginnersGuide/Programmers), [vim](https://www.vim.org/about.php)/[emacs](https://www.gnu.org/software/emacs/)/[nano](https://www.nano-editor.org/), [Docker](https://www.docker.com/), and [AWS](httpts://aws.amazon.com) - *not required but a bonus*.
 
-### Labs:
+### What you'll do:
 
 These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop attendants will give you a high level run down of the labs and be around to answer any questions.  Don't worry if you get stuck, we provide hints along the way.
 
-* **Workshop Setup:** Setup working environment on AWS
-* **Lab 1:** Containerize the Interstella logistics software
+* **Workshop Setup:** Setup working environment on AWS [Go](#lets-begin)
+* **Lab 1:** Containerize the Interstella logistics software [Go](#lab-1---containerize-interstellas-logistics-platform)
 * **Lab 2:** Deploy containers using Amazon ECR and Amazon ECS
 * **Lab 3:** Scale the logistics platform with an ALB
 * **Lab 4:** Incrementally build and deploy each resource microservice
 
 ### Conventions:
 
-Throughout this workshop, we provide commands for you to run in the terminal.  These commands will look like this: 
+Throughout this workshop, we provide commands for you to run in the terminal.  These commands will look like this:
 
 <pre>
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_DNS_NAME</i></b>
@@ -47,7 +47,7 @@ Click on the arrow to show the contents of the hint.
 
 You will be deploying infrastructure on AWS which will have an associated cost.  If you're attending an AWS event, credits will be provided.  When you're done with the workshop, follow the steps at the very end of the instructions to make sure everything is cleaned up.
 
-* * * 
+* * *
 
 ## Let's Begin!
 
@@ -545,20 +545,20 @@ Here's sample output from these commands:
 [ec2-user@ip-10-177-10-116 monolith]$ docker tag monolith:latest 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
 [ec2-user@ip-10-177-10-116 monolith]$ docker push 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
 The push refers to a repository [873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith]
-0f03d692d842: Pushed 
-ddca409d6822: Pushed 
-d779004749f3: Pushed 
-4008f6d92478: Pushed 
-e0c4f058a955: Pushed 
-7e33b38be0e9: Pushed 
-b9c7536f9dd8: Pushed 
-43a02097083b: Pushed 
-59e73cf39f38: Pushed 
-31df331e1f23: Pushed 
-630730f8c75d: Pushed 
-827cd1db9e95: Pushed 
-e6e107f1da2f: Pushed 
-c41b9462ea4b: Pushed 
+0f03d692d842: Pushed
+ddca409d6822: Pushed
+d779004749f3: Pushed
+4008f6d92478: Pushed
+e0c4f058a955: Pushed
+7e33b38be0e9: Pushed
+b9c7536f9dd8: Pushed
+43a02097083b: Pushed
+59e73cf39f38: Pushed
+31df331e1f23: Pushed
+630730f8c75d: Pushed
+827cd1db9e95: Pushed
+e6e107f1da2f: Pushed
+c41b9462ea4b: Pushed
 latest: digest: sha256:a27cb7c6ad7a62fccc3d56dfe037581d314bd8bd0d73a9a8106d979ac54b76ca size: 3252
 </pre>
 
@@ -832,7 +832,7 @@ Navigate to the CloudWatch Logs dashboard and review the latest log stream for t
 
 ![CloudWatch Logs Confirmation](images/03-logs-confirm.png)
 
-### Checkpoint: 
+### Checkpoint:
 You've implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella's containerized logistics platform deployed as an ECS Service.
 
 * * *
@@ -1061,7 +1061,7 @@ Change the **Task Definition** to be the newest version you just created.  If yo
 Click **Next step** for this step and remaining steps without making any additional modifications.  Click **Update Service** to deploy your new monolith container.  Click on **View Service** and then on the **Tasks** tab.  You should see ECS launching a new task based on the new version of the task definition, begin to drain the old task version, and eventually stop the old version.
 
 ### Checkpoint:
-Congratulations, you've successfully rolled out the iridium microservice from the monolith.  If you have time, you can repeat this lab to break out the magnesite microservice following the same steps only replacing any reference to iridium with magnesite.  Otherwise, please remember to follow the steps below in the **Workshop Cleanup** to make sure all assets created during the workshop are removed so you do not see unexpected charges. 
+Congratulations, you've successfully rolled out the iridium microservice from the monolith.  If you have time, you can repeat this lab to break out the magnesite microservice following the same steps only replacing any reference to iridium with magnesite.  Otherwise, please remember to follow the steps below in the **Workshop Cleanup** to make sure all assets created during the workshop are removed so you do not see unexpected charges.
 
 * * *
 

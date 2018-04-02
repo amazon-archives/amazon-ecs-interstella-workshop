@@ -9,7 +9,7 @@ But our logistics platform wasn't built to handle this load and we're at risk of
 
 ## Learning Paths:
 **Monolith to Microservices (Fast Labs)**
-1. Monolith to Microservices with AWS Fargate
+1. Monolith to Microservices with AWS Fargate *coming soon!*
 2. [Monolith to Microservices with EC2](/workshop-microservices)
 
 **Complete Path (Original Labs)**:
@@ -18,4 +18,4 @@ But our logistics platform wasn't built to handle this load and we're at risk of
 3. [CI/CD for Containers on AWS (Intermediate/Advanced)](/workshop3)
 4. [Advanced Microservices Operations: Load testing, Monitoring, Service Mesh (Advanced)](/workshop4)
 
-Have fun, you're going to make history!
+Have fun, we need you to make history!
