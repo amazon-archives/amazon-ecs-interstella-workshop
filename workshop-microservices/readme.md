@@ -73,7 +73,7 @@ Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Networ
 
 3\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
-Open the [Interstella API Key Portal](http://www.interstella.trade/getkey.html) in a new tab and click on **Sign up Here** to create a new account.  Enter a username and password and click **Sign up**.  Note your login information because you will use this page again later in the workshop.  Click **Sign in**, enter your login information and click **Login**.
+Open the [Interstella API Key Portal](http://www.interstella.trade/getkey.html) in a new tab and click on **Sign up Here** to create a new account.  Enter a username and password and click **Sign up**.  Note and save your login information because you will use this page again later in the workshop.  Click **Sign in**, enter your login information and click **Login**.
 
 Note down the unique API key that is generated.
 
@@ -99,20 +99,17 @@ Open the CloudFormation launch template link below for the region you selected i
 Region | Launch Template
 ------------ | -------------
 **Ohio** (us-east-2) | [![Launch Interstella CloudFormation Stack in Ohio](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Oregon** (us-west-2) | [Launch Interstella CloudFormation Stack in Oregon](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Ireland** (eu-west-1) | [Launch Interstella CloudFormation Stack in Ireland](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Oregon** (us-west-2) | [!][Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Ireland** (eu-west-1) | [![Launch Interstella CloudFormation Stack in Ireland](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
 
-You should be on the Select Template page, notice an S3 URL link to the CloudFormation template is already populated.  Do not modify any fields, and click **Next** to continue.
+The template will automatically bring you to the CloudFormation Dashboard and start the stack creation process in the specified region. Do not change anything on the first screen. Click **Next** to continue.
 
 5\. On the Specify Details step of the Create Stack process, enter values for the following fields:
 
 * **Stack Name** - the stack name is an identifier that helps you find a particular stack from a list of stacks, e.g. interstella
-* **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella
-
-*IMPORTANT NOTE: for this field, please use only lowercase letters because the ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.  We are working on fixing this.*
-
-* **KeyPairName** - select the SSH key pair created in Step 2
-* **InterstellaApiKey** - enter the API key generated in Step 3
+* **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella  *Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
+* **KeyPairName** - select the *SSH key pair* created in Step 2
+* **InterstellaApiKey** - enter the *API key* generated in Step 3
 * **InterstellaApiEndpoint** - keep this as default UNLESS the workshop admins provide you with a different fulfillment API endpoint to use
 
 All other fields can be left as their default values.
@@ -136,17 +133,22 @@ If there was an [error](http://docs.aws.amazon.com/AWSCloudFormation/latest/User
 
 Go ahead and start reading the next section while your stack creates.
 
+*^ back to top*
 * * *
 
-### Lab 1 - Containerize Interstella's logistics platform:
+## Lab 1 - Containerize Interstella's logistics platform:
 
-If you are not familiar with containers, think of it as a way to package and run software (e.g. web server, proxy, database) in isolation alongside other containers on a server.  You might be thinking, wait, isn't that a virtual machine (VM)?  Containers do not contain the full OS stack like a VM.  Instead, a container is a portable unit of work that includes everything it needs to run as its own process - e.g. executable, dependencies.  To learn more - [What is a Container?](https://www.docker.com/what-container).  Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  It is also important to point out that the container running on a developer's machine can also run in production as is.
+Woah! Turns out our infrastructure has been running on bare metal this entire time. Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The EC2 instances provisioned by CloudFormation have the Docker engine running on them, so you can use either one to author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
 
-In this lab, you will containerize and test Interstella's logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for Docker to build a container image.  The EC2 instances provisioned by CloudFormation have Docker running on them, so you can use either one to author the Dockerfile, build the monolith container image, and run it to confirm it's able to process orders.
+[Containers](https://aws.amazon.com/what-are-containers/), are a way to package software (e.g. web server, proxy, database) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  Importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
+
+### Here's what we're going to build:
 
 ![Lab 1 Architecture](images/01-arch.png)
 
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
+
+### Instructions
 
 1\. SSH into one of the launched EC2 instances.
 
@@ -168,7 +170,7 @@ RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
 Are you sure you want to continue connecting (yes/no)?
 </pre>
 
-2\. Once logged into the instance, download the logistics application source, requirements file, and a draft Dockerfile from Interstella HQ.
+2\. Once logged into the instance, download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ.
 
 <pre>
 $ aws s3 sync s3://www.interstella.trade/awsloft/code/monolith/ monolith/
@@ -342,7 +344,7 @@ Try reordering the instructions in your Dockerfile to copy the monolith code ove
 Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
 
 <details>
-<summary>HINT: Final Dockerfile</summary>
+###### <summary>HINT: Final Dockerfile</summary>
 <pre>
 FROM ubuntu:14.04
 RUN apt-get -y update
