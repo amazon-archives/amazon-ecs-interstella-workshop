@@ -63,7 +63,7 @@ The region dropdown is in the upper right hand corner of the console to the left
 
 *If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.*
 
-Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.
+Go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home) and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.
 
 *Mac or Linux Users*:  Change the permissions of the .pem file to be less open using this command:
 
@@ -152,7 +152,7 @@ Woah! Turns out Interstella's infrastructure has been running directly on EC2 vi
 
 1\. SSH into one of the launched EC2 instances.
 
-Go to the EC2 Dashboard in the Management Console and click on **Instances** in the left menu.  Select either one of the EC2 instances created by the CloudFormation stack, note the public IP, and SSH into the instance.
+Go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home) in the Management Console and click on **Instances** in the left menu.  Select either one of the EC2 instances created by the CloudFormation stack, note the public IP, and SSH into the instance.
 
 *Tip: If your instances list is cluttered with other instances, type the **EnvironmentName** you used as a parameter in your CloudFormation template into the filter search bar to reveal only those instances.*
 
@@ -584,35 +584,42 @@ At this point, you should have a working container for the monolith codebase sto
 
 Deploying individual containers is not difficult.  However, when you need to coordinate many container deployments, a container management tool like ECS can greatly simplify the task (no pun intended).
 
-ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or service.  The task definition is the recipe that ECS uses to run your containers. Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations including which container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
+ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or service.  The task definition is the recipe that ECS uses to run your containers as a **task** on your EC2 instances or AWS Fargate.
+
+<details>
+<summary>What is a task?</summary>
+A task is a running set of containers on a single host. You may hear or see 'task' and 'container' used interchangeably. Often, we refer to tasks instead of containers because a task is the unit of work that ECS launches and manages on your cluster. A task can be a single container, or multiple containers that run together. *Fun fact: a task is very similar to a Kubernetes 'pod'*.
+</details>
+
+Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations including which container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
 
 In this lab, you will create a task definition and configure logging to serve as a foundation for deploying the containerized logistics platform stored in ECR with ECS.
 
 ![Lab 2 Architecture](images/02-arch.png)
 
-*Note: You will use the AWS Management Console for this lab, but remember that you can programmatically accomplish the same thing using the AWS CLI or SDKs or CloudFormation.*
+*Note: You will use the AWS Management Console for this lab, but remember that you can programmatically accomplish the same thing using the AWS CLI, SDKs, or CloudFormation.*
 
 1\. Create an ECS task definition that describes what is needed to run the monolith and enable logging.
 
-In the AWS Management Console, navigate to the Elastic Container Service dashboard.  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
 
-Enter a name for your Task Definition, e.g. interstella-monolith.  Leave Task Role and Network Mode as defaults.
+Enter a name for your Task Definition, (e.g.: `interstella-monolith`).  Leave Task Role and Network Mode as defaults.
 
 Scroll down to Container Definitions and click **Add container**.
 
 Enter values for the following fields:
 
-* **Container name** - this is a logical identifier for your container, not the name of the container image, e.g. interstella-monolith
+* **Container name** - this is a logical identifier for your container, not the name of the container image.
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
-* **Memory Limits** - select **Soft limit** from the drop down, and enter **128**.
+* **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
 
 *Note: This assigns a soft limit of 128MB of RAM to the container, but since it's a soft limit, it does have the ability to consume more available memory if needed.  A hard limit will kill the container if it exceeds the memory limit.  You can define both for flexible memory allocations.  Resource availability is one of the factors that influences container placement.  You can read more about [Container Definitions](http://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html) in our documentation*
 
-* **Port mappings** - enter **5000** for both the host and container port.
+* **Port mappings** - enter `5000` for both host and container port.
 
 *Note: You might be wondering how you can more than one of the same container on a single host since there could be conflicts based on the port mappings configuration.  ECS offers a dynamic port mapping feature when using the ALB as a load balancer for your container service.  We'll visit this in the next lab when adding an ALB to the picture*
 
-Here's an example of what the container definition should look like up until this point (don't click Add yet, there's still logging which is covered in the next step):
+Here's an example of what the container definition should look like up until this point (don't click **Add** yet, there's still logging which is covered in the next step):
 
 ![Add container example](images/02-task-def-add-container.png)
 
@@ -620,7 +627,7 @@ Here's an example of what the container definition should look like up until thi
 
 2\. Configure logging to CloudWatch Logs in the container definition.
 
-In the previous lab, you attached to the running container to get stdout, but no one should be doing that in production and it's good operational practice to implement a centralized logging solution.  ECS offers integration with CloudWatch logs through an awslogs driver that can be enabled in the container definition.
+In the previous lab, you attached to the running container to get *stdout*, but no one should be doing that in production and it's good operational practice to implement a centralized logging solution.  ECS offers integration with [CloudWatch logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) through an awslogs driver that can be enabled in the container definition.
 
 In the Advanced container configuration, scroll down until you get to the **Storage and Logging** section where you'll find **Log Configuration**.
 
@@ -628,17 +635,18 @@ Select **awslogs** from the *Log driver* dropdown.
 
 For *Log options*, enter values for the following:
 
-* **awslogs-group** - enter ***EnvironmentName*-monolith**
+* **awslogs-group** - enter `[EnvironmentName]-monolith`
 
-*Note: The CloudFormation template created a [CloudWatch log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html) for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the monolith would be "interstella-monolith".
+*Note: The CloudFormation template created a [CloudWatch log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html) for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the monolith would be "interstella-monolith".*
 
-* **awslogs-region** - enter the AWS region of the log group (i.e. the current region you're working in); the expected value is the region code.
+* **awslogs-region** - enter the AWS region of the log group (i.e.: the current region you're working in); the expected value is the region code.
 <details>
 <summary>HINT: Region codes</summary>
 US East (Ohio) = us-east-2<br>
 US West (Oregon) = us-west-2<br>
 EU (Ireland) = eu-west-1<br>
 </details>
+
 
 For example, if you ran the CloudFormation stack in Ireland, you would enter 'eu-west-1' for the awslogs-region.
 
@@ -694,7 +702,7 @@ If you're still confused, refer back to Lab 1 Step 5 as a reminder.
 
 Run the curl command and check the CloudWatch log group for the monolith to confirm the test order was processed.
 
-Navigate to the CloudWatch Logs dashboard, and click on the monolith log group, e.g. interstella-monolith.  Logging statements are written to log streams within the log group.  Click on the most recent log stream to view the logs.  This should look very familiar from your testing in Lab 1 Step 5.
+Navigate to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home#logs:), and click on the monolith log group (e.g.: interstella-monolith).  Logging statements are written to log streams within the log group.  Click on the most recent log stream to view the logs.  This should look very familiar from your testing in Lab 1 Step 5.
 
 ![CloudWatch Log Entries](images/02-cloudwatch-logs.png)
 
@@ -703,25 +711,25 @@ If the curl command was successful, stop the task by going to your cluster, sele
 ![Stop Task](images/02-stop-task.png)
 
 ### Checkpoint:
-Success!  You've created a task definition and are able to deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container works as expected.
+Nice work!  You've created a task definition and are able to deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container works as expected.
 
 [*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
-### Lab 3 - Scale the logistics platform with an ALB:
+## Lab 3 - Scale the logistics platform with an ALB:
 
-The Run Task method you used in the last lab is good for testing, but we need to keep the logistics platform running as a long running process.  In addition, it would be helpful to maintain capacity in case any of our EC2 instances were to have an issue (always design and plan for failure).
+The Run Task method you used in the last lab is good for testing, but we need to keep run the logistics platform as a long running process.  In addition, it would be helpful to maintain capacity in case any of our EC2 instances were to have an issue (always design and plan for failure).
 
-In this lab, you will implement an ALB to front-end and distribute incoming orders to your container fleet.  ALB/ECS integration offers a feature called dynamic port mapping for containers, which allows you to run multiple copies of the same container with the same listening port on the same host...say that 10 times fast.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
+In this lab, you will implement an Elastic Load Balancing [Appliction Load Balancer (ALB)](https://aws.amazon.com/elasticloadbalancing/) to front-end and distribute incoming orders to your running containers.  The integration between ECS and ALB offers a feature called dynamic port mapping for containers, which allows you to run multiple copies of the same container with the same listening port on the same host...*say that 10 times fast*.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
 
-What ties this all together is an ECS Service, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB).  You could take it even further by implementing task auto scaling, but let's set up the foundation first.  And finally, you will subscribe the ALB endpoint to the orders SNS topic to start the order flow.
+What ties this all together is an **ECS Service**, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB). Now you will start the service, configure the ALB, and then subscribe the ALB endpoint to the orders SNS topic to start the order flow.
 
 ![Lab 3 Architecture](images/03-arch.png)
 
 1\. Create an Application Load Balancer.
 
-In the AWS Management Console, navigate to the EC2 dashboard.  Click on **Load Balancers** in the left menu under the **Load Balancing** section.  Click on **Create Load Balancer**.  Click on **Create** for an Application Load Balancer.
+In the AWS Management Console, navigate to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home).  Click on **Load Balancers** in the left menu under the **Load Balancing** section.  Click on **Create Load Balancer**.  Click on **Create** for an Application Load Balancer.
 
 Give your ALB a name, e.g. interstella.
 
@@ -755,7 +763,7 @@ Remember that one of the goals with the ALB is to be able to distribute orders t
 
 In order to take advantage of dynamic port mapping, create a new revision of your monolith task definition and remove the host port mapping in the container definition.  By leaving the host port blank, an ephemeral port will be assigned and ECS/ALB integration will handle the mapping and target group registration.
 
-Go to the Elastic Container Service dashboard, click on **Task Definitions** in the left menu.
+Go to the [ECS dashboard](https://console.aws.amazon.com/ecs/), click on **Task Definitions** in the left menu.
 
 Select the monolith task definition and click **Create new revision**.
 
@@ -819,7 +827,7 @@ Once the Service is created, click **View Service** and you'll see your task def
 
 4\. Subscribe the ALB endpoint to the SNS order topic using the [API Key Management Portal](https://www.interstella.trade/getkey.html) to start receiving orders from Interstella HQ to test your service.
 
-First you need the public DNS name of your ALB endpoint.  Go to the EC2 Dashboard, click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
+First you need the public DNS name of your ALB endpoint.  Go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home), click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
 
 ![ALB DNS Name](images/03-alb-dns.png)
 
@@ -842,30 +850,30 @@ Navigate to the CloudWatch Logs dashboard and review the latest log stream for t
 ![CloudWatch Logs Confirmation](images/03-logs-confirm.png)
 
 ### Checkpoint:
-You've implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella's containerized logistics platform deployed as an ECS Service.
+Sweet! You've implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella's containerized logistics platform deployed as an ECS Service.
 
 [*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
-### Lab 4: Incrementally build and deploy each microservice
+## Lab 4: Incrementally build and deploy each microservice
 
-In this lab, you will break apart Interstella's monolith logistics platform into microservices. To help with this, the first thing we'll do is explain how the monolith works in more detail.
+It's time to break apart Interstella's monolith logistics platform into microservices. To help with this, let's see how the monolith works in more detail.
 
-When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
+> When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
 
-We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
+> We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
 
-* Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON, e.g.{"iridium": 1}.
+> * Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON, e.g.{"iridium": 1}.
 * The ALB will deliver the order payload according to the request path
 * Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
 * This integration hook is in monolith.py and is named glueFulfill()
 
-When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
+> When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
 
-Hence, Interstella has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it strangled down to just a fulfillment service; this too could eventually be modernized and replaced.
+> Hence, Interstella has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it strangled down to just a fulfillment service; this too could eventually be modernized and replaced.
 
-The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
+> The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
 
 Here's what you will be implementing:
 
@@ -896,7 +904,7 @@ $ docker build -t iridium .
 
 3\. Tag and push the image to the ECR repository for iridium.
 
-To find the iridium ECR repo URI, navigate to the ECS dashboard in the management console, click on **Respositories** and find the repo with '-iridium' in the name.  Click on the iridium repository and copy the repository URI.
+To find the iridium ECR repo URI, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) in the management console, click on **Respositories** and find the repo with '-iridium' in the name.  Click on the iridium repository and copy the repository URI.
 
 ![Getting Iridium Repo](images/04-ecr-iridium.png)
 
@@ -907,7 +915,7 @@ $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:latest
 
 4\. Create a new **Task Definition** for the iridium service using the image pushed to ECR.
 
-In the AWS Management Console, navigate to the Elastic Container Service dashboard.  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
 
 Enter a name for your Task Definition, e.g. interstella-iridium.
 
@@ -997,7 +1005,7 @@ Once the Service is created, click **View Service** and you'll see your task def
 
 Subscribe the ALB endpoint to the SNS order topic using the [API Key Management Portal](https://www.interstella.trade/getkey.html) to start receiving orders from Interstella HQ and test your service.
 
-You should already have your ALB public DNS name noted down, but if not, go to the EC2 Dashboard, click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
+You should already have your ALB public DNS name noted down, but if not, go to the [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home), click on **Load Balancers** under the **Load balancing** section of the left menu.  Select the ALB you created and look for the **DNS Name** listed in the Description tab.
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
@@ -1049,7 +1057,7 @@ If you look in the ECR repository for the monolith, you'll see the pushed image 
 
 10\. Create a new revision of the monolith task definition to use the new monolith container image tagged as noiridium.
 
-Navigate to the Elastic Container Service dashboard and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
+Navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
 
 In the **Container Definitions** section, click on the container name to edit the container image for the task definition.
 
@@ -1063,11 +1071,11 @@ Click **Update**, and click **Create**.
 
 11\. Update the monolith service to use the new task definition you just created.
 
-In the ECS dashboard, click on **Clusters** in the left menu.  Click on your workshop cluster.  You should see the monolith service running in the **Services** tab.  Select the monolith service and click **Update**.
+In the [ECS dashboard](https://console.aws.amazon.com/ecs/), click on **Clusters** in the left menu.  Click on your workshop cluster.  You should see the monolith service running in the **Services** tab.  Select the monolith service and click **Update**.
 
 ![Update monolith service](images/04-service-update.png)
 
-Change the **Task Definition** to be the newest version you just created.  If your earlier task definition was "interstella-monolith:1" for example, you should see a "interstella-monolith:2" in the drop-down menu.  If you're unsure, you can always go back to the **Task Definitions** section of the ECS dashboard to check.
+Change the **Task Definition** to be the newest version you just created.  If your earlier task definition was "interstella-monolith:1" for example, you should see a "interstella-monolith:2" in the drop-down menu.  If you're unsure, you can always go back to the **Task Definitions** section of the [ECS dashboard](https://console.aws.amazon.com/ecs/) to check.
 
 Click **Next step** for this step and remaining steps without making any additional modifications.  Click **Update Service** to deploy your new monolith container.  Click on **View Service** and then on the **Tasks** tab.  You should see ECS launching a new task based on the new version of the task definition, begin to drain the old task version, and eventually stop the old version.
 
