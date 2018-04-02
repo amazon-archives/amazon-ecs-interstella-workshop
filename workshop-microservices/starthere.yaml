@@ -1,6 +1,6 @@
 Description: >
-    Starting template for Interstella 4-part workshop series.  
-    Last Modified: Oct 3, 2017
+    Starting template for Interstella workshop series.  
+    Last Modified: Apr 2, 2018
 
 Mappings:
 
@@ -10,29 +10,35 @@ Mappings:
 
     AWSRegionToAMI:
         us-east-2:
-            AMI: ami-6e56780b
+            AMI: ami-1b90a67e
         us-east-1:
-            AMI: ami-6944c513
+            AMI: ami-cb17d8b6
         us-west-2:
-            AMI: ami-f5fc2c8d
+            AMI: ami-05b5277d
         us-west-1:
-            AMI: ami-bbe6dfdb
+            AMI: ami-9cbbaffc
+        eu-west-3:
+            AMI: ami-914afcec
         eu-west-2:
-            AMI: ami-e36b7487
+            AMI: ami-a48d6bc3
         eu-west-1:
-            AMI: ami-faa10a83
+            AMI: ami-bfb5fec6
         eu-central-1:
-            AMI: ami-1f9f1f70
+            AMI: ami-ac055447
         ap-northeast-2:
-            AMI: ami-88f85fe6
+            AMI: ami-ba74d8d4
         ap-northeast-1:
-            AMI: ami-cb3a8cad
+            AMI: ami-5add893c
         ap-southeast-2:
-            AMI: ami-a9a14acb
+            AMI: ami-4cc5072e
         ap-southeast-1:
-            AMI: ami-ca3762a9
+            AMI: ami-acbcefd0
         ca-central-1:
-            AMI: ami-cace75ae
+            AMI: ami-a535b2c1
+        sa-south-1:
+            AMI: ami-2149114e
+        sa-east-1:
+            AMI: ami-d3bce9bf
 
 Parameters:
 

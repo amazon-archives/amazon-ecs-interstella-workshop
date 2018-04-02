@@ -89,9 +89,9 @@ Open the CloudFormation launch template link below for the region you selected i
 
 Region | Launch Template
 ------------ | -------------
-**Ohio** (us-east-2) | [![Launch Interstella CloudFormation Stack in Ohio](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Oregon** (us-west-2) | [![Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
-**Ireland** (eu-west-1) | [![Launch Interstella CloudFormation Stack in Ireland](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Ohio** (us-east-2) | [![Launch Interstella CloudFormation Stack in Ohio](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop-microservices/starthere.yaml)
+**Oregon** (us-west-2) | [![Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop-microservices/starthere.yaml)
+**Ireland** (eu-west-1) | [![Launch Interstella CloudFormation Stack in Ireland](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop-microservices/starthere.yaml)
 
 The template will automatically bring you to the CloudFormation Dashboard and start the stack creation process in the specified region. Do not change anything on the first screen. Click **Next** to continue.
 
