@@ -865,9 +865,9 @@ It's time to break apart Interstella's monolith logistics platform into microser
 > We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
 
 > * Customer orders are delivered as HTTP POST messages from an SNS topic - there will be a topic per resource.  The payload of the order is JSON, e.g.{"iridium": 1}.
-* The ALB will deliver the order payload according to the request path
-* Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
-* This integration hook is in monolith.py and is named glueFulfill()
+> * The ALB will deliver the order payload according to the request path
+> * Microservice gathers resources and sends JSON to the monolith via a new integration hook for fulfillment.
+> * This integration hook is in monolith.py and is named glueFulfill()
 
 > When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
 
