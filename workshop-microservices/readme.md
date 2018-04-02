@@ -343,8 +343,9 @@ Try reordering the instructions in your Dockerfile to copy the monolith code ove
 
 Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
 
+##### Final Dockerfile
 <details>
-###### <summary>HINT: Final Dockerfile</summary>
+<summary>HINT: Final Dockerfile</summary>
 <pre>
 FROM ubuntu:14.04
 RUN apt-get -y update
