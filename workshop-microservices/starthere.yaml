@@ -384,7 +384,6 @@ Resources:
         Properties:
             ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
             InstanceType: !Ref InstanceType
-            KeyName: !Ref KeyPairName
             SecurityGroups: 
                 - !Ref ECSHostSecurityGroup
             IamInstanceProfile: !Ref ECSInstanceProfile
