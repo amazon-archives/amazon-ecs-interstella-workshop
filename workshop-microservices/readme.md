@@ -138,7 +138,7 @@ Go ahead and start reading the next section while your stack creates.
 
 ## Lab 1 - Containerize Interstella's logistics platform:
 
-Woah! Turns out our infrastructure has been running on bare metal this entire time. Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The EC2 instances provisioned by CloudFormation have the Docker engine running on them, so you can use either one to author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
+Woah! Turns out Interstella's infrastructure has been running directly on EC2 virtual machines this entire time! Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The EC2 instances provisioned by CloudFormation have the Docker engine running on them, so you can use either one to author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
 
 [Containers](https://aws.amazon.com/what-are-containers/), are a way to package software (e.g. web server, proxy, database) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  Importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
 
@@ -181,7 +181,7 @@ $ cd monolith
 
 3\. Review the draft Dockerfile and add the missing instructions indicated by comments in the file.
 
-*Note: If you're already familiar with how Dockerfiles work and want to focus on breaking the monolith apart into microservices, skip down to "HINT: Final Dockerfile" near the end of step 4, create a Dockerfile in the monolith directory with the hint contents, build the "monolith" image, and continue to step 5.  Otherwise continue on to get hands on with Dockerfiles.*
+*Note: If you're already familiar with how Dockerfiles work and want to focus on breaking the monolith apart into microservices, skip down to ["HINT: Final Dockerfile"](#final-dockerfile) near the end of step 4, create a Dockerfile in the monolith directory with the hint contents, build the "monolith" image, and continue to step 5.  Otherwise continue on...*
 
 One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control (which also explains why you're pulling code from S3).
 
@@ -191,11 +191,11 @@ Use your favorite text editor (vi, nano, emacs are installed) on the instance to
 
 Review the contents, and you'll see a few comments at the end of the file noting what still needs to be done.  Comments are denoted by a "#".
 
-Docker builds container images by stepping through the instructions listed in the Dockerfile.  Docker is built on this idea of layers starting with a base and executing each instruction that introduces change as a new layer.  It caches each layer, so as you develop and rebuild the image, Docker will reuse layers (often referred to as intermediate layers) from cache if no modifications were made.  Once it reaches the layer where edits are introduced, it will build a new intermediate layer and associate it with this particular build.  This makes tasks like image rebuild very efficient and you can maintain multiple build versions.
+Docker builds container images by stepping through the instructions listed in the Dockerfile.  Docker is built on this idea of layers starting with a base and executing each instruction that introduces change as a new layer.  It caches each layer, so as you develop and rebuild the image, Docker will reuse layers (often referred to as intermediate layers) from cache if no modifications were made.  Once it reaches the layer where edits are introduced, it will build a new intermediate layer and associate it with this particular build.  This makes tasks like image rebuild very efficient and you can easily maintain multiple build versions.
 
 ![Docker Container Image](images/01-container-image.png)
 
-For example, in the draft file, the first line - "FROM ubuntu:14.04" - specifies a base image as a starting point.  The next instruction - "RUN apt-get -y update" - creates a new layer where Docker updates package lists from the Ubuntu repositories.  This continues until you reach the last instruction which in most cases is an ENTRYPOINT (hint hint) or executable being run.
+For example, in the draft file, the first line - `FROM ubuntu:14.04` - specifies a base image as a starting point.  The next instruction - `RUN apt-get -y update` - creates a new layer where Docker updates package lists from the Ubuntu repositories.  This continues until you reach the last instruction which in most cases is an `ENTRYPOIN` *(hint hint)* or executable being run.
 
 Add the remaining instructions to Dockerfile.draft.
 
