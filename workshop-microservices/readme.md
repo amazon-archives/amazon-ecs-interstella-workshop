@@ -2,7 +2,7 @@
 
 ## Overview:
 
-Welcome to the Interstella Intergalactic Trading Company team.
+Welcome to the Interstella Galactic Trading Company team.
 
 Interstella is an trading company specializing in inter-system exchange of rare minerals and other goods. Several wise acquisitions made before the Great Ravine have given us unrestricted access on mining in several systems and business is booming.
 
