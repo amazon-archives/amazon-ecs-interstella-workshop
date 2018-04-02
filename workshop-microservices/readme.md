@@ -17,11 +17,12 @@ The concept of decoupling functions of a large codebase into separate discrete p
 
 These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop attendants will give you a high level run down of the labs and be around to answer any questions.  Don't worry if you get stuck, we provide hints along the way.
 
-* **Workshop Setup:** Setup working environment on AWS [Go](#lets-begin)
-* **Lab 1:** Containerize the Interstella logistics software [Go](#lab-1---containerize-interstellas-logistics-platform)
-* **Lab 2:** Deploy containers using Amazon ECR and Amazon ECS
-* **Lab 3:** Scale the logistics platform with an ALB
-* **Lab 4:** Incrementally build and deploy each resource microservice
+* **Workshop Setup:** [Setup working environment on AWS](#lets-begin)
+* **Lab 1:** [Containerize the Interstella logistics software](#lab-1---containerize-interstellas-logistics-platform)
+* **Lab 2:** [Deploy containers using Amazon ECR and Amazon ECS](#lab-2---deploy-your-container-using-ecrecs)
+* **Lab 3:** [Scale the logistics platform with an ALB](#lab-3---scale-the-logistics-platform-with-an-alb)
+* **Lab 4:** [Incrementally build and deploy each resource microservice](#lab-4-incrementally-build-and-deploy-each-microservice)
+* **Cleanup** [Put everything away nicely](#workshop-cleanup)
 
 ### Conventions:
 
@@ -570,6 +571,8 @@ If you refresh the ECR repository page in the console, you'll see a new image up
 
 ### Checkpoint:
 At this point, you should have a working container for the monolith codebase stored in an ECR repository and ready to deploy with ECS in the next lab.
+
+[*back to top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
