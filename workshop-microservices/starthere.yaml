@@ -42,11 +42,6 @@ Parameters:
         MinLength: 2
         AllowedPattern: (?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*
 
-    KeyPairName:
-        Description: Name of an existing EC2 KeyPair to enable SSH access to the EC2 instances
-        Type: AWS::EC2::KeyPair::KeyName
-        MinLength: 1
-
     VpcCIDR: 
         Description: Please enter the IP range (CIDR notation) for this VPC
         Type: String
@@ -98,6 +93,7 @@ Parameters:
         Description: Leave as default unless the workshop admins provide an API endpoint for you to input here.
         Type: String
         Default: https://orders.interstella.trade/receiving/
+        MinLength: 1
 
 Resources:
 
