@@ -4,7 +4,7 @@
 
 Welcome to the Interstella Galactic Trading Company (GTC) team!  [Interstella GTC](https://interstella.trade/) is an intergalactic trading company that deals in rare resources.  Business is booming, but we're struggling to keep up with orders mainly due to our legacy logistics platform.  We heard about the benefits of microservices implemented as containers and feel it would be a good fit for our business.
 
-The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits like being able to scale processes independently, adopt multiple programming languages, and add agility to our development pipeline are appealing.  Our dev team reviewed the logistics platform code and determined that we could decouple our logstics platform to individual services for fulfilling resource orders.  Can you help us get there?
+The concept of decoupling functions of a large codebase into separate discrete processes may sound complicated and arduous, but the benefits are appealing.  Microservices will allow us to scale processes independently, adopt multiple programming languages within a single application, and make it easier to push code changes. Our dev team reviewed the logistics platform code and determined that we could decouple our logistics platform to individual services for fulfilling resource orders.  Can you help us get there?
 
 ### Requirements:  
 
@@ -15,7 +15,7 @@ The concept of decoupling functions of a large codebase into separate discrete p
 
 ### What you'll do:
 
-These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop attendants will give you a high level run down of the labs and be around to answer any questions.  Don't worry if you get stuck, we provide hints along the way.
+These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop staff will give you a high-level overview of the labs and help answer any questions.  Don't worry if you get stuck, we provide hints along the way.
 
 * **Workshop Setup:** [Setup working environment on AWS](#lets-begin)
 * **Lab 1:** [Containerize the Interstella logistics software](#lab-1---containerize-interstellas-logistics-platform)
@@ -26,27 +26,28 @@ These labs are designed to be completed in sequence, and the full set of instruc
 
 ### Conventions:
 
-Throughout this workshop, we provide commands for you to run in the terminal.  These commands will look like this:
+Throughout this workshop, we will provide commands for you to run in the terminal.  These commands will look like this:
 
 <pre>
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_DNS_NAME</i></b>
 </pre>
 
-The command starts after the $.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, the ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created in your account, and the ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by navigating to the specific service dashboard in the AWS management console.
+The command starts after the `$`.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created in your account, and ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by navigating to the specific service dashboard in the [AWS management console](https://console.aws.amazon.com).
 
-Hints are also provided along the way and will look like:
+Hints are also provided along the way and will look like this:
 
 <details>
 <summary>HINT</summary>
 
-Sweet, you just revealed a hint!
+**Nice work, you just revealed a hint!**
 </details>
 
-Click on the arrow to show the contents of the hint.
+
+*Click on the arrow to show the contents of the hint.*
 
 ### IMPORTANT: Workshop Cleanup
 
-You will be deploying infrastructure on AWS which will have an associated cost.  If you're attending an AWS event, credits will be provided.  When you're done with the workshop, follow the steps at the very end of the instructions to make sure everything is cleaned up.
+You will be deploying infrastructure on AWS which will have an associated cost. If you're attending an AWS event, credits will be provided.  When you're done with the workshop, [follow the steps at the very end of the instructions](#workshop-cleanup) to make sure everything is cleaned up and avoid unnecessary charges.
 
 * * *
 
@@ -56,11 +57,11 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
 
-The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio** or **Oregon** or **Ireland**.
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio**, **Oregon**, or **Ireland**.
 
 2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.
 
-If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.
+*If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.*
 
 Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.
 
@@ -91,13 +92,13 @@ The CloudFormation template will launch the following:
 
 ![CloudFormation Starting Stack](images/00-arch.png)
 
-*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in a separate admin CloudFormation template, so you will be able to run this workshop at your office, home, etc.*
+*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in a separate admin CloudFormation template, so you will be able to run this workshop without at your office or home.*
 
-Right-click on the CloudFormation launch template link below for the region you selected in Step 1 and open in a new tab.  The link will load the CloudFormation Dashboard and start the stack creation process in the chosen region.
+Open the CloudFormation launch template link below for the region you selected in Step 1 in a new tab.  The link will load the CloudFormation Dashboard and start the stack creation process in the chosen region.
 
 Region | Launch Template
 ------------ | -------------
-**Ohio** (us-east-2) | [Launch Interstella CloudFormation Stack in Ohio](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
+**Ohio** (us-east-2) | <a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml" target="_blank"> Launch Interstella CloudFormation Stack in Ohio </a>
 **Oregon** (us-west-2) | [Launch Interstella CloudFormation Stack in Oregon](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
 **Ireland** (eu-west-1) | [Launch Interstella CloudFormation Stack in Ireland](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/awsloft/starthere.yaml)
 
@@ -572,7 +573,7 @@ If you refresh the ECR repository page in the console, you'll see a new image up
 ### Checkpoint:
 At this point, you should have a working container for the monolith codebase stored in an ECR repository and ready to deploy with ECS in the next lab.
 
-[*back to top*](#interstella-gtc-monolith-to-microservices-with-containers)
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
