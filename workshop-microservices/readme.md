@@ -133,7 +133,7 @@ If there was an [error](http://docs.aws.amazon.com/AWSCloudFormation/latest/User
 
 Go ahead and start reading the next section while your stack creates.
 
-*^ back to top*
+[*^ back to top*](#interstella-gtc-monolith-to-microservices-with-containers)
 * * *
 
 ## Lab 1 - Containerize Interstella's logistics platform:
@@ -195,7 +195,7 @@ Docker builds container images by stepping through the instructions listed in th
 
 ![Docker Container Image](images/01-container-image.png)
 
-For example, in the draft file, the first line - `FROM ubuntu:14.04` - specifies a base image as a starting point.  The next instruction - `RUN apt-get -y update` - creates a new layer where Docker updates package lists from the Ubuntu repositories.  This continues until you reach the last instruction which in most cases is an `ENTRYPOIN` *(hint hint)* or executable being run.
+For example, in the draft file, the first line - `FROM ubuntu:14.04` - specifies a base image as a starting point.  The next instruction - `RUN apt-get -y update` - creates a new layer where Docker updates package lists from the Ubuntu repositories.  This continues until you reach the last instruction which in most cases is an `ENTRYPOINT` *(hint hint)* or executable being run.
 
 Add the remaining instructions to Dockerfile.draft.
 
@@ -277,7 +277,7 @@ $ mv Dockerfile.draft Dockerfile
 
 4\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.
 
-This command needs to be run in the same directory where your Dockerfile is and **note the trailing period** which tells the build command to look in the current directory for the Dockerfile.
+This command needs to be run in the same directory where your Dockerfile is. **Note the trailing period** which tells the build command to look in the current directory for the Dockerfile.
 
 <pre>
 $ docker build -t monolith .
@@ -297,13 +297,15 @@ Successfully built 7f51e5d00cee
 
 Awesome, your Dockerfile built successfully, but our developer didn't optimize the Dockefile for the microservices effort later.  Since you'll be breaking apart the monolith codebase into microservices, you will be editing the source code (i.e. monolith.py) often and rebuilding this image a few times.  Looking at your existing Dockerfile, what is one thing you can do to improve build times?
 
+Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
+
 <details>
 <summary>HINT</summary>
 Remember that Docker tries to be efficient by caching layers that have not changed.  Once change is introduced, Docker will rebuild that layer and all layers after it.
 
 Edit monolith.py by adding an arbitrary comment somewhere in the file.  If you're not familiar with Python, [comments](https://docs.python.org/2/tutorial/introduction.html) start with the hash character, '#' and are essentially ignored when the code is interpreted.
 
-For example, here a comment ('# Author: Mr Bean') was added before importing the time module:
+For example, here a comment (`# Author: Mr Bean`) was added before importing the time module:
 <pre>
 # Author: Mr Bean
 
@@ -340,8 +342,6 @@ Collecting Flask==0.12.2 (from -r requirements.txt (line 1))
 
 Try reordering the instructions in your Dockerfile to copy the monolith code over after the requirements are installed.  The thinking here is that monolith.py will see more changes than the dependencies noted in requirements.txt, so why rebuild requirements every time when we can just have it be another cached layer.
 </details>
-
-Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
 
 ##### Final Dockerfile
 <details>
@@ -386,7 +386,7 @@ ENTRYPOINT ["bin/python", "monolith.py"]
 </pre>
 </details>
 
-In order to see the benefit, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 4).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You'll see something similar to below:
+To see the benefit of your optimizations, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 4).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You should see something similar to below:
 
 <pre>
 Step 11/15 : COPY ./requirements.txt .
@@ -461,7 +461,7 @@ $ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}
 
 *Note: The EC2_PUBLIC_IP_ADDRESS value is the public IP address of the EC2 instance running your monolith container*
 
-The monolith container runs in the foreground with stdout/stderr printing to the screen, so when the simulated order payload {"Message":{"bundle":"1"}} is received, you should see the order get processed and return a 200 OK.
+The monolith container runs in the foreground with stdout/stderr printing to the screen, so when the simulated order payload `{"Message":{"bundle":"1"}}` is received, you should see the order get processed and return a `200`. "OK".
 
 Here is sample output:
 
@@ -521,11 +521,11 @@ Bundle fulfilled
 INFO:werkzeug:96.40.120.185 - - [06/Feb/2018 10:14:02] "POST /order/ HTTP/1.1" 200 -
 </pre>
 
-In the sample output, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  For now, kill the container using **Ctrl-C** now that we know it's working properly.
+In the sample output, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  Kill the container using **Ctrl-C** now that we know it's working properly.
 
-6\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  This allow for version control and persistence, and ECS will reference the image from ECR in the next lab to deploy it.
+6\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  ECR is a fully-managed Docker container registry that makes it easy to store, manage, and deploy Docker container images. In the next lab, we'll use ECS to pull your image from ECR.
 
-In the AWS Management Console, navigate to the Elastic Container Service dashboard and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
 
 ![ECR repositories](images/01-ecr-repo.png)
 
@@ -580,11 +580,11 @@ At this point, you should have a working container for the monolith codebase sto
 
 * * *
 
-### Lab 2 - Deploy your container using ECR/ECS:
+## Lab 2 - Deploy your container using ECR/ECS:
 
-Deploying individual containers is not difficult.  However, when you need to coordinate many container deployments, a cluster manager and scheduler like ECS can greatly simplify the task (no pun intended).
+Deploying individual containers is not difficult.  However, when you need to coordinate many container deployments, a container management tool like ECS can greatly simplify the task (no pun intended).
 
-ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or unit of work.  Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations like the container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
+ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or service.  The task definition is the recipe that ECS uses to run your containers. Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations including which container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
 
 In this lab, you will create a task definition and configure logging to serve as a foundation for deploying the containerized logistics platform stored in ECR with ECS.
 
@@ -704,6 +704,8 @@ If the curl command was successful, stop the task by going to your cluster, sele
 
 ### Checkpoint:
 Success!  You've created a task definition and are able to deploy the monolith container using ECS.  You've also enabled logging to CloudWatch Logs, so you can verify your container works as expected.
+
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
@@ -841,6 +843,8 @@ Navigate to the CloudWatch Logs dashboard and review the latest log stream for t
 
 ### Checkpoint:
 You've implemented an ALB as a way to distribute incoming HTTP orders to multiple instances of Interstella's containerized logistics platform deployed as an ECS Service.
+
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
 
 * * *
 
@@ -1090,3 +1094,5 @@ Delete manually created resources throughout the labs:
 * ALBs and associated target groups
 
 Finally, [delete the CloudFormation stack](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-delete-stack.html) launched at the beginning of the workshop to clean up the rest.  If the stack deletion process encountered errors, look at the Events tab in the CloudFormation dashboard, and you'll see what steps failed.  It might just be a case where you need to clean up a manually created asset that is tied to a resource goverened by CloudFormation.
+
+[*^ back to the top*](#interstella-gtc-monolith-to-microservices-with-containers)
