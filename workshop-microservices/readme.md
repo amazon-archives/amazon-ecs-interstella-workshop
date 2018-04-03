@@ -21,9 +21,9 @@ These labs are designed to be completed in sequence, and the full set of instruc
 
 * **Workshop Setup:** [Setup working environment on AWS](#lets-begin)
 * **Lab 1:** [Containerize the Interstella logistics software](#lab-1---containerize-interstellas-logistics-platform)
-* **Lab 2:** [Deploy containers using Amazon ECR and Amazon ECS](#lab-2---deploy-your-container-using-ecrecs)
+* **Lab 2:** [Deploy the container using Amazon ECS](#lab-2---deploy-your-container-using-ecrecs)
 * **Lab 3:** [Scale the logistics platform with an ALB](#lab-3---scale-the-logistics-platform-with-an-alb)
-* **Lab 4:** [Incrementally build and deploy each resource microservice](#lab-4-incrementally-build-and-deploy-each-microservice)
+* **Lab 4:** [Incrementally build and deploy each resource microservice using AWS Fargate](#lab-4-incrementally-build-and-deploy-each-microservice)
 * **Cleanup** [Put everything away nicely](#workshop-cleanup)
 
 ### Conventions:
@@ -129,9 +129,9 @@ Go ahead and start reading the next section while your stack creates.
 
 ## Lab 1 - Containerize Interstella's logistics platform:
 
-Woah! Turns out Interstella's infrastructure has been running directly on EC2 virtual machines this entire time! Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The EC2 instances provisioned by CloudFormation have the Docker engine running on them, so you can use either one to author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
+Whoa! Turns out Interstella's infrastructure has been running directly on EC2 virtual machines this entire time! Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The CloudFormation template created an [AWS Cloud9](https://aws.amazon.com/cloud9/) development environment which is where you'll author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
 
-[Containers](https://aws.amazon.com/what-are-containers/), are a way to package software (e.g. web server, proxy, database) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  Importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
+[Containers](https://aws.amazon.com/what-are-containers/) are a way to package software (e.g. web server, proxy, database) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  Importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
 
 ### Here's what we're going to build:
 
@@ -141,6 +141,7 @@ Woah! Turns out Interstella's infrastructure has been running directly on EC2 vi
 
 
 * * *
+
 ### Instructions
 
 1\. Access your AWS Cloud9 Development Environment.
@@ -149,38 +150,38 @@ In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.
 
 ![Cloud9 Env](images/01-c9.png)
 
-2\. Familiarize yourself with the Cloud9 Environment. 
+2\. Familiarize yourself with the Cloud9 Environment.
 
-On the left pane (Blue), you'll see a folder navigation structure where you'll see some files that will be downloaded later. In the middle (Red) pane, any documents you open will show up here. Double click on README.md in the left folder pane and edit the file a bit in the middle. Then save it by clicking **File** and **Save**.
+On the left pane (Blue), you'll see a file tree where you'll see some files that will be downloaded later. In the middle (Red) pane, any documents you open will show up here. Double click on README.md in the left folder pane and edit the file a bit in the middle. Then save it by clicking **File** and **Save**.
 
 ![Cloud9 Editing](images/01-c9-2.png)
 
-On the bottom, you will see a shell (Yellow). For the remainder of the lab, use this shell to enter all commands.
+On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.
 
-2\. Once logged into the instance, download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later).
+3\. Download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later).
 
 <pre>
-$ aws s3 sync s3://www.interstella.trade/awsloft/code/monolith/ monolith/
+$ aws s3 sync s3://www.interstella.trade/code/monolith/ monolith/
 $ cd monolith
 $ chmod +x installcredhelper.sh
 $ sudo ./installcredhelper.sh
 </pre>
 
-*Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which was installed using [user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) on launch, and we authorize access to S3 through an [IAM instance profile](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html).*
+*Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which comes bundled with Cloud9, and we authorize access to S3 through an [IAM role](https://docs.aws.amazon.com/cloud9/latest/user-guide/auth-and-access-control.html). Also notice the downloaded files appeared in your Cloud9 file tree.*
 
-3\. Review the draft Dockerfile and add the missing instructions indicated by comments in the file.
+4\. Review the draft Dockerfile and add the missing instructions indicated by comments in the file.
 
-*Note: If you're already familiar with how Dockerfiles work and want to focus on breaking the monolith apart into microservices, skip down to ["HINT: Final Dockerfile"](#final-dockerfile) near the end of step 4, create a Dockerfile in the monolith directory with the hint contents, build the "monolith" image, and continue to step 5.  Otherwise continue on...*
+*Note: If you're already familiar with how Dockerfiles work and want to focus on breaking the monolith apart into microservices, skip down to ["HINT: Final Dockerfile"](#final-dockerfile) near the end of step 5, create a Dockerfile in the monolith directory with the hint contents, build the "monolith" image, and continue to step 6.  Otherwise continue on...*
 
 One of Interstella's developers started working on a Dockerfile in her free time, but she was pulled to a high priority project to implement source control (which also explains why you're pulling code from S3).
 
-Use your favorite text editor (vi, nano, emacs are installed) on the instance to open **Dockerfile.draft**.
+In the Cloud9 file tree, click on the **monolith** folder to expand it, and double-click on **Dockerfile.draft** to open the file for editing.
 
-*Note: If you'd like to install another editor, feel free to do so using [yum](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-software.html).*
+*Note: If you would prefer to use the bash shell and a text editor like vi or emacs instead, you're welcome to do so.*
 
 Review the contents, and you'll see a few comments at the end of the file noting what still needs to be done.  Comments are denoted by a "#".
 
-Docker builds container images by stepping through the instructions listed in the Dockerfile.  Docker is built on this idea of layers starting with a base and executing each instruction that introduces change as a new layer.  It caches each layer, so as you develop and rebuild the image, Docker will reuse layers (often referred to as intermediate layers) from cache if no modifications were made.  Once it reaches the layer where edits are introduced, it will build a new intermediate layer and associate it with this particular build.  This makes tasks like image rebuild very efficient and you can easily maintain multiple build versions.
+Docker builds container images by stepping through the instructions listed in the Dockerfile.  Docker is built on this idea of layers starting with a base and executing each instruction that introduces change as a new layer.  It caches each layer, so as you develop and rebuild the image, Docker will reuse layers (often referred to as intermediate layers) from cache if no modifications were made.  Once it reaches the layer where edits are introduced, it will build a new intermediate layer and associate it with this particular build.  This makes tasks like image rebuild very efficient, and you can easily maintain multiple build versions.
 
 ![Docker Container Image](images/01-container-image.png)
 
@@ -264,7 +265,7 @@ If your Dockerfile looks good, rename your file from "Dockerfile.draft" to "Dock
 $ mv Dockerfile.draft Dockerfile
 </pre>
 
-4\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.
+5\. Build the image using the [Docker build](https://docs.docker.com/engine/reference/commandline/build/) command.
 
 This command needs to be run in the same directory where your Dockerfile is. **Note the trailing period** which tells the build command to look in the current directory for the Dockerfile.
 
@@ -285,8 +286,6 @@ Successfully built 7f51e5d00cee
 *Note: Your output will not be exactly like this, but it will be similar.*
 
 Awesome, your Dockerfile built successfully, but our developer didn't optimize the Dockefile for the microservices effort later.  Since you'll be breaking apart the monolith codebase into microservices, you will be editing the source code (i.e. monolith.py) often and rebuilding this image a few times.  Looking at your existing Dockerfile, what is one thing you can do to improve build times?
-
-Edit your Dockerfile with what you think will improve build times and compare it with the hint below.
 
 <details>
 <summary>HINT</summary>
@@ -332,7 +331,10 @@ Collecting Flask==0.12.2 (from -r requirements.txt (line 1))
 Try reordering the instructions in your Dockerfile to copy the monolith code over after the requirements are installed.  The thinking here is that monolith.py will see more changes than the dependencies noted in requirements.txt, so why rebuild requirements every time when we can just have it be another cached layer.
 </details>
 
-##### Final Dockerfile
+Edit your Dockerfile with what you think will improve build times and compare it with the Final Dockerfile hint below.
+
+
+#### Final Dockerfile
 <details>
 <summary>HINT: Final Dockerfile</summary>
 <pre>
@@ -375,7 +377,7 @@ ENTRYPOINT ["bin/python", "monolith.py"]
 </pre>
 </details>
 
-To see the benefit of your optimizations, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 4).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You should see something similar to below:
+To see the benefit of your optimizations, you'll need to first rebuild the monolith image using your new Dockerfile (use the same build command at the beginning of step 5).  Then, introduce a change in monolith.py (e.g. add another arbitrary comment) and rebuild the monolith image again.  Docker cached the requirements during the first rebuild after the re-ordering and references cache during this second rebuild.  You should see something similar to below:
 
 <pre>
 Step 11/15 : COPY ./requirements.txt .
@@ -399,7 +401,7 @@ $ docker images
 Here's a sample output, note the monolith image in the list:
 
 <pre>
-[ec2-user@ip-10-177-10-249 ~]$ docker images
+whiterabbit:~/environment/monolith $ docker images
 REPOSITORY               TAG        IMAGE ID        CREATED             SIZE
 monolith                 latest     87d3de20e191    17 seconds ago      532 MB
 &lt;none&gt;                   &lt;none&gt;     850d78c7aa5f    27 minutes ago      735 MB
@@ -412,7 +414,7 @@ amazon/amazon-ecs-agent  latest     96e5393c89d4    6 weeks ago         25.4 MB
 
 Notice the image is also tagged as "latest".  This is the default behavior if you do not specify a tag of your own, but you can use this as a freeform way to identify an image, e.g. monolith:1.2 or monolith:experimental.  This is very convenient for identifying your images and correlating an image with a branch/version of code as well.
 
-5\. Run the docker container and test the logistics platform running as a container to make sure it is able to fulfill an order.
+6\. Run the docker container and test the logistics platform running as a container to make sure it is able to fulfill an order.
 
 Use the [docker run](https://docs.docker.com/engine/reference/run/) command to run your image; the -p flag is used to map the host listening port to the container listening port.
 
@@ -423,7 +425,7 @@ $ docker run -p 5000:5000 monolith
 Here's sample output as the application starts:
 
 <pre>
-[ec2-user@ip-10-177-10-116 monolith]$ docker run -p 5000:5000 monolith
+whiterabbit:~/environment/monolith $ docker run -p 5000:5000 monolith
 INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
 INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTP connection (1): 169.254.169.254
 INFO:botocore.vendored.requests.packages.urllib3.connectionpool:Starting new HTTPS connection (1): ssm.us-east-2.amazonaws.com
@@ -438,17 +440,17 @@ INFO:werkzeug: * Debugger PIN: 410-791-646
 
 *Note: Your output will not be exactly like this, but it will be similar.*
 
-To test order processing, send a sample JSON payload simulating an incoming order using a utility like [cURL](https://curl.haxx.se/).
+To test order processing, send a sample JSON payload simulating an incoming order using a utility like [cURL](https://curl.haxx.se/), which is bundled with Cloud9.
 
-*Mac or Linux Users*: cURL should come bundled with the OS, so open a new Terminal window to run the following curl command.
-
-*Windows Users*: SSH into the other EC2 instance launched by CloudFormation and run the following curl command.
+Click on the plus sign next to your tabs and choose **New Terminal** or click **Window** -> **New Terminal** from the Cloud9 menu to open a new shell session to run the following curl command.
 
 <pre>
-$ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}}' http://<b><i>EC2_PUBLIC_IP_ADDRESS</b></i>:5000/order/
+$ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}}' http://localhost:5000/order/
 </pre>
 
-*Note: The EC2_PUBLIC_IP_ADDRESS value is the public IP address of the EC2 instance running your monolith container*
+You should see the curl command return "Your order has been fulfilled".
+
+Switch back to the original shell tab where you're running the monolith container to check the output from the logistics platform.
 
 The monolith container runs in the foreground with stdout/stderr printing to the screen, so when the simulated order payload `{"Message":{"bundle":"1"}}` is received, you should see the order get processed and return a `200`. "OK".
 
@@ -464,16 +466,7 @@ Bundle fulfilled
 INFO:werkzeug:18.218.142.240 - - [06/Feb/2018 09:51:10] "POST /order/ HTTP/1.1" 200 -
 </pre>
 
-The cURL client will also receive a response saying "Your order has been fulfilled" from the logistics platform.
-
-Here is a sample output:
-
-<pre>
-$ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}}' http://18.218.214.234:5000/order/
-Your order has been fulfilled
-</pre>
-
-In the SSH session where you have the running container, type **Ctrl-C** to stop the running container.  Notice, the container ran in the foreground with stdout/stderr printing to the console.  In a production environment, you would run your containers in the background as processes and configure some logging destination.  We'll worry about logging later, but you can try running the container in the background using the -d flag.
+In the tab you have the running container, type **Ctrl-C** to stop the running container.  Notice, the container ran in the foreground with stdout/stderr printing to the console.  In a production environment, you would run your containers in the background as processes and configure some logging destination.  We'll worry about logging later, but you can try running the container in the background using the -d flag.
 
 <pre>
 $ docker run -d -p 5000:5000 monolith
@@ -485,7 +478,7 @@ List running docker containers with the [docker ps](https://docs.docker.com/engi
 $ docker ps
 </pre>
 
-You should see monolith running in the list.  Additionally confirm that orders are being processed by attaching stdin/stdout/stderr to the container with the [docker attach](https://docs.docker.com/engine/reference/commandline/attach/) command and using the same curl command to send another simulated order JSON payload to your container.  The attach command expects a container name, and you can find the running name of your container from the output of the 'docker ps' command (last column on the right).  If the container is running as expected, you should see output from the simulated order being processed.
+You should see monolith running in the list.  Additionally confirm that orders are being processed by attaching stdin/stdout/stderr to the container with the [docker attach](https://docs.docker.com/engine/reference/commandline/attach/) command and using the same curl command (from the other tab where you ran curl earlier) to send another simulated order JSON payload to your container.  The attach command expects a container name, and you can find the running name of your container from the output of the 'docker ps' command (last column on the right).  If the container is running as expected, you should see output from the simulated order being processed.
 
 <pre>
 $ docker attach <b><i>CONTAINER_NAME</i></b>
@@ -494,13 +487,13 @@ $ docker attach <b><i>CONTAINER_NAME</i></b>
 Here's sample output from the above commands:
 
 <pre>
-[ec2-user@ip-10-177-10-116 monolith]$ docker run -d -p 5000:5000 monolith
+whiterabbit:~/environment/monolith $ docker run -d -p 5000:5000 monolith
 21ee17c20648c994206895aa7bee382ad55f914a4c8551f01265084d36283c12
-[ec2-user@ip-10-177-10-116 monolith]$ docker ps
+whiterabbit:~/environment/monolith $ docker ps
 CONTAINER ID        IMAGE                            COMMAND                  CREATED             STATUS              PORTS                    NAMES
 21ee17c20648        monolith                         "bin/python monoli..."   3 seconds ago       Up 2 seconds        0.0.0.0:5000->5000/tcp   distracted_volhard
 8b97f6eb4581        amazon/amazon-ecs-agent:latest   "/agent"                 3 hours ago         Up 3 hours                                   ecs-agent
-[ec2-user@ip-10-177-10-116 monolith]$ docker attach distracted_volhard
+whiterabbit:~/environment/monolith $ docker attach distracted_volhard
 Gathering Requested Items
 Getting Iridium
 Getting Magnesite
@@ -510,9 +503,9 @@ Bundle fulfilled
 INFO:werkzeug:96.40.120.185 - - [06/Feb/2018 10:14:02] "POST /order/ HTTP/1.1" 200 -
 </pre>
 
-In the sample output, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  Kill the container using **Ctrl-C** now that we know it's working properly.
+In the sample output above, the container was assigned the name "disatracted_volhard".  Names are arbitrarily assigned.  You can also pass the docker run command a name option if you want to specify the running name.  You can read more about it in the [Docker run reference](https://docs.docker.com/engine/reference/run/).  Kill the container using **Ctrl-C** now that we know it's working properly.
 
-6\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  ECR is a fully-managed Docker container registry that makes it easy to store, manage, and deploy Docker container images. In the next lab, we'll use ECS to pull your image from ECR.
+7\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  ECR is a fully-managed Docker container registry that makes it easy to store, manage, and deploy Docker container images. In the next lab, we'll use ECS to pull your image from ECR.
 
 In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
 
@@ -536,8 +529,8 @@ When you issue the push command, Docker pushes the layers up to ECR.
 Here's sample output from these commands:
 
 <pre>
-[ec2-user@ip-10-177-10-116 monolith]$ docker tag monolith:latest 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
-[ec2-user@ip-10-177-10-116 monolith]$ docker push 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
+whiterabbit:~/environment/monolith $ docker tag monolith:latest 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
+whiterabbit:~/environment/monolith $ docker push 873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith:latest
 The push refers to a repository [873896820536.dkr.ecr.us-east-2.amazonaws.com/interstella-monolith]
 0f03d692d842: Pushed
 ddca409d6822: Pushed
@@ -587,6 +580,10 @@ In this lab, you will create a task definition and configure logging to serve as
 ![Lab 2 Architecture](images/02-arch.png)
 
 *Note: You will use the AWS Management Console for this lab, but remember that you can programmatically accomplish the same thing using the AWS CLI, SDKs, or CloudFormation.*
+
+* * *
+
+### Instructions
 
 1\. Create an ECS task definition that describes what is needed to run the monolith and enable logging.
 
@@ -715,6 +712,10 @@ In this lab, you will implement an Elastic Load Balancing [Appliction Load Balan
 What ties this all together is an **ECS Service**, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB). Now you will start the service, configure the ALB, and then subscribe the ALB endpoint to the orders SNS topic to start the order flow.
 
 ![Lab 3 Architecture](images/03-arch.png)
+
+* * *
+
+### Instructions
 
 1\. Create an Application Load Balancer.
 
@@ -845,7 +846,7 @@ Sweet! You've implemented an ALB as a way to distribute incoming HTTP orders to 
 
 * * *
 
-## Lab 4: Incrementally build and deploy each microservice
+## Lab 4: Incrementally build and deploy each microservice using Fargate
 
 It's time to break apart Interstella's monolith logistics platform into microservices. To help with this, let's see how the monolith works in more detail.
 
@@ -869,6 +870,10 @@ Here's what you will be implementing:
 ![Lab 4](images/04-arch.png)
 
 *Note: The capital 'M' denotes the monolith and 'm' a microservice*
+
+* * *
+
+### Instructions
 
 1\. First, build the Iridium service container image and push it to ECR.
 
