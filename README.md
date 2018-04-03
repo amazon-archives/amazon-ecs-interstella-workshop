@@ -1,7 +1,7 @@
 ![ECS Interstella Workshop](/images/splash.png)
 # Do you have what it takes to code for Interstella?
 
-Welcome to the Interstella Intergalactic Trading Company team.  
+Welcome to the Interstella Intergalactic Trading Company team.
 
 Interstella is an trading company specializing in inter-system exchange of rare minerals and other goods.  Several wise acquisitions made before the Great Ravine have given us unrestricted access on mining in several systems and business is booming.
 
@@ -11,11 +11,5 @@ But our logistics platform wasn't built to handle this load and we're at risk of
 **Monolith to Microservices (Fast Labs)**
 1. Monolith to Microservices with AWS Fargate *coming soon!*
 2. [Monolith to Microservices with EC2](/workshop-microservices)
-
-**Complete Path (Original Labs)**:
-1. [Learn how to Use Docker on AWS (Introductory)](/workshop1)
-2. [Monolith to Microservices with Amazon ECS (Intermediate)](/workshop2)
-3. [CI/CD for Containers on AWS (Intermediate/Advanced)](/workshop3)
-4. [Advanced Microservices Operations: Load testing, Monitoring, Service Mesh (Advanced)](/workshop4)
 
 Have fun, we need you to make history!
