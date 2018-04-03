@@ -231,30 +231,19 @@ RUN apt-get -y install \
     python-virtualenv \
     libffi-dev \
     libssl-dev
-
 WORKDIR /root
-
 ENV PRODUCT monolith
-
 RUN wget https://bootstrap.pypa.io/get-pip.py \
     && python get-pip.py
-
 WORKDIR interstella
-
 RUN virtualenv ${PRODUCT}
-
 WORKDIR ${PRODUCT}
-
 RUN bin/pip install --upgrade pip && \
     bin/pip install requests[security]
-
 COPY ./monolith.py .
 COPY ./requirements.txt .
-
 RUN bin/pip install -r requirements.txt
-
 EXPOSE 5000
-
 ENTRYPOINT ["bin/python", "monolith.py"]
 </pre>
 </details>
@@ -340,7 +329,6 @@ Edit your Dockerfile with what you think will improve build times and compare it
 <pre>
 FROM ubuntu:14.04
 RUN apt-get -y update
-
 RUN apt-get -y install \
     git \
     wget \
@@ -348,31 +336,19 @@ RUN apt-get -y install \
     python-virtualenv \
     libffi-dev \
     libssl-dev
-
 WORKDIR /root
-
 ENV PRODUCT monolith
-
 RUN wget https://bootstrap.pypa.io/get-pip.py \
     && python get-pip.py
-
 WORKDIR interstella
-
 RUN virtualenv ${PRODUCT}
-
 WORKDIR ${PRODUCT}
-
 RUN bin/pip install --upgrade pip && \
     bin/pip install requests[security]
-
 COPY ./requirements.txt .
-
 RUN bin/pip install -r requirements.txt
-
 COPY ./monolith.py .
-
 EXPOSE 5000
-
 ENTRYPOINT ["bin/python", "monolith.py"]
 </pre>
 </details>
