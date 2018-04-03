@@ -683,7 +683,7 @@ The Run Task method you used in the last lab is good for testing, but we need to
 
 In this lab, you will implement an Elastic Load Balancing [Appliction Load Balancer (ALB)](https://aws.amazon.com/elasticloadbalancing/) to front-end and distribute incoming orders to your running containers.  The integration between ECS and ALB offers a feature called dynamic port mapping for containers, which allows you to run multiple copies of the same container with the same listening port on the same host...*say that 10 times fast*.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
 
-What ties this all together is an **ECS Service**, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB). Now you will start the service, configure the ALB, and then subscribe the ALB endpoint to the orders SNS topic to start the order flow.
+What ties this all together is an **ECS Service**, which maintains a desired task count (i.e. n number of containers as long running processes) and integrates with the ALB (i.e. handles registration/deregistration of containers to the ALB). In this lab, you will configure the ALB, create/start the ECS service, and then subscribe the ALB endpoint to the orders SNS topic to start the order flow.  Up until now we have been testing with cURL, but you're ready to tap into our simulated order generator.
 
 ![Lab 3 Architecture](images/03-arch.png)
 
@@ -697,7 +697,7 @@ In the AWS Management Console, navigate to the [EC2 dashboard](https://console.a
 
 Give your ALB a name, e.g. interstella.
 
-Under **Availability Zones**, select the workshop VPC from the drop-down menu.  You can identify the workshop VPC in the list by the tag, which should be the same as the **EnvironmentName** from the CloudFormation parameters you provided.  Select the checkbox for the first Availability Zone (AZ) in the list and click on the **Public subnet** in the AZ; the **Name** column will indicate which subnet is public.  Repeat with the other AZ.
+Scroll down to "Availability Zones", select the workshop VPC from the drop-down menu.  You can identify the workshop VPC in the list by the tag, which should be the same as the **EnvironmentName** CloudFormation parameter you provided when creating the stack.  Select the checkbox for the first Availability Zone (AZ) in the list to reveal associated subnets; click on the **Public subnet** for that AZ; the "Name" column will indicate which subnet is public.  Repeat this for the other AZ.
 
 The settings should look similar to this:
 
@@ -723,7 +723,7 @@ ECS handles registration of targets to your target groups, so do you **NOT** hav
 
 2\. Update the task definition for the monolith to use dynamic port mapping.
 
-Remember that one of the goals with the ALB is to be able to distribute orders to multiple containers running the logistics platform.  Dynamic port mapping enables you to run multiple containers listening on the same port to be deployed on the same host.
+Remember that one of the goals with the ALB is to be able to distribute orders to multiple EC2 containers running the logistics platform.  Dynamic port mapping enables you to run multiple containers listening on the same port to be deployed on the same host.
 
 In order to take advantage of dynamic port mapping, create a new revision of your monolith task definition and remove the host port mapping in the container definition.  By leaving the host port blank, an ephemeral port will be assigned and ECS/ALB integration will handle the mapping and target group registration.
 
