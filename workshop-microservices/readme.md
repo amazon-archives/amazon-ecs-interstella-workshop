@@ -156,11 +156,13 @@ On the left pane (Blue), you'll see a folder navigation structure where you'll s
 
 On the bottom, you will see a shell (Yellow). For the remainder of the lab, use this shell to enter all commands.
 
-2\. Once logged into the instance, download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ.
+2\. Once logged into the instance, download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later).
 
 <pre>
 $ aws s3 sync s3://www.interstella.trade/awsloft/code/monolith/ monolith/
 $ cd monolith
+$ chmod +x installcredhelper.sh
+$ sudo ./installcredhelper.sh
 </pre>
 
 *Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which was installed using [user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html) on launch, and we authorize access to S3 through an [IAM instance profile](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html).*
@@ -553,7 +555,7 @@ c41b9462ea4b: Pushed
 latest: digest: sha256:a27cb7c6ad7a62fccc3d56dfe037581d314bd8bd0d73a9a8106d979ac54b76ca size: 3252
 </pre>
 
-*Note: that you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the EC2 instance.  This was done as a bootstrap action when launching the EC2 instances.  Review the CloudFormation template and you will see where this is done.  You can read more about the credentials helper in this [article](https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/)*
+*Note: Typically, you'd have to log into your ECR repo. However, you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the Cloud9 Environment.  This was done earlier when you ran the installcredhelper.sh script. You can read more about the credentials helper in this [article](https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/)*
 
 If you refresh the ECR repository page in the console, you'll see a new image uploaded and tagged as latest.
 
