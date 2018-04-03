@@ -8,10 +8,10 @@ Interstella is an trading company specializing in inter-system exchange of rare 
 
 But our logistics platform wasn't built to handle this load and we're at risk of losing our trade routes. Our engineers have suggested we look at using modern application architectures, containers, and devops, but they don't know anything about implementing them. Can you help us update our logistics platform and become the largest trading consortium in the galaxy?
 
-### Requirements:  
+### Requirements:
 
 * AWS account - if you don't have one, it's easy and free to [create one](https://aws.amazon.com/).
-* AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ELB/ALB, VPC, SNS, CloudWatch. [Learn how](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html).
+* AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ELB/ALB, VPC, SNS, CloudWatch, Cloud9. [Learn how](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html).
 * A workstation or laptop with an ssh client installed, such as [putty](http://www.putty.org/) on Windows; or terminal or iterm on Mac
 * Familiarity with [Python](https://wiki.python.org/moin/BeginnersGuide/Programmers), [vim](https://www.vim.org/about.php)/[emacs](https://www.gnu.org/software/emacs/)/[nano](https://www.nano-editor.org/), [Docker](https://www.docker.com/), and [AWS](httpts://aws.amazon.com) - *not required but a bonus*.
 
@@ -57,9 +57,9 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 ### Workshop Setup:
 
-1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
+1\. Log into the AWS Management Console and select **US East (N.Virginia)** for your [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 
-The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **Ohio**, **Oregon**, or **Ireland**.
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, you will use **N.Virginia**.
 
 2\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
@@ -90,9 +90,7 @@ Open the CloudFormation launch template link below for the region you selected i
 
 Region | Launch Template
 ------------ | -------------
-**Ohio** (us-east-2) | [![Launch Interstella CloudFormation Stack in Ohio](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/starthere.yaml)
-**Oregon** (us-west-2) | [![Launch Interstella CloudFormation Stack in Oregon](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/starthere.yaml)
-**Ireland** (eu-west-1) | [![Launch Interstella CloudFormation Stack in Ireland](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/starthere.yaml)
+**N.Virginia** (us-east-1) | [![Launch Interstella CloudFormation Stack in N.Virginia](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=Interstella-workshop&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/starthere.yaml)
 
 The template will automatically bring you to the CloudFormation Dashboard and start the stack creation process in the specified region. Do not change anything on the first screen. Click **Next** to continue.
 
@@ -139,10 +137,9 @@ Whoa! Turns out Interstella's infrastructure has been running directly on EC2 vi
 
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
 
-
 * * *
 
-### Instructions
+### Instructions:
 
 1\. Access your AWS Cloud9 Development Environment.
 
@@ -525,7 +522,7 @@ c41b9462ea4b: Pushed
 latest: digest: sha256:a27cb7c6ad7a62fccc3d56dfe037581d314bd8bd0d73a9a8106d979ac54b76ca size: 3252
 </pre>
 
-*Note: Typically, you'd have to log into your ECR repo. However, you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the Cloud9 Environment.  This was done earlier when you ran the installcredhelper.sh script. You can read more about the credentials helper in this [article](https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/)*
+*Note: Typically, you'd have to log into your ECR repo. However, you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the Cloud9 Environment.  This was done earlier when you ran the installcredhelper.sh script. You can read more about the credentials helper in this [article](https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/).*
 
 If you refresh the ECR repository page in the console, you'll see a new image uploaded and tagged as latest.
 
@@ -545,13 +542,15 @@ Deploying individual containers is not difficult.  However, when you need to coo
 ECS refers to a JSON formatted template called a [Task Definition](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html) that describes one or more containers making up your application or service.  The task definition is the recipe that ECS uses to run your containers as a **task** on your EC2 instances or AWS Fargate.
 
 <details>
-<summary>What is a task?</summary>
-A task is a running set of containers on a single host. You may hear or see 'task' and 'container' used interchangeably. Often, we refer to tasks instead of containers because a task is the unit of work that ECS launches and manages on your cluster. A task can be a single container, or multiple containers that run together. *Fun fact: a task is very similar to a Kubernetes 'pod'*.
+<summary>INFO: What is a task?</summary>
+A task is a running set of containers on a single host. You may hear or see 'task' and 'container' used interchangeably. Often, we refer to tasks instead of containers because a task is the unit of work that ECS launches and manages on your cluster. A task can be a single container, or multiple containers that run together. 
+
+Fun fact: a task is very similar to a Kubernetes 'pod'.
 </details>
 
-Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations including which container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
+Most task definition parameters map to options and arguments passed to the [docker run](https://docs.docker.com/engine/reference/run/) command which means you can describe configurations like which container image(s) you want to use, host:container port mappings, cpu and memory allocations, logging, and more.
 
-In this lab, you will create a task definition and configure logging to serve as a foundation for deploying the containerized logistics platform stored in ECR with ECS.
+In this lab, you will create a task definition and configure logging to serve as a foundation for deploying the containerized logistics platform stored in ECR with ECS.  In this lab, you'll be using the [EC2 launch type](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html#launch-type-ec2), so you can get a feel for how it compares to the Fargate launch type when you start breaking apart the microservices in lab 4. The CloudFormation template launched an EC2 instance that's already joined to your ECS cluster. EC2 and Fargate launch types can co-exist in the same cluster.
 
 ![Lab 2 Architecture](images/02-arch.png)
 
@@ -559,19 +558,19 @@ In this lab, you will create a task definition and configure logging to serve as
 
 * * *
 
-### Instructions
+### Instructions:
 
 1\. Create an ECS task definition that describes what is needed to run the monolith and enable logging.
 
-In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
+In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.  Select **EC2** launch type compatibility and click **Next step**.
 
 Enter a name for your Task Definition, (e.g.: `interstella-monolith`).  Leave Task Role and Network Mode as defaults.
 
-Scroll down to Container Definitions and click **Add container**.
+Scroll down to "Container Definitions" and click **Add container**.
 
 Enter values for the following fields:
 
-* **Container name** - this is a logical identifier for your container, not the name of the container image.
+* **Container name** - this is a friendly name for your container, not the name of the container image. e.g. interstella-monolith
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
 
@@ -579,7 +578,7 @@ Enter values for the following fields:
 
 * **Port mappings** - enter `5000` for both host and container port.
 
-*Note: You might be wondering how you can more than one of the same container on a single host since there could be conflicts based on the port mappings configuration.  ECS offers a dynamic port mapping feature when using the ALB as a load balancer for your container service.  We'll visit this in the next lab when adding an ALB to the picture*
+*Note: You might be wondering how you can more than one of the same container on a single EC2 host since there could be conflicts based on the port mappings configuration.  ECS offers a dynamic port mapping feature when using the ALB as a load balancer for your container service.  We'll visit this in the next lab when adding an ALB to the picture*
 
 Here's an example of what the container definition should look like up until this point (don't click **Add** yet, there's still logging which is covered in the next step):
 
@@ -599,18 +598,18 @@ For *Log options*, enter values for the following:
 
 * **awslogs-group** - enter `[EnvironmentName]-monolith`
 
-*Note: The CloudFormation template created a [CloudWatch log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html) for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the monolith would be "interstella-monolith".*
+*IMPORTANT: Replace `[EnvironmentName]` above with the EnvironmentName you specified when you created the CloudFormation stack.  The CloudFormation template created a [CloudWatch log group](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html) for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the monolith would be "interstella-monolith".*
 
 * **awslogs-region** - enter the AWS region of the log group (i.e.: the current region you're working in); the expected value is the region code.
 <details>
 <summary>HINT: Region codes</summary>
+US East (N.Virginia) = us-east-1<br>
 US East (Ohio) = us-east-2<br>
 US West (Oregon) = us-west-2<br>
 EU (Ireland) = eu-west-1<br>
 </details>
 
-
-For example, if you ran the CloudFormation stack in Ireland, you would enter 'eu-west-1' for the awslogs-region.
+For example, if you ran the CloudFormation stack in N.Virginia, you would enter 'us-east-1' for the awslogs-region.
 
 The Log configuration should look something like this:
 
@@ -626,7 +625,13 @@ You should be at the task definition view where you can do things like create a 
 
 ![Run Task](images/02-run-task.png)
 
-Leave all the fields as their defaults and click **Run Task**.
+Configure the following fields:
+
+* **Launch Type** - select **EC2**
+* **Cluster** - select your workshop cluster from the dropdown menu, e.g. interstella
+* **Task Definition** - select the task definition you created from the dropdown menu
+
+Leave all remaining fields as their defaults and click **Run Task**.
 
 *Note: There are many options to explore in the Task Placement section of the Run Task action, and while we will not touch on every configuration in this workshop, you can read more about [Scheduling Tasks](http://docs.aws.amazon.com/AmazonECS/latest/developerguide/scheduling_tasks.html) in our documentation.*
 
@@ -638,9 +643,9 @@ In a few seconds, click on the refresh button until the task changes to a **RUNN
 
 ![Task state](images/02-task-running.png)
 
-4\. Test order processing by using cURL to send a sample order payload to the running logistics platform.
+4\. Test order processing by using cURL from your Cloud9 environment to send a sample order payload to the running logistics platform.
 
-Click on the Container Instance for your running task to load details of the EC2 instance that's running your task.  Note down the Public IP address to use with your curl command.
+First we need to determine the IP address of the EC2 instance that is hosting your task.  Click on the Container Instance for your running task to load details of the EC2 instance that's running your task.  Note down the Public IP address to use with your curl command.
 
 ![Container Instance](images/02-container-instance.png)
 
@@ -649,22 +654,15 @@ Click on the Container Instance for your running task to load details of the EC2
 <details>
 <summary>HINT: curl refresher</summary>
 <pre>
-*Mac or Linux Users*: cURL should come bundled with the OS, so open a new Terminal window to run the following curl command.
-
-*Windows Users*: SSH into the other EC2 instance launched by CloudFormation and run the following curl command.
-</pre>
-<pre>
 $ curl -H "Content-Type: application/json" -X POST -d '{"Message":{"bundle":"1"}}' http://<b><i>EC2_PUBLIC_IP_ADDRESS</b></i>:5000/order/
 </pre>
 
 *Note: The EC2_PUBLIC_IP_ADDRESS value is the public IP address of the EC2 instance running your monolith container*
-
-If you're still confused, refer back to Lab 1 Step 5 as a reminder.
 </details>
 
 Run the curl command and check the CloudWatch log group for the monolith to confirm the test order was processed.
 
-Navigate to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home#logs:), and click on the monolith log group (e.g.: interstella-monolith).  Logging statements are written to log streams within the log group.  Click on the most recent log stream to view the logs.  This should look very familiar from your testing in Lab 1 Step 5.
+Navigate to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home#logs:), and click on the monolith log group (e.g.: interstella-monolith).  Logging statements are written to log streams within the log group.  Click on the most recent log stream to view the logs.  The output should look very familiar from your testing in Lab 1 Step 6.
 
 ![CloudWatch Log Entries](images/02-cloudwatch-logs.png)
 
@@ -681,7 +679,7 @@ Nice work!  You've created a task definition and are able to deploy the monolith
 
 ## Lab 3 - Scale the logistics platform with an ALB:
 
-The Run Task method you used in the last lab is good for testing, but we need to keep run the logistics platform as a long running process.  In addition, it would be helpful to maintain capacity in case any of our EC2 instances were to have an issue (always design and plan for failure).
+The Run Task method you used in the last lab is good for testing, but we need to run the logistics platform as a long running process.  In addition, it would be helpful to maintain capacity in case any of our EC2 instances were to have an issue (always design and plan for failure).
 
 In this lab, you will implement an Elastic Load Balancing [Appliction Load Balancer (ALB)](https://aws.amazon.com/elasticloadbalancing/) to front-end and distribute incoming orders to your running containers.  The integration between ECS and ALB offers a feature called dynamic port mapping for containers, which allows you to run multiple copies of the same container with the same listening port on the same host...*say that 10 times fast*.  The current task definition maps host port 5000 to container port 5000.  This means you would only be able to run one instance of that task on a specific host.  If the host port configuration in the task definition is set to 0, an ephemeral listening port is automatically assigned to the host and mapped to the container which still listens on 5000.  If you then tried to run two of those tasks, there wouldn't be a port conflict on the host because each task runs on it's own ephemeral port.  These hosts are grouped in a target group for the ALB to route traffic to.
 
@@ -691,7 +689,7 @@ What ties this all together is an **ECS Service**, which maintains a desired tas
 
 * * *
 
-### Instructions
+### Instructions:
 
 1\. Create an Application Load Balancer.
 
@@ -849,7 +847,7 @@ Here's what you will be implementing:
 
 * * *
 
-### Instructions
+### Instructions:
 
 1\. First, build the Iridium service container image and push it to ECR.
 
