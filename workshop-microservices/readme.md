@@ -76,7 +76,8 @@ For example:
 The CloudFormation template will launch the following:
 
 * VPC with public subnets, routes and Internet Gateway
-* EC2 Instances with security groups (inbound tcp 22, 80, 5000) and joined to an ECS cluster
+* ECS cluster
+* EC2 instance with security groups (inbound tcp 22, 80, 5000) and joined to the ECS cluster
 * ECR repositories for your container images
 * Parameter store to hold values for API Key and fulfillment API endpoint
 * Cloud9 Development Environment

@@ -88,7 +88,7 @@ Parameters:
     ClusterSize:
         Description: How many ECS hosts do you want to initially deploy?
         Type: Number
-        Default: 2
+        Default: 1
 
     InterstellaApiKey:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
@@ -296,15 +296,7 @@ Resources:
                 - IpProtocol: tcp
                   FromPort: 80
                   ToPort: 80
-                  CidrIp: 0.0.0.0/0
-                - IpProtocol: tcp
-                  FromPort: 8001
-                  ToPort: 8001
-                  CidrIp: 0.0.0.0/0
-                - IpProtocol: tcp
-                  FromPort: 8002
-                  ToPort: 8002
-                  CidrIp: 0.0.0.0/0    
+                  CidrIp: 0.0.0.0/0   
                 - IpProtocol: tcp
                   FromPort: 5000
                   ToPort: 5000
