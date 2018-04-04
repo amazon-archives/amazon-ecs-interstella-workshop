@@ -23,7 +23,7 @@ These labs are designed to be completed in sequence, and the full set of instruc
 * **Lab 1:** [Containerize the Interstella logistics software](#lab-1---containerize-interstellas-logistics-platform)
 * **Lab 2:** [Deploy the container using Amazon ECS](#lab-2---deploy-your-container-using-ecrecs)
 * **Lab 3:** [Scale the logistics platform with an ALB](#lab-3---scale-the-logistics-platform-with-an-alb)
-* **Lab 4:** [Incrementally build and deploy each microservice using AWS Fargate](#lab-4-incrementally-build-and-deploy-each-microservice-using-Fargate)
+* **Lab 4:** [Incrementally build and deploy each microservice using AWS Fargate](#lab-4-incrementally-build-and-deploy-each-microservice-using-fargate)
 * **Cleanup** [Put everything away nicely](#workshop-cleanup)
 
 ### Conventions:
@@ -143,7 +143,7 @@ Whoa! Turns out Interstella's infrastructure has been running directly on EC2 vi
 
 1\. Access your AWS Cloud9 Development Environment.
 
-In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment. The name will be in the CloudFormation outputs section under Cloud9EnvName. Click "**Open IDE**"
+In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click "**Open IDE**"
 
 ![Cloud9 Env](images/01-c9.png)
 
@@ -480,7 +480,7 @@ In the sample output above, the container was assigned the name "disatracted_vol
 
 7\. Now that you have a working Docker image, tag and push the image to [Elastic Container Registry (ECR)](https://aws.amazon.com/ecr/).  ECR is a fully-managed Docker container registry that makes it easy to store, manage, and deploy Docker container images. In the next lab, we'll use ECS to pull your image from ECR.
 
-In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click on **Repositories** in the left menu.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
+In the AWS Management Console, navigate to [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) in the ECS dashboard.  You should see repositories for monolith and each microservice (iridium and magnesite).  These were created by CloudFormation and prefixed with the *EnvironmentName* (in the example below, I used 'interstella' as my EnvironmentName) specified during stack creation.
 
 ![ECR repositories](images/01-ecr-repo.png)
 
@@ -562,7 +562,7 @@ In this lab, you will create a task definition and configure logging to serve as
 
 1\. Create an ECS task definition that describes what is needed to run the monolith and enable logging.
 
-In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.  Select **EC2** launch type compatibility and click **Next step**.
+In the AWS Management Console, navigate to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard.  Click on **Create New Task Definition**.  Select **EC2** launch type compatibility and click **Next step**.
 
 Enter a name for your Task Definition, (e.g.: `interstella-monolith`).  Leave Task Role and Network Mode as defaults.
 
@@ -727,7 +727,7 @@ Remember that one of the goals with the ALB is to be able to distribute orders t
 
 In order to take advantage of dynamic port mapping, create a new revision of your monolith task definition and remove the host port mapping in the container definition.  By leaving the host port blank, an ephemeral port will be assigned and ECS/ALB integration will handle the mapping and target group registration.
 
-Go to the [ECS dashboard](https://console.aws.amazon.com/ecs/), click on **Task Definitions** in the left menu.
+Go to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard.
 
 Select the monolith task definition and click **Create new revision**.
 
@@ -833,7 +833,7 @@ Sweet! You've implemented an ALB as a way to distribute incoming HTTP orders to 
 
 It's time to break apart Interstella's monolith logistics platform into microservices. To help with this, let's see how the monolith works in more detail.
 
-> When a request first comes in, all two resources are gathered in sequence. Then, once it's confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
+> When a request first comes in, all two resources are gathered in sequence. Once confirmed that everything has been gathered, they are fulfilled through a fulfillment API running on the [Amazon API Gateway](https://aws.amazon.com/api-gateway/). Logically, you can think of this as three separate services. One per resource and one for fulfillment. The goal for this lab is to remove the resource processing functions from the monolith and implement them as their own microservice.
 
 > We must define service contracts between your microservice and any other services it will have to access. In this lab, the flow will be:
 
@@ -844,7 +844,7 @@ It's time to break apart Interstella's monolith logistics platform into microser
 
 > When moving to microservices, there are some patterns that are fairly common. One is to rewrite your entire application with microservices in mind. While this is nice and you have great code to work with going forward, it's often not feasible.
 
-> Hence, Interstella's lead engineer has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively rendering it Strangler down to just a fulfillment service; this too could eventually be modernized and replaced.
+> Hence, Interstella's lead engineer has chosen to move forward with the [Strangler Application pattern](https://www.martinfowler.com/bliki/StranglerApplication.html) which they've had success with in the past. You will be taking functionality out of the monolith and making those into microservices while creating integrations into the monolith to still leverage any legacy code. This introduces less risk to the overall migration and allows teams to iterate quickly on the services that have been moved out. Eventually, there will be very little left in the monolith, effectively strangling it down to just a fulfillment service; this too could eventually be modernized and replaced.
 
 > The ALB has another feature called [path-based routing](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-listeners.html#path-conditions), which routes traffic based on URL path to particular target groups.  This means you will only need a single instance of the ALB to host your microservices.  The monolith fulfillment service will receive all traffic to the default path, '/'.  Iridium and magnesite services will be '/iridium' and '/magnesite', respectively.
 
@@ -860,16 +860,12 @@ Here's what you will be implementing:
 
 1\. First, build the Iridium service container image and push it to ECR.
 
-Open to the SSH session to the EC2 instance you used to build the monolith container image earlier.
+You'll use your Cloud9 environment to do this.  If you've closed the tab, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment. Click "**Open IDE**"
+
+Our dev team already prepared the service code and Dockerfile for iridium production, so you just have to build the Docker image.  These are similar to the docker build steps from Lab 1 when you built the monolith.  Download the iridium application source, requirements file, and Dockerfile from Interstella HQ.
 
 <pre>
-$ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
-</pre>
-
-Our dev team already prepared the service code and Dockerfile for iridium production, so you just have to build the Docker image.  These are similar to the docker build steps from Lab 1 when you built the monolith.  Create a working directory for the iridium code, and download the iridium application source, requirements file, and Dockerfile from Interstella HQ.
-
-<pre>
-$ aws s3 sync s3://www.interstella.trade/awsloft/code/iridium/ iridium/
+$ aws s3 sync s3://www.interstella.trade/code/iridium/ iridium/
 $ cd iridium
 </pre>
 
@@ -879,11 +875,15 @@ $ cd iridium
 $ docker build -t iridium .
 </pre>
 
+*Note: Don't forget the trailing period.*
+
 3\. Tag and push the image to the ECR repository for iridium.
 
-To find the iridium ECR repo URI, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) in the management console, click on **Respositories** and find the repo with '-iridium' in the name.  Click on the iridium repository and copy the repository URI.
+To find the iridium ECR repo URI, navigate to [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) in the ECS dashboard, and find the repo with '-iridium' in the name.  Click on the iridium repository and copy the repository URI.
 
 ![Getting Iridium Repo](images/04-ecr-iridium.png)
+
+*Note: Your URI will be unique.*
 
 <pre>
 $ docker tag iridium:latest <b><i>ECR_REPOSITORY_URI</i></b>:latest
