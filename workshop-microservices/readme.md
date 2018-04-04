@@ -925,7 +925,7 @@ Here's an example:
 
 *Note: Notice you didn't have to specify the host port because Fargate uses the awsvpc network mode. Depending on the launch type (EC2 or Fargate), some task definition parameters are required and some are optional. You can learn more from our [task definition documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html).*
 
-The iridium app code is designed to send order fulfillment to the fulfillment service running on the monolith.  It references an environment variable called "monolithURL" to know where to send fulfillment.
+The iridium app code is designed to send order fulfillment to the fulfillment service running on the monolith.  It references an environment variable called "monolithUrl" to know where to send fulfillment.
 
 Scroll down to the "Advanced container configuration" section, and in the "Environment" section, create an environment variable using `monolithUrl` for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.  This is the same DNS name you used in lab 3 to subscribe to the Orders topic.
 
@@ -1024,23 +1024,21 @@ Navigate to the CloudWatch Logs dashboard and review the latest log stream for t
 
 8\. Now that the iridium microservice is running, it's time to remove the functionality from the monolith code.
 
-Go back to the SSH session where you built the monolith and iridium container images.  Navigate to the monolith working folder.
+Go back to your Cloud9 environment where you built the monolith and iridium container images.
 
-<pre>
-$ cd ~/monolith/
-</pre>
-
-Open monolith.py with your favorite text editor, and comment the line that reads:
+In the monolith folder, open monolith.py in the Cloud9 editor and find the line that reads:
 
 <pre>
 iridiumResult = iridium()
 </pre>
 
-*Tip: if you're not familiar with Python, you can comment out a line by adding a hash character, "#", at the beginning of the line.*
-
-It should be line 96, in the app route decorator for the /order/ path:
+It should be line 81, in the app route decorator for the /order/ path.  Once you find that line, comment it out like so:
 
 ![Remove iridium()](images/04-remove-iridium.png)
+
+*Tip: if you're not familiar with Python, you can comment out a line by adding a hash character, "#", at the beginning of the line.*
+
+What you've done is remove iridium processing from within the monolith.  Instead the iridium microservice is handling that and fulfilling back through the monolith using the glueFulfill() integration hook.
 
 Save your changes and close the file.
 
@@ -1054,15 +1052,15 @@ $ docker tag monolith:noiridium <b><i>ECR_REPOSITORY_URI</i></b>:noiridium
 $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:noiridium
 </pre>
 
-If you look in the ECR repository for the monolith, you'll see the pushed image tagged as "noiridium".
+If you look at the monolith repository in ECR, you'll see the pushed image tagged as "noiridium".
 
 ![ECR noiridium image](images/04-ecr-noiridium.png)
 
-10\. Create a new revision of the monolith task definition to use the new monolith container image tagged as noiridium.
+10\. Create a new revision of the monolith task definition using the new monolith container image tagged as noiridium.
 
-Navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/) and click **Task Definitions** in the left menu.  Select the latest task definition for the monolith and click **Create new revision**.
+Navigate to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard.  Select the latest task definition for the monolith and click **Create new revision**.
 
-In the **Container Definitions** section, click on the container name to edit the container image for the task definition.
+In the "Container Definitions" section, click on the container name to edit the container image associated with the task definition.
 
 Modify the image tag from "latest" to `noiridium`.
 
@@ -1074,33 +1072,33 @@ Click **Update**, and click **Create**.
 
 11\. Update the monolith service to use the new task definition you just created.
 
-In the [ECS dashboard](https://console.aws.amazon.com/ecs/), click on **Clusters** in the left menu.  Click on your workshop cluster.  You should see the monolith service running in the **Services** tab.  Select the monolith service and click **Update**.
+Navigate to [Clusters](https://console.aws.amazon.com/ecs/home#/clusters) in the ECS dashboard, and click on your workshop cluster.  You should see the monolith service running in the **Services** tab.  Select the monolith service and click **Update**.
 
 ![Update monolith service](images/04-service-update.png)
 
-Change the **Task Definition** to be the newest version you just created.  If your earlier task definition was "interstella-monolith:1" for example, you should see a "interstella-monolith:2" in the drop-down menu.  If you're unsure, you can always go back to the **Task Definitions** section of the [ECS dashboard](https://console.aws.amazon.com/ecs/) to check.
+Change the **Task Definition** to be the newest version you just created.  If your earlier task definition was "interstella-monolith:1" for example, you should see a "interstella-monolith:2" in the drop-down menu.  If you're unsure, you can always go back to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) to check.
 
 Click **Next step** for this step and remaining steps without making any additional modifications.  Click **Update Service** to deploy your new monolith container.  Click on **View Service** and then on the **Tasks** tab.  You should see ECS launching a new task based on the new version of the task definition, begin to drain the old task version, and eventually stop the old version.
 
 ### Checkpoint:
-Congratulations, you've successfully rolled out the iridium microservice from the monolith.  If you have time, you can repeat this lab to break out the magnesite microservice following the same steps only replacing any reference to iridium with magnesite.  Otherwise, please remember to follow the steps below in the **Workshop Cleanup** to make sure all assets created during the workshop are removed so you do not see unexpected charges.
+Congratulations, you've successfully rolled out the iridium microservice from the monolith.  If you have time, try repeating this lab to break out the magnesite microservice.  Otherwise, please remember to follow the steps below in the **Workshop Cleanup** to make sure all assets created during the workshop are removed so you do not see unexpected charges after today.
 
 * * *
 
 ## Finished! Please fill out evaluation cards!
 
-Congratulations on completing the labs, or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we are working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation... ok, maybe that's taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.  You can reach us at <aws-interstella-team@amazon.com>
+Congratulations on completing the labs, or at least giving it a good go.  Thanks for helping Interstella GTC regain it's glory in the universe!  If you ran out of time, do not worry, we'll leave the shared services running in the admin account.  You can always refer to http://interstella.trade/ for any updates, like if we need to halt the shared services for maintenance/updates.  We are also working on automating the admin side of the workshop, so you will be able to run this lab at your own pace at home, at work, at local meetups, on vacation...ok, maybe that last one is taking it a bit far.  If you're interested in getting updates, please complete the feedback forms and let us know.  Also, please share any constructive feedback, good or bad, so we can improve the experience for customers like yourselves.  You can reach us at <aws-interstella-team@amazon.com>
 
 * * *
 
 ## Workshop Cleanup
 
-This is really important because if you leave stuff running in your account, it will continue to generate charges.  Certain things were created by CloudFormation and certain things were created manually throughout the workshop.  Follow the steps below to make sure you clean up properly.  
+This is really important because if you leave stuff running in your account, it will continue to generate charges.  Certain things were created by CloudFormation and certain things were created manually throughout the workshop.  Follow the steps below to make sure you clean up properly.
 
 Delete manually created resources throughout the labs:
 
-* ECS service - first update the desired task count to be 0.  Then delete the ECS service itself.
-* ECR - delete any Docker images pushed to your ECR repository
+* ECS service(s) - first update the desired task count to be 0.  Then delete the ECS service itself.
+* ECR - delete any Docker images pushed to your ECR repository.
 * CloudWatch logs groups
 * ALBs and associated target groups
 
