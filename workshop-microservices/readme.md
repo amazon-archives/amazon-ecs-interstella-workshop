@@ -23,7 +23,7 @@ These labs are designed to be completed in sequence, and the full set of instruc
 * **Lab 1:** [Containerize the Interstella logistics software](#lab-1---containerize-interstellas-logistics-platform)
 * **Lab 2:** [Deploy the container using Amazon ECS](#lab-2---deploy-your-container-using-ecrecs)
 * **Lab 3:** [Scale the logistics platform with an ALB](#lab-3---scale-the-logistics-platform-with-an-alb)
-* **Lab 4:** [Incrementally build and deploy each resource microservice using AWS Fargate](#lab-4-incrementally-build-and-deploy-each-microservice)
+* **Lab 4:** [Incrementally build and deploy each microservice using AWS Fargate](#lab-4-incrementally-build-and-deploy-each-microservice-using-Fargate)
 * **Cleanup** [Put everything away nicely](#workshop-cleanup)
 
 ### Conventions:
