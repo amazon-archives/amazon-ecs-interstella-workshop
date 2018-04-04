@@ -906,6 +906,10 @@ The "[Task size](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/tas
 
 Select **0.5GB** for **Task memory (GB)** and select **0.25vCPU** for **Task CPU (vCPU)**.
 
+Your progress should look similar to this:
+
+![Fargate Task Definition](images/04-fargate-taskdef.png)
+
 Click **Add container** to associate the iridium container with the task.
 
 Enter values for the following fields:
@@ -915,16 +919,25 @@ Enter values for the following fields:
 * **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
 * **Port mapping** - set the container port to be `80`.
 
+Here's an example: 
+
+![Fargate iridium container definition](images/04-fargate-containerdef.png)
+
 *Note: Notice you didn't have to specify the host port because Fargate uses the awsvpc network mode. Depending on the launch type (EC2 or Fargate), some task definition parameters are required and some are optional. You can learn more from our [task definition documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html).*
 
 The iridium app code is designed to send order fulfillment to the fulfillment service running on the monolith.  It references an environment variable called "monolithURL" to know where to send fulfillment.
 
 Scroll down to the "Advanced container configuration" section, and in the "Environment" section, create an environment variable using `monolithUrl` for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.  This is the same DNS name you used in lab 3 to subscribe to the Orders topic.
 
-Here's an example of what this should look like:
+Here's an example:
+
 ![monolith env var](images/04-env-var.png)
 
 Fargate conveniently enables logging to CloudWatch for you.  Keep the default log settings and take note of the **awslogs-group** and the **awslogs-stream-prefix**, so you can find the logs for this task later.
+
+Here's an example:
+
+![Fargate logging](images/04-fargate-logging.png)
 
 Click **Add** to associate the container definition, and click **Create** to create the task definition.
 
