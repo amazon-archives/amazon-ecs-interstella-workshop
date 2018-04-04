@@ -945,33 +945,56 @@ Click **Add** to associate the container definition, and click **Create** to cre
 
 You should still be on the screen showing the new revision of the iridium task definition you just created.  Under the **Actions** drop down, choose **Create Service**.
 
-Enter a name for the service (e.g. `interstella-iridium`), and set **Number of tasks** to be **1**.  Leave other settings as defaults and click **Next Step**
+Configure the following fields:
 
-On the next page, select **Application Load Balancer** for **Load balancer type**.
+* **Launch type** - select **Fargate**
+* **Cluster** - select your workshop ECS cluster
+* **Service name** - enter a name for the service (e.g. `interstella-iridium`)
+* **Number of tasks** - enter `1`.
 
-You'll see a **Load balancer name** drop-down menu appear.  Select the Interstella ALB used for the monolith ECS service.
+Here's an example:
 
-In the **Container to load balance** section, select the **Container name : port** combo from the drop-down menu that corresponds to the iridium task definition.
+![ECS Service](images/04-ecs-service-step1.png)
+
+Leave other settings as defaults and click **Next Step**
+
+Since the task definition uses awsvpc network mode, you can choose which VPC and subnet(s) to host your tasks.
+
+For **Cluster VPC**, select your workshop VPC.  And for **Subnets**, select the public subnets; you can identify these based on the tags.
+
+Leave the default security group which allows inbound port 80.  If you had your own security groups defined in the VPC, you could assign them here.
+
+Here's an example:
+
+![ECS Service VPC](images/04-ecs-service-vpc.png)
+
+Scroll down to "Load balancing" and select **Application Load Balancer** for *Load balancer type*.
+
+You'll see a **Load balancer name** drop-down menu appear.  Select the same Interstella ALB used for the monolith ECS service.
+
+In the "Container to load balance" section, select the **Container name : port** combo from the drop-down menu that corresponds to the iridium task definition.
 
 Your progress should look similar to this:
 
-![ECS Load Balancing](images/04-ecs-service-step2.png)
+![ECS Load Balancing](images/04-ecs-service-alb.png)
 
-Click **Add to load balancer**.
+Click **Add to load balancer** to reveal more settings.
 
 For the **Listener Port**, select **80:HTTP** from the drop-down.
 
-For the **Target Group Name**, you'll need to create a new group for the iridium containers, so leave it as "create new" and replace the auto-generated value with **interstella-iridium**.  This is a logical identifier, so any value that relates the iridium microservice will do.
+For the **Target Group Name**, you'll need to create a new group for the iridium containers, so leave it as "create new" and replace the auto-generated value with `interstella-iridium`.  This is a friendly name to identify the target group, so any value that relates to the iridium microservice will do.
 
 Change the path pattern to `/iridium*`.  The ALB uses this path to route traffic to the iridium target group.  This is how multiple services are being served from the same ALB listener.  Note the existing default path routes to the monolith target group.
 
-For **Evaluation order** enter `1`.  And finally edit the **Health check path** to be **/iridium/**.  You need the trailing forward slash for health checks to be successful.
+For **Evaluation order** enter `1`.  Edit the **Health check path** to be `/iridium/`.  You need the trailing forward slash for health checks to be successful.
+
+And finally, uncheck **Enable service discovery integration**.  While public namespaces are supported, a public zone needs to be configured in Route53 first.  Consider this convenient feature for your own services, and you can read more about [service discovery](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html) in our documentation.
 
 Your configuration should look similar to this:
 
 ![Iridium Service](images/04-iridium-service.png)
 
-*Note: It's worth noting that the microservice application(s) are designed to listen on the path /resource/, which mirrors the path-based routing configuration of the ALB.*
+*Note: It's worth noting that the microservice application(s) are designed to listen on the path /resource/, which mirrors the path-based routing configuration of the ALB.  The ALB will pass the URL request as is to the targets, and "/iridium/" is the path that the iridium microservice is expecting, for example.*
 
 Leave the other fields as defaults and click **Next Step**.
 
@@ -979,7 +1002,7 @@ Skip the Auto Scaling configuration by clicking **Next Step**.
 
 Click **Create Service** on the Review page.
 
-Once the Service is created, click **View Service** and you'll see your task definition has been deployed as a service.  If your configuration is successful, the service will enter the **RUNNING** state.
+Once the Service is created, click **View Service** and you'll see your task definition has been deployed as a service.  It starts out in the **PROVISIONING** state, progresses to the **PENDING** state, and if your configuration is successful, the service will finally enter the **RUNNING** state.  You can see these state changes by periodically click on the refresh button.
 
 7\. Test processing iridium orders by subscribing the ALB endpoint with iridium path to the iridium SNS topic.
 
