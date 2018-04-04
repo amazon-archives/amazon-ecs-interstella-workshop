@@ -9,7 +9,9 @@ But our logistics platform wasn't built to handle this load and we're at risk of
 
 ## Learning Paths:
 **Monolith to Microservices**
+
 [AWS SF Summit SRV329 - Building Microservices with AWS Fargate](/workshop-microservices)
+
 ...More to come!
 
 Have fun, we need you to make history!
