@@ -854,6 +854,8 @@ Here's what you will be implementing:
 
 *Note: The capital 'M' denotes the monolith and 'm' a microservice*
 
+You'll be using [Fargate](https://aws.amazon.com/fargate/) to deploy these microservices.  Notice in the diagram that you do not have to provide EC2 instances to host Fargate tasks - this is entirely managed by AWS.  Fargate containers launch with a networking mode called [awsvpc](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html), which gives ECS tasks the same networking properties of EC2 instances.  Tasks will essentially receive their own [elastic network interface](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-eni.html).  This offers benefits like task-specific security groups.  Let's get started!
+
 * * *
 
 ### Instructions:
@@ -892,11 +894,19 @@ $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:latest
 
 4\. Create a new **Task Definition** for the iridium service using the image pushed to ECR.
 
-In the AWS Management Console, navigate to the [ECS dashboard](https://console.aws.amazon.com/ecs/).  Click on **Task Definitions** in the left menu.  Click on **Create New Task Definition**.
+Navigate to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard. Click on **Create New Task Definition**.
+
+Select **Fargate** launch type, and click **Next step**.
 
 Enter a name for your Task Definition, e.g. interstella-iridium.
 
-Click **Add container** to add the iridium container to the task.
+In the "[Task execution IAM role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)" section, Fargate needs an IAM role to be able to pull container images and log to CloudWatch.  If you already have an execution role that you have used before, select it in the drop down; otherwise, one will be created automatically.
+
+The "[Task size](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)" section lets you specify the total cpu and memory used for the task. 
+
+Select **0.5GB** for **Task memory (GB)** and select **0.25vCPU** for **Task CPU (vCPU)**.
+
+Click **Add container** to associate the iridium container with the task.
 
 Enter values for the following fields:
 
