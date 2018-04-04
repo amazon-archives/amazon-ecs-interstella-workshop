@@ -750,6 +750,13 @@ Click **Update** to save the changes to the container definition, and click **Cr
 
 3\. Tie it all together by creating an ECS Service to maintain a desired number of running tasks and use the ALB created in step 1.
 
+<details>
+<summary>INFO: What is a service and how does it differ from a task??</summary>
+An [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) is a concept where ECS allows you to run and maintain a specified number (the "desired count") of instances of a task definition simultaneously in an ECS cluster. 
+
+tl;dr a **Service** is comprised of multiple **tasks** and will keep them up and running. See the link above for more detail.
+</details>
+
 You should still be on the screen showing the new revision of the task definition you just created.  Under the **Actions** drop down, choose **Create Service**.
 
 ![Configure ECS Service](images/03-ecs-service.png)
