@@ -98,8 +98,10 @@ The template will automatically bring you to the CloudFormation Dashboard and st
 
 * **Stack Name** - the stack name is an identifier that helps you find a particular stack from a list of stacks, e.g. interstella
 * **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella.
+
 *Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
-* **InterstellaApiKey** - enter the *API key* generated in Step 3
+
+* **InterstellaApiKey** - enter the **API key** generated in Step 3
 * **InterstellaApiEndpoint** - keep this as default UNLESS the workshop admins provide you with a different fulfillment API endpoint to use
 
 All other fields can be left as their default values.
@@ -130,13 +132,13 @@ Go ahead and start reading the next section while your stack creates.
 
 Whoa! Turns out Interstella's infrastructure has been running directly on EC2 virtual machines this entire time! Our first step will be to modernize how our code is packaged by containerizing Interstella's current logistics platform, which we'll also refer to as the monolith application.  To do this, you will create a [Dockerfile](https://docs.docker.com/engine/reference/builder/), which is essentially a recipe for [Docker](https://aws.amazon.com/docker) to build a container image.  The CloudFormation template created an [AWS Cloud9](https://aws.amazon.com/cloud9/) development environment which is where you'll author the Dockerfile, build the container image, and run it to confirm it's able to process orders.
 
-[Containers](https://aws.amazon.com/what-are-containers/) are a way to package software (e.g. web server, proxy, database) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  Importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
+[Containers](https://aws.amazon.com/what-are-containers/) are a way to package software (e.g. web server, proxy, batch process worker) so that you can run your code and all of its dependencies in a resource isolated process. You might be thinking, "Wait, isn't that a virtual machine (VM)?" Containers virtualize the operating system, while VMs virtualize the hardware. Containers provide isolation, portability and repeatability, so your developers can easily spin up an environment and start building without the heavy lifting.  More importantly, containers ensure your code runs in the same way anywhere, so if it works on your laptop, it will also work in production.
 
-### Here's what we're going to build:
+### Here's what you're going to work on in lab 1:
 
 ![Lab 1 Architecture](images/01-arch.png)
 
-*Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
+*Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are  provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
 
 * * *
 
