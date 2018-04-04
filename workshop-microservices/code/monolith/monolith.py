@@ -18,20 +18,7 @@ ssmClient = boto3.client('ssm',region_name=region[:-1])
 
 apiKey = ssmClient.get_parameter(Name='/interstella/apiKey')['Parameter']['Value']
 endpoint = ssmClient.get_parameter(Name='/interstella/apiEndpoint')['Parameter']['Value']
-#orderTopic = ssmClient.get_parameter(Name='/interstella/orderTopic')['Parameter']['Value']
-#orderTopicRegion = orderTopic.split(':')[3]
 portNum = 5000
-
-# Subscribe SNS
-# snsClient = boto3.client('sns',region_name=orderTopicRegion)
-# ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
-# ip = 'http://'+ip+':'+str(portNum)+'/order/'
-
-# response = snsClient.subscribe(
-#    TopicArn=orderTopic,
-#    Protocol='http',
-#    Endpoint=ip
-# )
 
 def iridium():
     print "Getting Iridium"

@@ -17,22 +17,6 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 endpoint = os.getenv('monolithUrl')
 portNum = 80
 resource = 'iridium'
-region = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone').read().decode('utf-8')
-
-ssmClient = boto3.client('ssm',region_name=region[:-1])
-# orderTopic = ssmClient.get_parameter(Name='/interstella/iridium')['Parameter']['Value']
-# orderTopicRegion = orderTopic.split(':')[3]
-
-# Subscribe SNS
-# snsClient = boto3.client('sns',region_name=orderTopicRegion)
-# ip = urlopen('http://169.254.169.254/latest/meta-data/public-ipv4').read().decode('utf-8')
-# ip = 'http://'+ip+':'+str(portNum)+'/'+resource+'/'
-
-# response = snsClient.subscribe(
-#    TopicArn=str(orderTopic),
-#    Protocol='http',
-#    Endpoint=ip
-# )
 
 def produceResource():
     print "Producing "+resource
