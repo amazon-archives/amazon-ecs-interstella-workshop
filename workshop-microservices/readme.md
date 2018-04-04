@@ -590,7 +590,7 @@ Here's an example of what the container definition should look like up until thi
 
 In the previous lab, you attached to the running container to get *stdout*, but no one should be doing that in production and it's good operational practice to implement a centralized logging solution.  ECS offers integration with [CloudWatch logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html) through an awslogs driver that can be enabled in the container definition.
 
-In the Advanced container configuration, scroll down until you get to the **Storage and Logging** section where you'll find **Log Configuration**.
+In the "Advanced container configuration" section, scroll down until you get to the "Storage and Logging" section where you'll find **Log Configuration**.
 
 Select **awslogs** from the *Log driver* dropdown.
 
@@ -715,7 +715,7 @@ You'll notice a [security group](https://docs.aws.amazon.com/elasticloadbalancin
 
 ALB routes incoming traffic to a target group associated with your ALB listener; targets in this case are the instances hosting your containers.
 
-Enter a name for the new target group, e.g. interstella-monolith.  Enter **5000** for the port.  Leave other settings as defaults, and click **Next: Register Targets**.
+Enter a name for the new target group, e.g. interstella-monolith.  Enter `5000` for the port.  Leave other settings as defaults, and click **Next: Register Targets**.
 
 ![Configure ALB target group](images/03-alb-step4.png)
 
@@ -758,7 +758,7 @@ Configure the following fields:
 * **Launch Type** - select **EC2**
 * **Cluster** - select your ECS cluster from the dropdown menu, e.g. interstella
 * **Service Name** - enter a name for the service, e.g. interstella-monolith
-* **Number of tasks** - enter **1** for now 
+* **Number of tasks** - enter `1` for now 
 
 Leave other settings as defaults and click **Next Step**
 
@@ -902,7 +902,7 @@ Enter a name for your Task Definition, e.g. interstella-iridium.
 
 In the "[Task execution IAM role](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html)" section, Fargate needs an IAM role to be able to pull container images and log to CloudWatch.  If you already have an execution role that you have used before, select it in the drop down; otherwise, one will be created automatically.
 
-The "[Task size](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)" section lets you specify the total cpu and memory used for the task. 
+The "[Task size](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)" section lets you specify the total cpu and memory used for the task. This is different from the container-specific cpu and memory values, which you will also configure when adding the container definition.
 
 Select **0.5GB** for **Task memory (GB)** and select **0.25vCPU** for **Task CPU (vCPU)**.
 
@@ -913,38 +913,18 @@ Enter values for the following fields:
 * **Container name** - this is a logical identifier, not the name of the container image (e.g. `interstella-iridium`).
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the iridium container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
-* **Port mapping** - set host port to be **0** and container ports to be `80`.
+* **Port mapping** - set the container port to be `80`.
+
+*Note: Notice you didn't have to specify the host port because Fargate uses the awsvpc network mode. Depending on the launch type (EC2 or Fargate), some task definition parameters are required and some are optional. You can learn more from our [task definition documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html).*
 
 The iridium app code is designed to send order fulfillment to the fulfillment service running on the monolith.  It references an environment variable called "monolithURL" to know where to send fulfillment.
 
-Scroll down to the **Advanced container configuration** section, and in the **Environment** section, create an environment variable using `monolithUrl` for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.
+Scroll down to the "Advanced container configuration" section, and in the "Environment" section, create an environment variable using `monolithUrl` for the key. For the value, enter the **ALB DNS name** that currently front-ends the monolith.  This is the same DNS name you used in lab 3 to subscribe to the Orders topic.
 
 Here's an example of what this should look like:
 ![monolith env var](images/04-env-var.png)
 
-*Note: The env var value field can't be expanded, but the ALB endpoint in my case is "interstella-745660778.us-east-2.elb.amazonaws.com"; yours will be unique, this is the expected format.*
-
-Finally, add logging to CloudWatch Logs similar in the same way you set up logging for the monolith in Lab 3.
-
-Scroll down to the **Log configuration** section, and select "awslogs" from the **Log driver** dropdown.
-
-Select **awslogs** from the *Log driver* dropdown.
-
-For *Log options*, enter values for the following:
-
-* **awslogs-group** - enter `EnvironmentName*-iridium`
-
-*Note: The CloudFormation template created a CloudWatch log group for each service prefixed with the EnvironmentName parameter you specified when launching the stack.  For example, if your EnvironmentName was "interstella", the log group for the iridium service would be "interstella-iridium".*
-
-* **awslogs-region** - enter the AWS region of the log group (i.e. the current region you're working in); the expected value is the region code.
-<details>
-<summary>HINT: Region codes</summary>
-US East (Ohio) = us-east-2<br>
-US West (Oregon) = us-west-2<br>
-EU (Ireland) = eu-west-1<br>
-</details>
-
-For example, if you ran the CloudFormation stack in Ireland, you would enter `eu-west-1` for the awslogs-region.
+Fargate conveniently enables logging to CloudWatch for you.  Keep the default log settings and take note of the **awslogs-group** and the **awslogs-stream-prefix**, so you can find the logs for this task later.
 
 Click **Add** to associate the container definition, and click **Create** to create the task definition.
 
