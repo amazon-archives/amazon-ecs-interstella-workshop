@@ -146,17 +146,17 @@ Whoa! Turns out Interstella's infrastructure has been running directly on EC2 vi
 
 1\. Access your AWS Cloud9 Development Environment.
 
-In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click "**Open IDE**"
+In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**
 
 ![Cloud9 Env](images/01-c9.png)
 
 2\. Familiarize yourself with the Cloud9 Environment.
 
-On the left pane (Blue), you'll see a file tree where you'll see some files that will be downloaded later. In the middle (Red) pane, any documents you open will show up here. Double click on README.md in the left folder pane and edit the file a bit in the middle. Then save it by clicking **File** and **Save**.
+On the left pane (Blue), any files downloaded to your environment will appear here in the file tree. In the middle (Red) pane, any documents you open will show up here. Test this out by double clicking on README.md in the left pane and edit the file by adding some arbitrary text. Then save it by clicking **File** and **Save**. Keyboard shortcuts will work as well.
 
 ![Cloud9 Editing](images/01-c9-2.png)
 
-On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.
+On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.  You can also customize your Cloud9 environment by changing themes, moving panes around, etc.
 
 3\. Download the logistics application source, requirements file, and a draft [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later).
 
