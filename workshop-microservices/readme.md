@@ -723,7 +723,7 @@ ECS handles registration of targets to your target groups, so do you **NOT** hav
 
 2\. Update the task definition for the monolith to use dynamic port mapping.
 
-Remember that one of the goals with the ALB is to be able to distribute orders to multiple EC2 containers running the logistics platform.  Dynamic port mapping enables you to run multiple containers listening on the same port to be deployed on the same host.
+Remember that one of the goals with the ALB is to be able to distribute orders to multiple containers running the logistics platform.  Dynamic port mapping enables you to run multiple containers listening on the same port to be deployed on the same host.
 
 In order to take advantage of dynamic port mapping, create a new revision of your monolith task definition and remove the host port mapping in the container definition.  By leaving the host port blank, an ephemeral port will be assigned and ECS/ALB integration will handle the mapping and target group registration.
 
@@ -733,7 +733,7 @@ Select the monolith task definition and click **Create new revision**.
 
 ![New Revision of Monolith Task Def](images/03-task-def-update.png)
 
-Scroll down to the Container Definitions section and click on the existing container to edit it.
+Scroll down to the "Container Definitions" section and click on the existing container to edit it.
 
 ![Edit container definition](images/03-edit-container.png)
 
@@ -753,13 +753,20 @@ You should still be on the screen showing the new revision of the task definitio
 
 *Note: Your task def name and version may not be the same as the above screenshot*
 
-Enter a name for the service, e.g. interstella-monolith, and set **Number of tasks** to be **1** for now.  Leave other settings as defaults and click **Next Step**
+Configure the following fields:
+
+* **Launch Type** - select **EC2**
+* **Cluster** - select your ECS cluster from the dropdown menu, e.g. interstella
+* **Service Name** - enter a name for the service, e.g. interstella-monolith
+* **Number of tasks** - enter **1** for now 
+
+Leave other settings as defaults and click **Next Step**
 
 On the next page, select **Application Load Balancer** for **Load balancer type**.
 
 You'll see a **Load balancer name** drop-down menu appear.  Select the ALB you created in Step 1.
 
-In the **Container to load balance** section, select the **Container name : port** combo from the drop-down menu that corresponds to the task definition you edited in step 2.
+In the "Container to load balance" section, select the **Container name : port** combo from the drop-down menu that corresponds to the task definition you edited in step 2.
 
 Your progress should look similar to this:
 
@@ -767,9 +774,9 @@ Your progress should look similar to this:
 
 Click **Add to load balancer**.  More fields related to the container will appear.
 
-For the **Listener Port**, select **80:HTTP** from the drop-down.
+For **Listener Port**, select **80:HTTP** from the drop-down.
 
-For the **Target Group Name**, select the target group you created in step 1 from the drop-down, e.g. interstella-monolith.
+For **Target Group Name**, select the target group you created in step 1 from the drop-down, e.g. interstella-monolith.
 
 Your progress should look similar to this:
 
@@ -805,11 +812,13 @@ http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/order/
 
 Click on **Subscribe to Orders topic** to subscribe to the Orders SNS topic.  You'll see a pop-up saying "pending confirmation" confirming the subscription has been submitted.
 
+Here's an example:
+
 ![SNS Subscription](images/03-alb-sns-sub.png)
 
 *Note: Your ALB endpoint will be unique*
 
-Navigate to the CloudWatch Logs dashboard and review the latest log stream for the monolith log group.  You should see logs corresponding to orders being processed along with GET requests in your log stream.  The GET requests are the ALB health checks.
+Navigate to the CloudWatch Logs dashboard and review the latest log stream for the monolith log group.  You should see logs corresponding to order proessing along with GET requests in your log stream.  The GET requests are the ALB health checks.
 
 ![CloudWatch Logs Confirmation](images/03-logs-confirm.png)
 
