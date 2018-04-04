@@ -388,7 +388,7 @@ amazon/amazon-ecs-agent  latest     96e5393c89d4    6 weeks ago         25.4 MB
 
 *Note: Your output will not be exactly like this, but it will be similar.*
 
-Notice the image is also tagged as "latest".  This is the default behavior if you do not specify a tag of your own, but you can use this as a freeform way to identify an image, e.g. monolith:1.2 or monolith:experimental.  This is very convenient for identifying your images and correlating an image with a branch/version of code as well.
+Notice the image is also tagged as "latest".  This is the default behavior if you do not specify a tag of your own, but you can use this as a freeform way to identify an image, e.g. monolith:1.2 or monolith:experimental.  This is very convenient for identifying your images and correlating an image with a branch/version of code as well. 
 
 6\. Run the docker container and test the logistics platform running as a container to make sure it is able to fulfill an order.
 
@@ -752,9 +752,12 @@ Click **Update** to save the changes to the container definition, and click **Cr
 
 <details>
 <summary>INFO: What is a service and how does it differ from a task??</summary>
+
 An [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) is a concept where ECS allows you to run and maintain a specified number (the "desired count") of instances of a task definition simultaneously in an ECS cluster. 
 
+
 tl;dr a **Service** is comprised of multiple **tasks** and will keep them up and running. See the link above for more detail.
+
 </details>
 
 You should still be on the screen showing the new revision of the task definition you just created.  Under the **Actions** drop down, choose **Create Service**.
