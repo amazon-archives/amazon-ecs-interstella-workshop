@@ -164,7 +164,7 @@ $ chmod +x installcredhelper.sh
 $ sudo ./installcredhelper.sh
 </pre>
 
-*Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which comes bundled with Cloud9, and we authorize access to S3 through an [IAM role](https://docs.aws.amazon.com/cloud9/latest/user-guide/auth-and-access-control.html). Also notice the downloaded files appeared in your Cloud9 file tree.*
+*Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which comes bundled with Cloud9, and we authorize access to S3 through an [AWS Managed Temporary Credentials](https://docs.aws.amazon.com/cloud9/latest/user-guide/auth-and-access-control.html#auth-and-access-control-temporary-managed-credentials). Also notice the downloaded files appeared in your Cloud9 file tree.*
 
 4\. Review the draft Dockerfile and add the missing instructions indicated by comments in the file.
 
