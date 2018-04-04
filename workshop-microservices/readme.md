@@ -753,10 +753,10 @@ Click **Update** to save the changes to the container definition, and click **Cr
 <details>
 <summary>INFO: What is a service and how does it differ from a task??</summary>
 
-An [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) is a concept where ECS allows you to run and maintain a specified number (the "desired count") of instances of a task definition simultaneously in an ECS cluster. 
+*An [ECS service](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html) is a concept where ECS allows you to run and maintain a specified number (the "desired count") of instances of a task definition simultaneously in an ECS cluster. 
 
 
-tl;dr a **Service** is comprised of multiple **tasks** and will keep them up and running. See the link above for more detail.
+tl;dr a* **Service** *is comprised of multiple* **tasks** *and will keep them up and running. See the link above for more detail.*
 
 </details>
 
