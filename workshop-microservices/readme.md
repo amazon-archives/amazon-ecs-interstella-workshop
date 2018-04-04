@@ -97,7 +97,8 @@ The template will automatically bring you to the CloudFormation Dashboard and st
 5\. On the Specify Details step of the Create Stack process, enter values for the following fields:
 
 * **Stack Name** - the stack name is an identifier that helps you find a particular stack from a list of stacks, e.g. interstella
-* **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella  *Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
+* **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella.
+*Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
 * **InterstellaApiKey** - enter the *API key* generated in Step 3
 * **InterstellaApiEndpoint** - keep this as default UNLESS the workshop admins provide you with a different fulfillment API endpoint to use
 
