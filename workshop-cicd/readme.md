@@ -60,7 +60,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
 
-The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **EU (Ireland)** or **EU (Frankfurt)**.  Workshop administrators will typically indicate which region you should use.
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose **EU (Ireland)** or **US East (Ohio)**.  Workshop administrators will typically indicate which region you should use.
 
 2\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
@@ -93,7 +93,7 @@ Open the CloudFormation launch template link below for the region you selected i
 Region | Launch Template
 ------------ | -------------  
 **Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)  
-**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)
+**Ohio** (us-east-2) | [![Launch Interstella Stack into Ohio with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml) 
 
 The link above will bring you to the AWS CloudFormation console with the **Specify an Amazon S3 template URL** field populated and radio button selected. Just click **Next**. If you do not have this populated, please click the link above.
 
