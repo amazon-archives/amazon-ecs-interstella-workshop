@@ -358,9 +358,9 @@ At this point, you've manually deployed a service to ECS. It works, and is going
 
 ### Lab 1 - Offload the application build from your dev machine
 
-In this lab, you will start the process of automating the entire software delivery process. The first step we're going to take is to automate the Docker container builds and push the container image into the Elastic Container Registry. This will allow you to develop and not have to worry too much about build resources. We will use AWS CodeCommit and AWS CodeBuild to automate this process. 
+In this lab, you will start the process of automating the entire software delivery process. The first step we're going to take is to automate the Docker container builds and push the container image into the Elastic Container Registry. This will allow you to develop and not have to worry too much about build resources. We will use AWS CodeCommit and AWS CodeBuild to automate this process.
 
-We've already separated the code in the application, but it's time to move the code out of the monolith repo so we can work on it quicker. As part of the bootstrap process, CloudFormation has already created an AWS CodeCommit repository for you. It will be called EnvironmentName-iridium. We'll use this repository to break apart the iridium microservice code from the monolith. 
+We've already separated the code in the application, but it's time to move the code out of the monolith repo so we can work on it quicker. As part of the bootstrap process, CloudFormation has already created an AWS CodeCommit repository for you. It will be called EnvironmentName-iridium (*replacing EnvironmentName with the one you specified when running the CloudFormation template*). We'll use this repository to break apart the iridium microservice code from the monolith.
 
 Here's a reference architecture for what you'll be building:
 
@@ -370,7 +370,7 @@ Here's a reference architecture for what you'll be building:
 
 *You may be thinking, why would I want this to automate when I could just do it on my local machine. Well, this is going to be part of your full production pipeline. We'll use the same build system process as you will for production deployments. In the event that something is different on your local machine as it is within the full dev/prod pipeline, this will catch the issue earlier. You can read more about this by looking into **Shift Left**.*
 
-In the AWS Management Console navigate to the AWS CodeBuild console. You'll see some CodeBuild projects there already. Disregard them as they're for later. Click on **Create Project**
+In the AWS Management Console, navigate to the [AWS CodeBuild dashboard](https://console.aws.amazon.com/codebuild/home). You'll see some CodeBuild projects there already created by CloudFormation. Disregard them as they're for later. Click on **Create Project**
 
 On the **Configure your project** page, enter in the following details:
 
@@ -476,14 +476,14 @@ Scroll down to the **HTTPS Git credentials for AWS CodeCommit** section and clic
 
 Save the **User name** and **Password** as you'll never be able to get this again. 
 
-5\. On the EC2 Instance, download microservice code and commit one microservice to your CodeCommit repo
+5\. In your Cloud9 IDE, download microservice code and commit one microservice to your CodeCommit repo
 
-Before we log into CodeCommit, to avoid entering in a password every time, we're going to cache the password. SSH back into the EC2 instance you were in earlier and run the following command to cache the password for the next two hours. While we're at it, we'll also set up a git name and email:
+Before we log into CodeCommit, to avoid entering in a password every time, we're going to cache the password. Run the following command to cache the password for the next two hours. While we're at it, we'll also set up a git name and email:
 
 <pre>
 $ git config --global credential.helper "cache --timeout=7200"
-$ git config --global user.email "REPLACEWITHYOUREMAIL"
-$ git config --global user.name "REPLACEWITHYOURNAME"
+$ git config --global user.email "<b><i>REPLACEWITHYOUREMAIL</i></b>"
+$ git config --global user.name "<b><i>REPLACEWITHYOURNAME</i></b>"
 </pre>
 
 Now, clone your new repository and download some files. Go back to the AWS CodeCommit console, click on your repository, and then copy the command to clone your empty repository. It will start with:
@@ -497,9 +497,9 @@ $ git clone https://...
 $ cd /home/ec2-user/
 $ git clone https://git-codecommit.<i><b>your_region</b></i>.amazonaws.com/v1/repos/<i><b>EnvironmentName</b></i>-iridium-repo
 $ cd <i><b>EnvironmentName</b></i>-iridium-repo
-$ aws s3 sync s3://www.interstella.trade/workshop3/code/iridium .
-$ aws s3 sync s3://www.interstella.trade/workshop3/hints/ hints/
-$ aws s3 sync s3://www.interstella.trade/workshop3/tests/ tests/
+$ aws s3 sync s3://www.interstella.trade/code/cicd/iridium .
+$ aws s3 sync s3://www.interstella.trade/hints/cicd hints/
+$ aws s3 sync s3://www.interstella.trade/tests/cicd tests/
 </pre>
 
 ***You are now separating one part of the repository into another so that you can commit direct to the specific service. Similar to breaking up the monolith application in workshop 2, we've now started to break the monolithic repository apart.***
@@ -643,9 +643,9 @@ $ git merge dev
 $ git push origin master
 </pre>
 
-2\. Take a look at the AWS CloudFormation template named service.yml in the iridium folder of our GitHub repo: 
+2\. Take a look at the AWS CloudFormation template named service.yml in the iridium folder of our GitHub repo:
 
-- https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/code/iridium/service.yml
+- https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/code/iridium/service.yml
 
 Take a bit of time to understand what this is doing. What parts of the manual process from before is it replacing? Since we're starting fresh, it's best to try and control everything using CloudFormation. Looking at this template that has already been created, it's generalized to take a cluster, desired count, tag, target group, and repository. This means that you'll have to pass the variables to CloudFormation to create the stack. CloudFormation will take the parameters and create an ECS service that matches the parameters.
 
@@ -734,7 +734,7 @@ artifacts:
   - parameters.json
 </pre>
 
-If you get stuck, look at the file [finalhelpspec.yml](https://raw.githubusercontent.com/aws-samples/amazon-ecs-interstella-workshop/master/workshop3/hints/finalhintspec.yml)
+If you get stuck, look at the file [finalhintspec.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/finalhintspec.yml)
 <br />
 
 You can also copy it in from the hints folder. Overwrite the initial buildspec.
@@ -1127,7 +1127,7 @@ The error is this:
 
 ![CodePipeline CFNNag Error](images/3-cp-cfn-nag-error.png)
 
-The permissions for my role ECSTaskRole are too wide open. Let's lock it down. Update the IAM policy to only allow access to your SSM parameters. The answer is in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/final-service.yml)
+The permissions for my role ECSTaskRole are too wide open. Let's lock it down. Update the IAM policy to only allow access to your SSM parameters. The answer is in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/final-service.yml)
 
 <pre>
 $ cp hints/final-service.yml service.yml
