@@ -84,7 +84,7 @@ The CloudFormation template will launch the following:
 
 ![CloudFormation Starting Stack](images/00-arch.png)
 
-*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in a separate admin CloudFormation template, so you will be able to run this workshop without at your office or home.*
+*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in a separate admin CloudFormation template, so you will be able to run this workshop at your office or home.*
 
 Open the CloudFormation launch template link below for the region you selected in Step 1 in a new tab.  The link will load the CloudFormation Dashboard and start the stack creation process in the chosen region.
 
@@ -94,23 +94,23 @@ Region | Launch Template
 
 The template will automatically bring you to the CloudFormation Dashboard and start the stack creation process in the specified region. Do not change anything on the first screen. Click **Next** to continue.
 
-5\. On the Specify Details step of the Create Stack process, enter values for the following fields:
+4\. On the Specify Details step of the Create Stack process, enter values for the following fields:
 
 * **Stack Name** - the stack name is an identifier that helps you find a particular stack from a list of stacks, e.g. interstella
 * **EnvironmentName** - this field is to used to tag resources created by CloudFormation, e.g. interstella.
 
 *Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
 
-* **InterstellaApiKey** - enter the **API key** generated in Step 3
+* **InterstellaApiKey** - enter the **API key** generated in Step 2
 * **InterstellaApiEndpoint** - keep this as default UNLESS the workshop admins provide you with a different fulfillment API endpoint to use
 
 All other fields can be left as their default values.
 
 Click **Next** to continue.
 
-6\. No changes or inputs are required on the Options page.  Click **Next** to move on to the Review page.
+5\. No changes or inputs are required on the Options page.  Click **Next** to move on to the Review page.
 
-7\. Acknowledge that CloudFormation will create IAM resources and create the stack.
+6\. Acknowledge that CloudFormation will create IAM resources and create the stack.
 
 On the Review page, scroll down to the **Capabilities** section and click on the checkbox next to *"I acknowledge that AWS CloudFormation might create IAM resources with custom names."*.  If you do not check this box, the stack creation will fail.
 

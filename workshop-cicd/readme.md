@@ -16,8 +16,9 @@ The tools that we use in this workshop are part of the AWS Dev Tools stack, but 
 * AWS IAM account with elevated privileges allowing you to interact with CloudFormation, IAM, EC2, ECS, ECR, ALB, VPC, SNS, CloudWatch, AWS CodeCommit, AWS CodeBuild, AWS CodePipeline
 * Familiarity with Python, vim/emacs/nano, [Docker](https://www.docker.com/), AWS and microservices - not required but a bonus
 
-### Labs:
-These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop attendants will give you a high level run down of the labs and be around to answer any questions.  Don't worry if you get stuck, we provide hints and in some cases CloudFormation templates to catch you up.  
+### What you'll do:
+
+These labs are designed to be completed in sequence, and the full set of instructions are documented below.  Read and follow along to complete the labs.  If you're at a live AWS event, the workshop attendants will give you a high level run down of the labs and help answer any questions.  Don't worry if you get stuck, we provide hints along the way.  
 
 * **Workshop Setup:** Setup working environment on AWS  
 * **Lab 0:** Deploy fulfillment monolith service manually
@@ -25,10 +26,10 @@ These labs are designed to be completed in sequence, and the full set of instruc
 * **Lab 2:** Automate end to end deployment
 * **Lab 3:** Build tests into deployment pipeline
 * **Bonus Lab:** Build governance into pipeline - Black days
-* **Cleanup** [Cleanup workshop environment](#workshop-cleanup)
+* **Workshop Cleanup** [Cleanup working environment](#workshop-cleanup)
 
 ### Conventions:
-Throughout this workshop, we provide commands for you to run in the terminal.  These commands will look like this: 
+Throughout this workshop, we will provide commands for you to run in the terminal.  These commands will look like this:
 
 <pre>
 $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_DNS_NAME</i></b>
@@ -57,21 +58,21 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 ### Workshop Setup
 
-1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **EU (Ireland)** or **EU (Frankfurt)**.  Workshop administrators will typically indicate which region you should use.
+1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
 
-2\. Create an [SSH key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) that will be used to login to launched EC2 instances.  If you already have an SSH key pair and have the PEM file (or PPK in the case of Windows Putty users), you can skip to the next step.  
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **EU (Ireland)** or **EU (Frankfurt)**.  Workshop administrators will typically indicate which region you should use.
 
-Go to the EC2 Dashboard and click on **Key Pairs** in the left menu under Network & Security.  Click **Create Key Pair**, provide a name (e.g. interstella-workshop), and click **Create**.  Download the created .pem file, which is your private SSH key.      
+2\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
-*Mac or Linux Users*:  Change the permissions of the .pem file to be less open using this command:
+Open the [Interstella API Key Portal](http://www.interstella.trade/getkey.html) in a new tab and click on **Sign up Here** to create a new account.  Enter a username and password and click **Sign up**.  Note and save your login information because you will use this page again later in the workshop.  Click **Sign in**, enter your login information and click **Login**.
 
-<pre>$ chmod 400 <b><i>PRIVATE_KEY.PEM</i></b></pre>
+Note down the unique API key that is generated.
 
-*Windows Users*: Convert the .pem file to .ppk format to use with Putty.  Here is a link to instructions for the file conversion - [Connecting to Your Linux Instance from Windows Using PuTTY](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html)
+For example:
 
-3\. Generate a Fulfillment API Key for the logistics software [here](http://www.interstella.trade/getkey.html).  Create a username and password to login to the API Key Management portal; you'll need to access this page again later in the workshop, so don't forget what they are.  Click **GetKey** to generate an API Key.  Note down your username and API Key because we'll be tracking resource fulfillment rates.  The API key will be used later to authorize the logistics software send messages to the order fulfillment API endpoint (see arch diagram in Lab 1).
+![Example API Key](images/00-api-key.png)
 
-4\. For your convenience, we provide a [CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) template to stand up core workshop infrastructure.
+3\. Launch the [CloudFormation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html) template for your selected region to stand up the core workshop infrastructure.
 
 Here is what the workshop environment looks like:
 
@@ -83,35 +84,42 @@ The CloudFormation template will launch the following:
 * ECR repositories for your container images
 * Application Load Balancer to front all your services
 * Parameter store to hold values for your API Key, Order Fulfillment URL, SNS Topic ARNs to subscribe to, and a security SNS topic.
+* Cloud9 Development Environment
 
-*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in an admin CloudFormation template, so you can run this workshop at your office, home, etc.*
+*Note: SNS Orders topic, S3 assets, API Gateway and DynamoDB tables are admin components that run in the workshop administrator's account.  If you're at a live AWS event, this will be provided by the workshop facilitators.  We're working on packaging up the admin components in an admin CloudFormation template, so you will be able to run this workshop at your office or home.*
 
-Click on the CloudFormation launch template link below for the region you selected in Step 1.  The link will load the CloudFormation Dashboard and start the stack creation process in the specified region.
+Open the CloudFormation launch template link below for the region you selected in Step 1 in a new tab.  The link will load the CloudFormation Dashboard and start the stack creation process in the chosen region.
 
 Region | Launch Template
 ------------ | -------------  
-**Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)  
-**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/workshop3/starthere.yaml)
+**Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)  
+**Frankfurt** (eu-central-1) | [![Launch Interstella Stack into Frankfurt with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-central-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)
 
 The link above will bring you to the AWS CloudFormation console with the **Specify an Amazon S3 template URL** field populated and radio button selected. Just click **Next**. If you do not have this populated, please click the link above.
 
 ![CloudFormation Starting Stack](images/cfn-createstack-1.png)
 
-In the **Specify Details** page, there are some parameters to populate. Feel free to leave any of the pre-populated fields as is. The only fields you **NEED** to change are:
+4\. On the Specify Details page, there are some parameters to populate. Feel free to leave any of the pre-populated fields as is. The only fields you **NEED** to change are:
 
 - **EnvironmentName** - *This name will be prepended to many of the resources created to help you distinguish the workshop resources from other existing ones*
+
+*Important: please use only lowercase letters. The ECR repository leverages this CloudFormation parameter and ECR repository names can only contain lower case letters.*
+
 - **InterstellaApiKey** - *In a previous step, you visited the getkey website to get an API key for fulfillment. Enter it here.*
-- **KeyPairName** - *You will need to log into an EC2 instance. This is your authentication mechanism. If there are no options in the dropdown, please create a new keypair*
 
-Click **Next**
+Click **Next** to continue.
 
-In the **Options** section, you can leave things blank and default. You can optionally enter in tags to be applied to all resources.
+5\. No changes or inputs are required on the Options page.  Click **Next** to move on to the Review page.
 
-In the **Review** section, take a look at all the parameters and make sure they're accurate. Check the box next to **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** As part of the cleanup, CloudFormation will remove the IAM Roles for you.
+6\. Acknowledge that CloudFormation will create IAM resources and create the stack.
+
+On the Review page, take a look at all the parameters and make sure they're accurate. Check the box next to **I acknowledge that AWS CloudFormation might create IAM resources with custom names.** If you do not check this box, the stack creation will fail. As part of the cleanup, CloudFormation will remove the IAM Roles for you.
 
 ![CloudFormation IAM Capabilities](images/cfn-iam-capabilities.png)
 
-### Checkpoint:  
+Click **Create** to launch the CloudFormation stack.
+
+### Checkpoint:
 The CloudFormation stack will take a few minutes to launch.  Periodically check on the stack creation process in the CloudFormation Dashboard.  Your stack should show status **CREATE\_COMPLETE** in roughly 5-10 minutes. If you select box next to your stack and click on the **Events** tab, you can see what steps it's on.  
 
 ![CloudFormation CREATE_COMPLETE](images/cfn-create-complete.png)
@@ -124,7 +132,7 @@ While you're waiting, take a minute to look over the overall architecture that y
 
 ### Lab 0 - Manually deploy monolith service
 
-In this lab, you will manually deploy the monolith service so that you know what you'll be automating later. Remember, the monolith is what we broke apart, but there's still some legacy code in there that we can't get rid of. For a better sense of the story, review [Workshop 2](http://www.interstella.trade/workshop2/). By the end of the lab, you will have a single monolith service waiting to fulfill orders to the API. 
+In this lab, you will manually deploy the monolith service so that you know what you'll be automating later. If you are new to the Interstella workshop series, the monolith is what we broke apart into microservices using the strangler pattern. There's still some legacy order fulfillment code in there that we can't get rid of, which is what you'll be deploying now. For a better sense of the story, review [Interstella GTC: Monolith to Microservices with Containers](https://github.com/aws-samples/amazon-ecs-interstella-workshop/tree/master/workshop-microservices). By the end of the lab, you will have a single monolith service waiting to fulfill orders to the API.
 
 Here's a reference architecture for what you'll be building:
 
@@ -132,35 +140,32 @@ Here's a reference architecture for what you'll be building:
 
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
 
-*If you are attending a live AWS event, these assets will be provided.  We're working on packaging up the admin components, so you can run this workshop at your office, home, etc.*
+1\. Access your AWS Cloud9 Development Environment.
 
-1\. SSH into one of the launched EC2 instances to get started.  
+In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**
 
-Go to the EC2 Dashboard in the Management Console and click on **Instances** in the left menu.  Select either one of the EC2 instances created by the CloudFormation stack and SSH into the instance.  
+![Cloud9 Env](images/01-c9.png)
 
-*Tip: If your instances list is cluttered with other instances, type the **EnvironmentName** you used when running your CloudFormation template into the filter search bar to reveal only those instances.*  
+2\. Familiarize yourself with the Cloud9 Environment.
 
-![EC2 Public IP](images/1-ec2-IP.png)
+On the left pane (Blue), any files downloaded to your environment will appear here in the file tree. In the middle (Red) pane, any documents you open will show up here. Test this out by double clicking on README.md in the left pane and edit the file by adding some arbitrary text. Then save it by clicking **File** and **Save**. Keyboard shortcuts will work as well.
 
-<pre>
-$ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_IP_ADDRESS</i></b>
-</pre>
+![Cloud9 Editing](images/01-c9-2.png)
 
-If you see something similar to the following message (host IP address and fingerprint will be different, this is just an example) when trying to initiate an SSH connection, this is normal when trying to SSH to a server for the first time.  The SSH client just does not recognize the host and is asking for confirmation.  Just type **yes** and hit **enter** to continue:
+On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.  You can also customize your Cloud9 environment by changing themes, moving panes around, etc.
 
-<pre>
-The authenticity of host '52.15.243.19 (52.15.243.19)' can't be established.
-RSA key fingerprint is 02:f9:74:ef:d8:5c:19:b3:27:37:57:4f:da:37:2b:e8.
-Are you sure you want to continue connecting (yes/no)? 
-</pre>
-
-2\. Once logged onto the instance, copy down required files for the monolith (glue fulfillment) service
+3\. Download the monolith service source, requirements file, and [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later). Once logged onto the instance, copy down required files for the monolith (glue fulfillment) service
 
 <pre>
-$ aws s3 sync s3://www.interstella.trade/workshop3/code/monolith/ monolith/
+$ aws s3 sync s3://www.interstella.trade/workshop3/code/cicd/monolith/ monolith/
+$ cd monolith
+$ chmod +x installcredhelper.sh
+$ sudo ./installcredhelper.sh
 </pre>
 
-3\. Build and push monolith
+*Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which comes bundled with Cloud9, and we authorize access to S3 through [AWS Managed Temporary Credentials](https://docs.aws.amazon.com/cloud9/latest/user-guide/auth-and-access-control.html#auth-and-access-control-temporary-managed-credentials). Also notice the downloaded files appeared in your Cloud9 file tree.*
+
+4\. Build the monolith docker image and push to ECR.
 
 First, we have to get the ECR repository that we will be pushing to. Navigate to the Amazon Elastic Container Service Dashboard in the AWS Management Console. On the left pane, click **Repositories**. You should see a few repositories that were created for you:
 
@@ -171,14 +176,14 @@ Click the monolith repo and then click **View Push Commands**.
 A popup with commands to log into, tag, and push to ECR will appear. Note down the build, tag, and push commands. In my case these are:
 
 <pre>
-<b> Do not run these commands. Just note them down somewhere</b>
+<b> Do NOT run these commands. Just note them down somewhere</b>
 aws ecr get-login --no-include-email --region eu-central-1 <i>You'll need this later</i>
 docker build -t interstella-monolith .
 docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
 docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
 </pre>
 
-Back on the EC2 instance you logged into, navigate to the monolith folder and build your Docker image. The build command below corresponds directly with the one that you got just a minute ago.
+Back in your Cloud 9 IDE, you should still be in the monolith folder. Build the monolith docker image.
 
 <pre>
 $ cd monolith
@@ -222,9 +227,9 @@ $ docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monoli
 
 When you issue the push command, Docker pushes the layers up to ECR, and if you refresh the monolith repository page, you'll see an image indicating the latest version.  
 
-*Note: that you did not need to authenticate docker with ECR because the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) has been installed and configured for you on the EC2 instance.  This was done as a bootstrap action when launching the EC2 instances.  Review the CloudFormation template and you will see where this is done.  You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
+*Note: You did not need to authenticate docker with ECR because of the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper). You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
 
-4\. Create a task definition to reference this Docker image in ECS.
+5\. Create a task definition to reference this Docker image in ECS.
 
 Now that we've pushed an image to ECS, let's make a task definition to reference and deploy using ECS. Navigate to the ECS Dashboard in the AWS Management Console. Click **Task Definitions** on the left menu. Click on **Create new Task Definition**.
 
@@ -250,7 +255,7 @@ Expand the **Advanced container configuration** to set the **Log Configuration**
 
 Click **Add** and then **Create**.
 
-5\. Create an ECS Service using your task definition.
+6\. Create an ECS Service using your task definition.
 
 It's time to start up the monolith service. Let's create an ECS service. What's a service you ask? There are two ways of launching Docker containers with ECS. One is to create a service and the other is to run a task. 
 

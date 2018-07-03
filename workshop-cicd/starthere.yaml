@@ -261,7 +261,7 @@ Resources:
         Properties:
             RouteTableId: !Ref PrivateRouteTable2
             SubnetId: !Ref PrivateSubnet2
-################################################## STOPPING POINT 
+ 
     ECSHostSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties: 
