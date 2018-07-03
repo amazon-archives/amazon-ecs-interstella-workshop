@@ -1,0 +1,76 @@
+Parameters:
+  Tag:
+    Type: String
+
+  DesiredCount:
+    Type: Number
+    Default: 2
+
+  TargetGroupArn:
+    Type: String
+    
+  Cluster:
+    Type: String
+
+  Repository:
+    Type: String
+    
+  cloudWatchLogsGroup:
+    Type: String
+
+  CwlPrefix:
+    Type: String
+
+
+Resources:
+  ECSServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument: |
+        {
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": { "Service": [ "ecs.amazonaws.com" ]},
+                "Action": [ "sts:AssumeRole" ]
+            }]
+        }
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: iridium
+      ContainerDefinitions:
+        - Name: iridium
+          Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
+          Essential: true
+          Memory: 128
+          PortMappings:
+            - ContainerPort: 5000
+          Environment:
+            - Name: Tag
+              Value: !Ref Tag
+          LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group:
+                  Ref: cloudWatchLogsGroup
+                awslogs-region:
+                  Ref: AWS::Region
+                awslogs-stream-prefix:
+                  Ref: CwlPrefix
+  
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref Cluster
+      DesiredCount: !Ref DesiredCount
+      TaskDefinition: !Ref TaskDefinition
+      Role: !Ref ECSServiceRole
+      LoadBalancers:
+      - TargetGroupArn:
+          Ref: TargetGroupArn
+        ContainerPort: 5000
+        ContainerName: iridium

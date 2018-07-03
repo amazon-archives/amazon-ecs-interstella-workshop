@@ -1,0 +1,10 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - # TODO: INSTALL OR BUILD CFN-NAG
+  build:
+    commands:
+      - echo 'In Build'
+      - # TODO: RUN CFN-NAG
