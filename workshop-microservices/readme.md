@@ -573,7 +573,7 @@ Scroll down to "Container Definitions" and click **Add container**.
 
 Enter values for the following fields:
 
-* **Container name** - this is a friendly name for your container, not the name of the container image. e.g. interstella-monolith
+* **Container name** - this is a friendly name for your container, not the name of the container image. e.g. `interstella-monolith`
 * **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
 * **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
 
@@ -770,8 +770,8 @@ Configure the following fields:
 
 * **Launch Type** - select **EC2**
 * **Cluster** - select your ECS cluster from the dropdown menu, e.g. interstella
-* **Service Name** - enter a name for the service, e.g. interstella-monolith
-* **Number of tasks** - enter `1` for now 
+* **Service Name** - enter a name for the service, e.g. `interstella-monolith`
+* **Number of tasks** - enter `1` for now
 
 Leave other settings as defaults and click **Next Step**
 

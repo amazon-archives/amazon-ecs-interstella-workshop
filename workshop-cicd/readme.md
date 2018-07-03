@@ -136,7 +136,7 @@ In this lab, you will manually deploy the monolith service so that you know what
 
 Here's a reference architecture for what you'll be building:
 
-![Lab0 - Overview](images/0-overview.png)
+![Lab 0 - Overview](images/0-overview.png)
 
 *Reminder: You'll see SNS topics, S3 bucket, API Gateway and DynamoDB in the diagram.  These are provided by Interstella HQ for communicating orders and fulfilling orders.  They're in the diagram to show you the big picture as to how orders come in to the logistics platform and how orders get fulfilled*
 
@@ -144,13 +144,13 @@ Here's a reference architecture for what you'll be building:
 
 In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**
 
-![Cloud9 Env](images/01-c9.png)
+![Cloud9 Env](images/0-c9.png)
 
 2\. Familiarize yourself with the Cloud9 Environment.
 
 On the left pane (Blue), any files downloaded to your environment will appear here in the file tree. In the middle (Red) pane, any documents you open will show up here. Test this out by double clicking on README.md in the left pane and edit the file by adding some arbitrary text. Then save it by clicking **File** and **Save**. Keyboard shortcuts will work as well.
 
-![Cloud9 Editing](images/01-c9-2.png)
+![Cloud9 Editing](images/0-c9-2.png)
 
 On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.  You can also customize your Cloud9 environment by changing themes, moving panes around, etc.
 
@@ -167,7 +167,7 @@ $ sudo ./installcredhelper.sh
 
 4\. Build the monolith docker image and push to ECR.
 
-First, we have to get the ECR repository that we will be pushing to. Navigate to the Amazon Elastic Container Service Dashboard in the AWS Management Console. On the left pane, click **Repositories**. You should see a few repositories that were created for you:
+First, we have to get the ECR repository that we will be pushing to. Navigate to [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) in the ECS dashboard. You should see a few repositories that were created for you:
 
 ![ECR Repos](images/0-ecr-repos.png)
 
@@ -183,10 +183,9 @@ docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazona
 docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
 </pre>
 
-Back in your Cloud 9 IDE, you should still be in the monolith folder. Build the monolith docker image.
+Go back in your Cloud 9 IDE and build the monolith docker image (you should still be in the monolith directory).
 
 <pre>
-$ cd monolith
 $ docker build -t monolith .
 </pre>
 
@@ -229,27 +228,51 @@ When you issue the push command, Docker pushes the layers up to ECR, and if you 
 
 *Note: You did not need to authenticate docker with ECR because of the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper). You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
 
-5\. Create a task definition to reference this Docker image in ECS.
+5\. Create a task definition to reference this Docker image in ECS and enable logging to CloudWatch Logs.
 
-Now that we've pushed an image to ECS, let's make a task definition to reference and deploy using ECS. Navigate to the ECS Dashboard in the AWS Management Console. Click **Task Definitions** on the left menu. Click on **Create new Task Definition**.
+Now that we've pushed an image to ECR, let's make a task definition to reference and deploy using ECS. In the AWS Management Console, navigate to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard. Click on **Create new Task Definition**. 
 
-Enter a name for your task definition, e.g. **interstella-monolith**.
+If you are in a region that supports both [Fargate and EC2 launch types](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html), select **EC2** launch type compatibility and click **Next step**.
 
-Add a container to the task definition. Click **Add container**.  Enter values for the following fields:
+Enter a name for your task definition, e.g. `interstella-monolith`.
 
-- **Container name** - this is a logical identifier, not the name of the container image, e.g. monolith
+Scroll down to "Container Definitions" and click **Add container**.  
+
+Enter values for the following fields:
+
+- **Container name** - this is a friendly name for your container, not the name of the container image. e.g. `interstella-monolith`
 - **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
-- **Memory Limits** - select **Soft limit** from the drop down, and enter **128**. 
+- **Memory Limits** - select **Soft limit** from the drop down, and enter `128`. 
 - **Port Mappings** - Host Port: **0** Container Port: **5000**
 
 Your container definition should look like this:
 
 ![Task Definition Creation Pt 1](images/0-task-def-create.png)
 
-Expand the **Advanced container configuration** to set the **Log Configuration** and configure these settings.  
+In the "Advanced container configuration" section, scroll down until you get to the "Storage and Logging" section where you'll find **Log Configuration**.
 
-* **Log driver** - select **awslogs** from the drop-down
-* **Log options** - enter the name of the CloudWatch loggroup that CloudFormation created: EnvironmentName-LogGroup, and enter the AWS region of the log group. Enter **prod** as the awslogs-stream-prefix.
+Select **awslogs** from the *Log driver* dropdown.
+
+For *Log options*, enter values for the following:
+
+* **awslogs-group** - enter the name of the CloudWatch log group that CloudFormation created, e.g. `[EnvironmentName]-LogGroup`
+
+*IMPORTANT: Replace `[EnvironmentName]` above with the EnvironmentName you specified when you created the CloudFormation stack. For example, if your EnvironmentName was "interstella", the log group would be "interstella-LogGroup".*
+
+* **awslogs-region** - enter the AWS region of the log group (i.e.: the current region you're working in); the expected value is the region code.
+<details>
+<summary>HINT: Region codes</summary>
+US East (N.Virginia) = us-east-1<br>
+US East (Ohio) = us-east-2<br>
+US West (Oregon) = us-west-2<br>
+EU (Ireland) = eu-west-1<br>
+</details>
+
+For example, if you ran the CloudFormation stack in Ireland, you would enter 'eu-west-1' for the awslogs-region.
+
+* **awslogs-stream-prefix** - enter `prod`
+
+The log configuration should look something like this:
 
 ![Task Definition Creation Logs](images/0-task-def-logs.png)
 
@@ -257,20 +280,23 @@ Click **Add** and then **Create**.
 
 6\. Create an ECS Service using your task definition.
 
-It's time to start up the monolith service. Let's create an ECS service. What's a service you ask? There are two ways of launching Docker containers with ECS. One is to create a service and the other is to run a task. 
+It's time to start up the monolith service. Let's create an ECS service. What's a service you ask? There are two ways of launching Docker containers with ECS. One is to create a service and the other is to run a task.
 
 **Services** are for long running containers. ECS will make sure that they are always up for you. Great for things like apache/webservers.
 
-**Tasks**, however, are short lived, possibly periodic. Run once and that's it. ECS will not try to bring up new containers if it goes down. 
+**Tasks**, however, are short lived, possibly periodic. Run once and that's it. ECS will not try to bring up new containers if it goes down.
 
-From the Task Definition page, click on **Actions** and choose **Create Service**. If you navigated away from the page, click on **Task Definitions** on the left menu and then click the task definition you just created.
+From the Task Definition page, click on **Actions** and choose **Create Service**. If you navigated away from the page, go to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard.
 
 ![Task Definition Create Service](images/0-task-def-create-svc.png)
 
 Fill in the following fields:
 
-* **Service Name** - this is a logical identifier for your service, e.g. interstella-monolith
-* **Number of tasks** - set to **1** for now; you will horizontally scale this service in the last lab with a new ECS service
+* **Cluster** - select your ECS cluster from the dropdown menu, e.g. interstella
+* **Service Name** - enter a name for your service, e.g. `interstella-monolith`
+* **Number of tasks** - enter `1` for now; you will horizontally scale this service in the last lab with a new ECS service
+
+*Note: If you're in a region that supports Fargate launch type, you may see a field named "Launch Type". This workshop uses the EC2 launch type, so select **EC2**.
 
 ![ECS Service Creation Step 1](images/0-ecs-svc-create-1.png)
 
@@ -278,34 +304,38 @@ Fill in the following fields:
 
 Leave the other fields as default and click **Next step**
 
-Under Load Balancing, choose **Application Load Balancer**. Then select the Service IAM Role created earlier. It should start with your environmentName. In this case, it is **interstella-ECSServiceRole**. Next, choose the Load Balancer that was created. Again, it should start with your environmentName. Mine is **interstella-LoadBalancer**. 
+7\. Associate an ALB with your ECS Service.
+
+On the next page, select **Application Load Balancer** for **Load balancer type**. Then select the Service IAM Role created earlier. It should start with your environmentName. In my case, it is **interstella-ECSServiceRole**.
+
+You'll see a **Load balancer name** drop-down menu appear.  Select the ALB that was created by CloudFormation. It should start with your environmentName, e.g. **interstella-LoadBalancer**.
 
 ![ECS Service Creation Step 2a](images/0-ecs-svc-create-2.png)
 
-In the Container to load balance section, click **Add to load balancer**. Enter the following values:
+In the "Container to load balance" section, click **Add to load balancer**. Configure the following values:
 
 - Listener port: **80** *This is a dropdown. Choose 80:HTTP*
-- Target Group: Look for the one that has Monolith in it
+- Target Group: Look for the one that has "Monolith" in it
 
 Leave the rest as default as you can't edit it and click **Next**.
 
 ![ECS Service Creation Step 2b](images/0-ecs-svc-create-3.png)
 
-Click **Next step** to skip the auto scaling option.  
+8\. Click **Next step** to skip the auto scaling option.  
 
-Click **Create Service** and click **View Service** to get the status of your service launch.  The *Last Status* will show **RUNNING** once your container has launched. 
+Click **Create Service** and click **View Service** to get the status of your service launch. The *Last Status* will show **RUNNING** once your container has launched.
 
 ![ECS Service Monolith](images/0-ecs-service-mono.png)
 
-9\. Confirm logging to CloudWatch Logs is working. 
+9\. Confirm logging to CloudWatch Logs is working.
 
-Once the monolith service is running, navigate back to the [CloudWatch Logs dashboard](https://console.aws.amazon.com/cloudwatch/home), and click on your **Logs** on the left and then log group you created **EnvironmentName-LogGroup**.  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recent one. You can test the service by sending some data to it:
+Once the monolith service is running, navigate to the [CloudWatch dashboard](https://console.aws.amazon.com/cloudwatch/home), click **Logs** on the left menu, and then select the log groug which should look like **EnvironmentName-LogGroup** (*replacing EnvironmentName with the one you used*).  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recent one. You can test the monolith fulfillment service by sending some data to it using curl:
 
 <pre>
-$ curl LoadBalancerDNSName.eu-central-1.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
+$ curl <b><i>LoadBalancerDNSName</i></b>.<b><i>region</i></b>.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
 </pre>
 
-You can find the load balancer DNS name in the CloudFormation outputs.
+*Note: You'll need to provide your ALB DNS name which you can find in the CloudFormation outputs. The region is the region code where your stack is running, e.g. Ireland = `eu-west-1`.
 
 You should get output like this:
 
