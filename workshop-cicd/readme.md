@@ -171,25 +171,17 @@ First, we have to get the ECR repository that we will be pushing to. Navigate to
 
 ![ECR Repos](images/0-ecr-repos.png)
 
-Click the monolith repo and then click **View Push Commands**.
+Click on the monolith repo and note down the "Repository URI".
 
-A popup with commands to log into, tag, and push to ECR will appear. Note down the build, tag, and push commands. In my case these are:
+![ECR URI](images/0-ecr-monolith-uri.png)
 
-<pre>
-<b> Do NOT run these commands. Just note them down somewhere</b>
-aws ecr get-login --no-include-email --region eu-central-1 <i>You'll need this later</i>
-docker build -t interstella-monolith .
-docker tag interstella-monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
-docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
-</pre>
-
-Go back in your Cloud 9 IDE and build the monolith docker image (you should still be in the monolith directory).
+Go back in your Cloud 9 IDE and build the monolith docker image (you should still be in the monolith directory) using the following command:
 
 <pre>
 $ docker build -t monolith .
 </pre>
 
-*You'll see some red error-looking messages. Don't worry about them*
+*You'll see some red error-looking messages during the build process. Don't worry about them*
 
 Try to run the image and you should see output like this:
 
@@ -209,19 +201,11 @@ INFO:werkzeug: * Debugger PIN: 896-977-731
 
 Push **Ctrl + C** to exit.
 
-Once you've confirmed it runs, tag and push your container image to the repository.
-
-![ECR Copy Paste](images/0-ecr-monolith-uri.png)
+Once you've confirmed it runs, tag and push your container image to the repository URI you noted down earlier: 
 
 <pre>
 $ docker tag monolith:latest <b><i>ECR_REPOSITORY_URI</i></b>:latest
 $ docker push <b><i>ECR_REPOSITORY_URI</i></b>:latest
-</pre>
-
-With my commands I copied before, the commands would be:
-<pre>
-$ docker tag monolith:latest 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
-$ docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/interstella-monolith:latest
 </pre>
 
 When you issue the push command, Docker pushes the layers up to ECR, and if you refresh the monolith repository page, you'll see an image indicating the latest version.  
