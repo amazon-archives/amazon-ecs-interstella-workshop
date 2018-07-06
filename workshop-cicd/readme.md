@@ -92,8 +92,8 @@ Open the CloudFormation launch template link below for the region you selected i
 
 Region | Launch Template
 ------------ | -------------  
-**Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)  
-**Ohio** (us-east-2) | [![Launch Interstella Stack into Ohio with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=amazon-ecs-interstella-workshop-3&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml) 
+**Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=interstella-cicd&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)  
+**Ohio** (us-east-2) | [![Launch Interstella Stack into Ohio with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=interstella-cicd&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml) 
 
 The link above will bring you to the AWS CloudFormation console with the **Specify an Amazon S3 template URL** field populated and radio button selected. Just click **Next**. If you do not have this populated, please click the link above.
 
@@ -142,7 +142,7 @@ Here's a reference architecture for what you'll be building:
 
 1\. Access your AWS Cloud9 Development Environment.
 
-In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**
+In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**.
 
 ![Cloud9 Env](images/0-c9.png)
 
@@ -157,7 +157,7 @@ On the bottom, you will see a bash shell (Yellow). For the remainder of the lab,
 3\. Download the monolith service source, requirements file, and [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later). Once logged onto the instance, copy down required files for the monolith (glue fulfillment) service
 
 <pre>
-$ aws s3 sync s3://www.interstella.trade/workshop3/code/cicd/monolith/ monolith/
+$ aws s3 sync s3://www.interstella.trade/code/cicd/monolith/ monolith/
 $ cd monolith
 $ chmod +x installcredhelper.sh
 $ sudo ./installcredhelper.sh
