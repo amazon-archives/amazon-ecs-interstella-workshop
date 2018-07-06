@@ -344,7 +344,7 @@ At this point, you've manually deployed a service to ECS. It works, and is going
 
 In this lab, you will start the process of automating the entire software delivery process. The first step we're going to take is to automate the Docker container builds and push the container image into the Elastic Container Registry. This will allow you to develop and not have to worry too much about build resources. We will use AWS CodeCommit and AWS CodeBuild to automate this process.
 
-We've already separated the code in the application, but it's time to move the code out of the monolith repo so we can work on it quicker. As part of the bootstrap process, CloudFormation has already created an AWS CodeCommit repository for you. It will be called EnvironmentName-iridium (*replacing EnvironmentName with the one you specified when running the CloudFormation template*). We'll use this repository to break apart the iridium microservice code from the monolith.
+We've already separated out the microservices code in the application, but it's time to move the code out of the monolith repo so we can work on it independently and iterate on it quicker. As part of the bootstrap process, CloudFormation has already created an AWS CodeCommit repository for you. It will be called EnvironmentName-iridium-repo (*replacing EnvironmentName with the one you specified when running the CloudFormation template*). We'll use this repository to break apart the iridium microservice code from the monolith.
 
 Here's a reference architecture for what you'll be building:
 
@@ -354,47 +354,48 @@ Here's a reference architecture for what you'll be building:
 
 *You may be thinking, why would I want this to automate when I could just do it on my local machine. Well, this is going to be part of your full production pipeline. We'll use the same build system process as you will for production deployments. In the event that something is different on your local machine as it is within the full dev/prod pipeline, this will catch the issue earlier. You can read more about this by looking into **Shift Left**.*
 
-In the AWS Management Console, navigate to the [AWS CodeBuild dashboard](https://console.aws.amazon.com/codebuild/home). You'll see some CodeBuild projects there already created by CloudFormation. Disregard them as they're for later. Click on **Create Project**
+In the AWS Management Console, navigate to the [AWS CodeBuild dashboard](https://console.aws.amazon.com/codebuild/home). You'll see some CodeBuild projects there already created by CloudFormation. Disregard them as they're for later. Click on **Create Project**.
 
 On the **Configure your project** page, enter in the following details:
 
-- Project Name: **dev-iridium-service**
-- Source Provider: **AWS CodeCommit**
-- Repository: **Your AWS CodeCommit repository name from above** *e.g. interstella-iridium-repo*
+- Project Name: Enter `dev-iridium-service`
+- Source Provider: Select **AWS CodeCommit**
+- Repository: Select the CodeCommit repository that was created by CloudFormation, e.g. interstella-iridium-repo
 
 Environment:
 
-- Environment Image: **Use an Image managed by AWS CodeBuild** - *There are two options. You can either use a predefined Docker container that is curated by CodeBuild, or you can upload your own if you want to customize dependencies etc. to speed up build time*
-- Operating System: **Ubuntu** - *This is the OS that will run your build*
-- Runtime: **Docker** - *Each image has specific versions of software installed. See [Docker Images Provided by AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)*
-- Version: **aws/codebuild/docker:1.12.1** - *There's only one version now, but you will be able to choose different versions in the future*
-- Build Specification: **Use the buildspec.yml in the source code root directory**
-- Buildspec name: **buildspec.yml**
+- Environment Image: Select **Use an Image managed by AWS CodeBuild** - *There are two options. You can either use a predefined Docker container that is curated by CodeBuild, or you can upload your own if you want to customize dependencies etc. to speed up build time*
+- Operating System: Select **Ubuntu** - *This is the OS that will run your build*
+- Runtime: Select **Docker** - *Each image has specific versions of software installed. See [Docker Images Provided by AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)*
+- Runtime version: Select **aws/codebuild/docker:17.09.0** - *This will default to the latest*
+- Build Specification: Select **Use the buildspec.yml in the source code root directory**
+- Buildspec name: Enter `buildspec.yml` *if not already populated*
+
+Your progress should look similar to this (note the runtime version may differ which is ok):
 
 ![CodeBuild Create Project Part 1](images/1-cb-create-project-1.png)
 
 Artifacts:
 
-- Type: **No artifacts** *If there are any build outputs that need to be stored, you can choose to put them in S3.*
+- Type: Select **No artifacts** *If there are any build outputs that need to be stored, you can choose to put them in S3.*
 
 Cache: 
 
-- Type: **No Cache** *There are no dependencies to cache, so we're not using the caching mechanism. CodeBuild does not yet cache Docker layers.*
+- Type: Select **No Cache** *There are no dependencies to cache, so we're not using the caching mechanism. CodeBuild does not yet cache Docker layers.*
 
 Service Role:
 
-- Service Role: **Create a service role in your account**
+- Service Role: Select **Create a service role in your account**
 - Role Name: **codebuild-dev-iridium-service-service-role** *This is pre-populated and CodeBuild will assume this role to build your application*
 
 VPC:
 
-- VPC: **No VPC** *If you have private repos you need to access that are hosted within your VPC, choose a VPC here. In this lab we don't have anything like that*
+- VPC: Select **No VPC** *If you have private repos you need to access that are hosted within your VPC, choose a VPC here. In this lab we don't have anything like that*
 
-Expand the **Advanced** section:
+Expand the **Advanced** settings section and under "Environment variables", enter two environment variables:
 
-- Under Environment Variables, enter two variables:
-- Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext** *You can find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
-- Name: **IMAGE_REPO_NAME** Value: **EnvironmentName-iridium** Type: **Plaintext** *This is the name of your ECR repo for iridium*
+- Name: Enter `AWS_ACCOUNT_ID`; Value: ***Enter your account ID***; Type: Select **Plaintext** *You can find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
+- Name: Enter `IMAGE_REPO_NAME` Value: ***Enter the name of the iridium ECR repo*** Type: Select **Plaintext** *This is the name of your ECR repo for iridium which follows this format - EnvironmentName-iridium; you can also find the repository name in the [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) section of the ECS dashboard*
 
 ![CodeBuild Create Project Part 2](images/1-cb-create-project-2.png)
 
@@ -435,22 +436,24 @@ Choose **Custom Policy**. Name it **AccessECR** and enter in:
 
 Choose **Apply Policy**
 
-3\. Get details on Elastic Container Repository where we will be pushing and pulling Docker images to/from.
+3\. Get details about the iridium ECR repository where we will be pushing and pulling Docker images to/from.
 
-We now have the building blocks in place to start automating the builds of our Docker images. Now it's time to figure out how to use the Amazon Elastic Container Registry. 
+We now have the building blocks in place to start automating the builds of our Docker images. Now it's time to figure out how to use the Amazon Elastic Container Registry.
 
-In the AWS Management Console, navigate to the Amazon Elastic Container Service console. On the left, click on Repositories. This time, we'll use the **iridium repository** instead of the monolith repository.
+In the AWS Management Console, navigate to [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) in the ECS dashboard. Click on the repository with "iridium" in the name.
 
-Copy the login, build, tag, and push commands to use later.
+Click on "View Push Commands" and copy the login, build, tag, and push commands to use later.
 
 ![ECR Get Iridium Commands](images/1-ecr-get-iridium-commands.png)
 
 4\. Connect to your AWS CodeCommit repository.
 
-In the AWS Management Console, navigate to the AWS CodeCommit dashboard. Choose the repository named **Environmentname-iridium-repo** where Environmentname is what you entered in CloudFormation. A screen should appear saying **Connect to your repository**.
+In the AWS Management Console, navigate to the [AWS CodeCommit](https://console.aws.amazon.com/codecommit/home#) dashboard. Choose the repository named **EnvironmentName-iridium-repo** where *EnvironmentName* is what you entered in CloudFormation. A screen should appear saying **Connect to your repository**.
 *Note: If you are familiar with using git, feel free to use the ssh connection as well.*
 
-When the **Connect to your repository** menu appears, choose **HTTPS** for the connection type to make things simpler for this lab. Then follow the **Steps to clone your repository**. Click on the **IAM User** link. This will generate credentials for you to log into CodeCommit when trying to check your code in. 
+When the **Connect to your repository** screen appears, choose **HTTPS** for the connection type to make things simpler for this lab.
+
+In the "Steps to clone your repository" section, click on the **IAM User** link. This will launch the IAM dashboard in a new tab, so you can generate credentials for to log into CodeCommit when trying to check your code in.
 
 ![CodeCommit Create IAM User](images/1-cc-createiam.png)
 
@@ -458,9 +461,11 @@ Scroll down to the **HTTPS Git credentials for AWS CodeCommit** section and clic
 
 ![Codecommit HTTPS Credentials](images/1-cc-generate-creds.png)
 
-Save the **User name** and **Password** as you'll never be able to get this again. 
+Save the **User name** and **Password** as you'll never be able to get this again. Close the IAM tab and return to the [CodeCommit](https://console.aws.amazon.com/codecommit/home#) dashboard.
 
-5\. In your Cloud9 IDE, download microservice code and commit one microservice to your CodeCommit repo
+Note down the "git clone" command in step 2, which you'll use in the next step.
+
+5\. In your Cloud9 IDE, download the microservice code and commit one microservice to your CodeCommit repo
 
 Before we log into CodeCommit, to avoid entering in a password every time, we're going to cache the password. Run the following command to cache the password for the next two hours. While we're at it, we'll also set up a git name and email:
 
@@ -470,23 +475,26 @@ $ git config --global user.email "<b><i>REPLACEWITHYOUREMAIL</i></b>"
 $ git config --global user.name "<b><i>REPLACEWITHYOURNAME</i></b>"
 </pre>
 
-Now, clone your new repository and download some files. Go back to the AWS CodeCommit console, click on your repository, and then copy the command to clone your empty repository. It will start with:
+Run the git clone command you noted down above to clone the empty repository.
+
+Here's an example (note your codecommit path will be unique):
 <pre>
-$ git clone https://...
+$ cd ~/environment/
+$ git clone https://git-codecommit.us-east-2.amazonaws.com/v1/repos/interstella-iridium-repo
 </pre>
 
-**Make sure to replace EnviromentName with the name you put into CloudFormation for the following commands**. Enter in the username and password you created in step 1.
+You'll be prompted for your CodeCommit username and password (Note: this was generated earlier in the IAM dashboard), enter them here.  
+
+Once you've cloned the empty repository, let's download some files from Interstella HQ. First, navigate to the directory created by the clone command; then use the AWS sync command to pull files from Interstella HQ's S3 bucket.
 
 <pre>
-$ cd /home/ec2-user/
-$ git clone https://git-codecommit.<i><b>your_region</b></i>.amazonaws.com/v1/repos/<i><b>EnvironmentName</b></i>-iridium-repo
 $ cd <i><b>EnvironmentName</b></i>-iridium-repo
 $ aws s3 sync s3://www.interstella.trade/code/cicd/iridium .
 $ aws s3 sync s3://www.interstella.trade/hints/cicd hints/
 $ aws s3 sync s3://www.interstella.trade/tests/cicd tests/
 </pre>
 
-***You are now separating one part of the repository into another so that you can commit direct to the specific service. Similar to breaking up the monolith application in workshop 2, we've now started to break the monolithic repository apart.***
+You are now separating one part of the repository into another so that you can commit directly to the specific service. Similar to breaking up the monolith application in [Interstella GTC: Monolith to Microservices with Containers](https://github.com/aws-samples/amazon-ecs-interstella-workshop/tree/master/workshop-microservices), we've now started to break the monolithic repository apart.
 
 You should still be in the iridium folder. Run the following commands to create a dev branch:
 
@@ -497,31 +505,29 @@ $ git commit -m "Splitting iridium service into its own repo"
 $ git push origin dev
 </pre>
 
-If we go back to the AWS CodeCommit dashboard, we should now be able to look at our code we just committed.
+If you go back to your repo in the AWS CodeCommit dashboard, you should now be able to look at the code you just committed.
 
 ![CodeCommit Code Committed](images/1-cc-committed.png)
 
-7\. Add a file to instruct AWS CodeBuild on what to do.
+7\. Next you need to instruct AWS CodeBuild on what to do.
 
-AWS CodeBuild uses a definition file called a buildspec Yaml file. The contents of the buildspec will determine what AWS actions CodeBuild should perform. The key parts of the buildspec are Environment Variables, Phases, and Artifacts. 
-
-- See [Build Specification Reference for AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) for more details.
+AWS CodeBuild uses a definition file called a buildspec Yaml file. The contents of the buildspec will determine what AWS actions CodeBuild should perform. The key parts of the buildspec are Environment Variables, Phases, and Artifacts. See [Build Specification Reference for AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) for more details.
 
 **At Interstella, we want to follow best practices, so there are 2 requirements:**
 
 1. We don't use the ***latest*** tag for Docker images. We have decided to use the Commit ID from our source control instead as the tag so we know exactly what image was deployed.
 
-2. We want this buildspec to be generalized to multiple environments but use different CodeBuild projects to build our Docker containers. You have to figure out how to do this
+2. We want this buildspec to be generalized to multiple environments but use different CodeBuild projects to build our Docker containers. You have to figure out how to do this.
 
-Again, one of your lackeys has started a buildspec file for you, but never got to finishing it. Add the remaining instructions to the buildspec.yml.draft. The file should be in your EnvironmentName-iridium-repo folder and already checked in. Copy the draft to a buildspec.yml file.
+Another developer from the Interstella team has started a buildspec file for you, but never got to finishing it. Add the remaining instructions to the buildspec.yml.draft file. The file should be in your EnvironmentName-iridium-repo folder and already checked in. Copy the draft to a buildspec.yml file.
 
 <pre>
 $ cp buildspec.yml.draft buildspec.yml
 </pre>
 
-Now that you have a copy of the draft as your buildspec, you can start editing it. If you get stuck, look at the [hintspec.yml](hints/hintspec.yml) file in the hints folder.
+Now that you have a copy of the draft as your buildspec, you can start editing it. The previous developer left comments indicating what commands you need to add (*These comments look like - #[TODO]:*). Add the remaining instructions to your buildspec.yml.  
 
-Add the remaining instructions to buildspec.yml.  Here are links to documentation and hints to help along the way: 
+Here are links to documentation and hints to help along the way. If you get stuck, look at the [hintspec.yml](hints/hintspec.yml) file in the hints folder:
 
 *#[TODO]: Command to log into ECR. Remember, it has to be executed $(maybe like this?)*
 
@@ -544,7 +550,7 @@ Add the remaining instructions to buildspec.yml.  Here are links to documentatio
 
 <details>
 <summary>
-  Click here for the answer!
+  Click here for the answer/completed buildspec.yml file!
 </summary>
 There are many ways to achieve what we're looking for. In this case, the buildspec looks like this:
 <pre>
@@ -568,7 +574,7 @@ phases:
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION <b><i>This is the push command from earlier</i></b>
 </pre>
 
-If you get stuck, you can copy in the answer:
+If you get stuck, you can copy a completed spec file to use:
 
 <pre>
 $ cp hints/hintspec.yml buildspec.yml
@@ -596,7 +602,7 @@ $ git push origin dev
 
 9\. Test your build.
 
-In the AWS CodeBuild console, choose the **dev-iridium-service** project and build it. After you click **dev-iridium-service**, choose **Start Build**. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build**. 
+In the [AWS CodeBuild](https://console.aws.amazon.com/codebuild/home#/projects) dashboard, select the **dev-iridium-service** project and click on **Start Build**. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build** at the bottom of the page.
 
 If all goes well, you should see a lot of successes and your image in the ECR console. Inspect the **Build Log** if there were any failures. You'll also see these same logs in the CloudWatch Logs console. This will take a few minutes.
 
