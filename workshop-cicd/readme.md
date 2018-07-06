@@ -183,7 +183,7 @@ $ docker build -t monolith .
 
 *You'll see some red error-looking messages during the build process. Don't worry about them*
 
-Try to run the image and you should see output like this:
+Try to run the image with the command below, and you should see output like this:
 
 <pre>
 $ docker run -it monolith
@@ -201,7 +201,7 @@ INFO:werkzeug: * Debugger PIN: 896-977-731
 
 Push **Ctrl + C** to exit.
 
-Once you've confirmed it runs, tag and push your container image to the repository URI you noted down earlier: 
+Once you've confirmed it runs, tag and push your container image to the repository URI you noted down earlier:
 
 <pre>
 $ docker tag monolith:latest <b><i>ECR_REPOSITORY_URI</i></b>:latest
@@ -226,7 +226,7 @@ Enter values for the following fields:
 
 - **Container name** - this is a friendly name for your container, not the name of the container image. e.g. `interstella-monolith`
 - **Image** - this is a reference to the container image stored in ECR.  The format should be the same value you used to push the container to ECR - <pre><b><i>ECR_REPOSITORY_URI</i></b>:latest</pre>
-- **Memory Limits** - select **Soft limit** from the drop down, and enter `128`. 
+- **Memory Limits** - select **Soft limit** from the drop down, and enter `128`.
 - **Port Mappings** - Host Port: **0** Container Port: **5000**
 
 Your container definition should look like this:
@@ -241,7 +241,7 @@ For *Log options*, enter values for the following:
 
 * **awslogs-group** - enter the name of the CloudWatch log group that CloudFormation created, e.g. `[EnvironmentName]-LogGroup`
 
-*IMPORTANT: Replace `[EnvironmentName]` above with the EnvironmentName you specified when you created the CloudFormation stack. For example, if your EnvironmentName was "interstella", the log group would be "interstella-LogGroup".*
+*IMPORTANT: Replace `[EnvironmentName]` above with the EnvironmentName you specified when you created the CloudFormation stack. For example, if your EnvironmentName was "interstella", the log group would be "interstella-LogGroup". The CloudWatch Logs group is one of the outputs returned from running the interstella CloudFormation stack, so you can always go there to dig up the value.*
 
 * **awslogs-region** - enter the AWS region of the log group (i.e.: the current region you're working in); the expected value is the region code.
 <details>
@@ -280,7 +280,7 @@ Fill in the following fields:
 * **Service Name** - enter a name for your service, e.g. `interstella-monolith`
 * **Number of tasks** - enter `1` for now; you will horizontally scale this service in the last lab with a new ECS service
 
-*Note: If you're in a region that supports Fargate launch type, you may see a field named "Launch Type". This workshop uses the EC2 launch type, so select **EC2**.
+*Note: If you're in a region that supports Fargate launch type, you may see a field named "Launch Type". This workshop uses the EC2 launch type, so select **EC2**.*
 
 ![ECS Service Creation Step 1](images/0-ecs-svc-create-1.png)
 
@@ -290,7 +290,7 @@ Leave the other fields as default and click **Next step**
 
 7\. Associate an ALB with your ECS Service.
 
-On the next page, select **Application Load Balancer** for **Load balancer type**. Then select the Service IAM Role created earlier. It should start with your environmentName. In my case, it is **interstella-ECSServiceRole**.
+On the next page, select **Application Load Balancer** for **Load balancer type**. Then select the Service IAM Role created by CloudFormation. It should start with your environmentName. In my case, it is **interstella-ECSServiceRole**.
 
 You'll see a **Load balancer name** drop-down menu appear.  Select the ALB that was created by CloudFormation. It should start with your environmentName, e.g. **interstella-LoadBalancer**.
 
@@ -298,8 +298,8 @@ You'll see a **Load balancer name** drop-down menu appear.  Select the ALB that 
 
 In the "Container to load balance" section, click **Add to load balancer**. Configure the following values:
 
-- Listener port: **80** *This is a dropdown. Choose 80:HTTP*
-- Target Group: Look for the one that has "Monolith" in it
+- Listener port: **80** *This is a dropdown. Choose 80:HTTP.*
+- Target Group: Look for the one that has "monolith" in the name.
 
 Leave the rest as default as you can't edit it and click **Next**.
 
@@ -313,15 +313,15 @@ Click **Create Service** and click **View Service** to get the status of your se
 
 9\. Confirm logging to CloudWatch Logs is working.
 
-Once the monolith service is running, navigate to the [CloudWatch dashboard](https://console.aws.amazon.com/cloudwatch/home), click **Logs** on the left menu, and then select the log groug which should look like **EnvironmentName-LogGroup** (*replacing EnvironmentName with the one you used*).  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recent one. You can test the monolith fulfillment service by sending some data to it using curl:
+Once the monolith service is running, navigate to the [CloudWatch dashboard](https://console.aws.amazon.com/cloudwatch/home), click **Logs** on the left menu, and then select the log groug which should look like **EnvironmentName-LogGroup** (*replacing EnvironmentName with the one you used*).  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recent one. You can test the monolith fulfillment service by sending some data to it using curl from your Cloud9 IDE:
 
 <pre>
-$ curl <b><i>LoadBalancerDNSName</i></b>.<b><i>region</i></b>.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
+$ curl <b><i>LoadBalancerDNSName</i></b>/fulfill/ -d '{"iridium":"1"}'
 </pre>
 
-*Note: You'll need to provide your ALB DNS name which you can find in the CloudFormation outputs. The region is the region code where your stack is running, e.g. Ireland = `eu-west-1`.
+*Note: You'll need to provide your ALB DNS name which you can find in the CloudFormation outputs identified as "LoadBalancerDNSName".*
 
-You should get output like this:
+Here's an example of running the curl command and the output you should see:
 
 <pre>
 $ curl interstella-LoadBalancer-972770484.eu-central-1.elb.amazonaws.com/fulfill/ -d '{"iridium":"1"}'
@@ -330,7 +330,7 @@ Your fulfillment request has been delivered
 
 In the log stream you were looking at just a few minutes ago, you should see a lot of HTTP GETs. Those are health checks from the ALB.
 
-Somewhere within the log stream, you should see this:
+Somewhere within the log stream, you should see these log statements:
 <pre>
 Trying to send a request to the API
 API Status Code: 200
