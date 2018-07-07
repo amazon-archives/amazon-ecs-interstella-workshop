@@ -572,31 +572,6 @@ Resources:
         LabIdeInstanceProfileArn: !GetAtt ECSInstanceProfile.Arn
         Cloud9BootstrapDoc: !Ref Cloud9BootstrapDoc
     
-    Cloud9BootstrapDoc:
-      Type: "AWS::SSM::Document"
-      Properties: 
-        DocumentType: "Command"
-        Content: 
-          schemaVersion: "2.2"
-          description: "RunCommand document to bootstrap Cloud9 environment"
-          mainSteps:
-          - action: "aws:runShellScript"
-            name: "configEnv"
-            inputs:
-              runCommand:
-              - "aws s3 sync s3://www.interstella.trade/code/cicd/monolith/ $HOME/environment/monolith/"
-              - "mv $HOME/environment/monolith/installcredhelper.sh $HOME/"
-              - "cd $HOME"
-              - "chmod +x installcredhelper.sh"
-              - "./installcredhelper.sh"
-              - "rm installcredhelper.sh"
-              - "cd environment"
-              - "aws s3 sync s3://www.interstella.trade/code/cicd/iridium $HOME/environment/iridium/"
-              - "aws s3 sync s3://www.interstella.trade/hints/cicd $HOME/environment/hints/"
-              - "aws s3 sync s3://www.interstella.trade/tests/cicd $HOME/environment/tests/"
-              - "chgrp -R ec2-user hints tests iridium monolith"
-              - "chown -R ec2-user hints tests iridium monolith"
-    
     AddRoleToInstanceFunction:
       Type: AWS::Lambda::Function
       Properties:
@@ -1075,6 +1050,7 @@ Resources:
               - "aws s3 sync s3://www.interstella.trade/tests/cicd tests/"
               - "chgrp -R ec2-user hints tests iridium monolith"
               - "chown -R ec2-user hints tests iridium monolith"
+    
                
 Outputs:
 
