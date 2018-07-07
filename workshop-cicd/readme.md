@@ -928,7 +928,49 @@ Click on **Subscribe to Iridium topic** to start receiving orders for the iridiu
 
 ![SNS Subscription](images/2-alb-sns-sub.png)
 
-Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs.  You may notice GET requests in your log stream.  Those are the ALB health checks.  You can also check the monolith log stream where you'll see HTTP POST messages coming from the iridium microservice; remember that we're still leveraging the monolith service which has been strangled own to be a fulfillment service.
+Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs. Log entries will look like this:
+
+<pre>
+06:26:03 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:26:03] "POST /iridium/ HTTP/1.1" 200 -
+06:26:06 INFO:werkzeug:10.177.10.144 - - [07/Jul/2018 06:26:06] "GET /iridium/ HTTP/1.1" 200 -
+06:26:06 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:26:06] "GET /iridium/ HTTP/1.1" 200 -
+06:26:16 INFO:werkzeug:10.177.10.144 - - [07/Jul/2018 06:26:16] "GET /iridium/ HTTP/1.1" 200 -
+06:26:16 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:26:16] "GET /iridium/ HTTP/1.1" 200 -
+06:26:26 INFO:werkzeug:10.177.10.144 - - [07/Jul/2018 06:26:26] "GET /iridium/ HTTP/1.1" 200 -
+06:26:26 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:26:26] "GET /iridium/ HTTP/1.1" 200 -
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 INFO in iridium [iridium.py:86]:
+06:26:32 Gathering requested item
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 INFO in iridium [iridium.py:32]:
+06:26:32 Producing iridium
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 INFO in iridium [iridium.py:47]:
+06:26:32 200
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 --------------------------------------------------------------------------------
+06:26:32 INFO in iridium [iridium.py:91]:
+06:26:32 iridium fulfilled
+</pre>
+
+Note: You may notice GET requests in your log stream.  Those are the ALB health checks.  
+
+You can also check the monolith log stream where you'll see HTTP POST messages coming from the iridium microservice. Remember that we're still leveraging the monolith service which has been strangled down to be a fulfillment service; it essentially accepts POST messages from each microservice, assembles the order, and sends a POST message to Interstella HQ's order fulfillment API to complete the order. Log entries will look like this:
+
+<pre>
+06:20:33 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:20:33] "POST /fulfill/ HTTP/1.1" 200 -
+06:20:36 INFO:werkzeug:10.177.10.144 - - [07/Jul/2018 06:20:36] "GET / HTTP/1.1" 200 -
+06:20:36 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:20:36] "GET / HTTP/1.1" 200 -
+06:20:46 INFO:werkzeug:10.177.10.144 - - [07/Jul/2018 06:20:46] "GET / HTTP/1.1" 200 -
+06:20:46 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:20:46] "GET / HTTP/1.1" 200 -
+06:20:56 INFO:werkzeug:10.177.10.144 - - [07/Jul/2018 06:20:56] "GET / HTTP/1.1" 200 -
+06:20:56 INFO:werkzeug:10.177.11.142 - - [07/Jul/2018 06:20:56] "GET / HTTP/1.1" 200 -
+06:21:03 Trying to send a request to the API
+06:21:03 API Status Code: 200
+06:21:03 Fulfillment request succeeded
+</pre>
 
 ### Checkpoint:  
 At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then call CloudFormation to create a change set and when you approve the change set, CodePipeline will call CloudFormation to execute the change set.
