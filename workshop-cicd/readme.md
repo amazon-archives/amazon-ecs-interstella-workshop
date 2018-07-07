@@ -738,17 +738,17 @@ $ cp hints/finalhintspec.yml buildspec.yml
 
 4\. Create an AWS CodePipeline Pipeline and set it up to listen to AWS CodeCommit. 
 
-Now it's time to hook everything together. In the AWS Management Console, navigate to the AWS CodePipeline console. Click on **Create Pipeline**.
+Now it's time to hook everything together. In the AWS Management Console, navigate to the [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home#/) dashboard. Click on **Create Pipeline**.
 
-*Note: If this is your first time visiting the AWS CodePipeline console in the region, you will need to click "**Get Started**"*
+*Note: If this is your first time visiting the AWS CodePipeline console in the region, click on **Get Started***
 
-We're going to make this a production pipeline. Name the pipeline "**prod-iridium-service**". Click **Next**.
+We're going to make this a production pipeline. Name the pipeline `prod-iridium-service`. Click **Next**.
 
 ![CodePipeline Name](images/2-cp-create-name.png)
 
-For the Source Location, choose **AWS CodeCommit**. Then, choose the repository you created as in Step 1. Select **master** branch. and click **Next Step**.
+For the "Source Location", choose **AWS CodeCommit**. Then in the "AWS Code Commit" section, select your iridium repository and select the **master** branch. Click **Next Step**.
 
-*Here, we are choosing what we want AWS CodePipeline to monitor. Using Amazon CloudWatch Events, AWS CodeCommit will trigger when something is pushed to a repo.*
+*Here, you are choosing what you want AWS CodePipeline to monitor. Using Amazon CloudWatch Events, AWS CodeCommit will trigger this pipeline when something is pushed to a repo.*
 
 ![CodePipeline Source](images/2-cp-create-source.png)
 
