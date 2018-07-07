@@ -883,47 +883,52 @@ Once you think you've fixed the problem, retry the build step since the code and
 
 You should still be in the CodePipeline dashboard, viewing the prod-iridium-service pipeline. Click **Edit**. Add a stage at the bottom by clicking **+ Stage**. Enter `Approval` for the stage name. Then click **+ Action**.
 
-In the dialog that comes up on the right, populate the following values:
+In the dialog that comes up on the right, set the following fields:
 
-- Action category: **Approval**
-- Action Name: **ManualApproval**
-- Approval Type: **Manual Approval**
-- Leave the rest blank and click **Add action**.
+- Action category: Select **Approval**
+- Action Name: Enter `ManualApproval`
+- Approval Type: Select **Manual Approval**
+
+Leave the rest as default and click **Add action**.
 
 ![CodePipeline Create Gate](images/2-cp-create-gate.png)
 
-Add one more stage, name it **DeployToCFN**, and create an action. In the dialog that comes out, populate the following values:
+Add one more stage, name it `DeployToCFN`, and click **+ Action**. In the dialog that comes up on the right, set the following fields:
 
-- Action category: **Deploy**
-- Action Name: **DeploytoCFN**
-- Deployment Provider: **AWS CloudFormation**
-- Action Mode: **Execute a change set**
-- Stack Name: **prod-iridium-service**
-- Change set name: **prod-iridium-service-changeset**
+- Action category: Select **Deploy**
+- Action Name: Enter `DeploytoCFN`
+- Deployment Provider: Select **AWS CloudFormation**
+- Action Mode: Select **Execute a change set**
+- Stack Name: Select **prod-iridium-service**
+- Change set name: Select **prod-iridium-service-changeset**
 
-Leave the rest as default and click **Add Action** and then **Save pipeline changes** at the top of the pipeline.
+Leave the rest as default, click **Add Action**, and then click **Save pipeline changes** at the top of the pipeline.
 
 ![CodePipeline Create Deploy to CFN](images/2-cp-deploy-to-cfn.png)
 
-Manually release a change by clicking **Release change**. Once the pipeline goes through the stages, it will stop at the Approval stage. Now is when you would typically go and see what kind of changes will happen. We can look at CloudFormation to find out what will change. Or you can just approve the pipeline because you're a daredevil. 
+Manually release a change by clicking **Release change**. Once the pipeline goes through the stages, it will stop at the Approval stage. This is when you would typically go and see what kind of changes will happen by reviewing the CloudFormation change set. Or you can just approve the pipeline because you're a daredevil.
 
-Click **Review** and then put something in the comments and **Approve** the change.
+Click **Review** and then put something in the comments. When you click **Approve**, CodePipeline will advance to the DeployToCFN stage and execute the change set. 
 
-7\. Now we're ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 3) to start receiving orders.
+If you go to the [CloudFormation](https://console.aws.amazon.com/cloudformation/home) dashboard, you'll see the **prod-iridium-service** stack deploying which is launching the iridium microservice as an ECS service.  Once the stack shows **CREATE_COMPLETE**, move on to the next step.
+
+7\. Now we're ready to test orders to the iridium microservice!  To do this, you will subscribe your ALB endpoint to the SNS iridium topic using the API Key Management Portal (from Workshop Setup Step 2) to start receiving orders.
 
 Open the [API Key Management Portal](http://www.interstella.trade/getkey.html) in a new tab.  If you're not already logged in, you'll need to login with the username and password you created during the Workshop Setup.
 
-Enter the ALB endpoint in the text field using the following format:
+Enter the ALB DNS Name in the "SNS Subscription" text field using the following format:
 
 <pre>
 http://<b><i>ALB_ENDPOINT_DNS_NAME</i></b>/iridium/
 </pre>
 
+*NOTE: You can find the ALB DNS Name in the output tab from the workshop CloudFormation stack.*
+
 Click on **Subscribe to Iridium topic** to start receiving orders for the iridium resource.
 
 ![SNS Subscription](images/2-alb-sns-sub.png)
 
-Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs.  You may notice GET requests in your log stream.  Those are the ALB health checks.  You can also check the monolith log stream to confirm 
+Once the endpoint is subscribed, you should start seeing orders come in as HTTP POST messages to the iridium log group in CloudWatch Logs.  You may notice GET requests in your log stream.  Those are the ALB health checks.  You can also check the monolith log stream where you'll see HTTP POST messages coming from the iridium microservice; remember that we're still leveraging the monolith service which has been strangled own to be a fulfillment service.
 
 ### Checkpoint:  
 At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then call CloudFormation to create a change set and when you approve the change set, CodePipeline will call CloudFormation to execute the change set.
