@@ -9,7 +9,7 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --region $AWS_DEFAULT_REGION)
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - TAG="$(case "$CODEBUILD_INITIATOR" in "codepipeline/"*) echo $CODEBUILD_RESOLVED_SOURCE_VERSION ;; *) echo $CODEBUILD_SOURCE_VERSION ;; esac)"
   build:
     commands:

@@ -509,7 +509,7 @@ If you go back to your repo in the AWS CodeCommit dashboard, you should now be a
 
 ![CodeCommit Code Committed](images/1-cc-committed.png)
 
-7\. Next you need to instruct AWS CodeBuild on what to do.
+6\. Next you need to instruct AWS CodeBuild on what to do.
 
 AWS CodeBuild uses a definition file called a buildspec Yaml file. The contents of the buildspec will determine what AWS actions CodeBuild should perform. The key parts of the buildspec are Environment Variables, Phases, and Artifacts. See [Build Specification Reference for AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html) for more details.
 
@@ -548,7 +548,7 @@ Here are links to documentation and hints to help along the way. If you get stuc
 
 <details>
 <summary>
-  Click here for the answer/completed buildspec.yml file!
+  HINT: Click here for the completed buildspec.yml file.
 </summary>
 There are many ways to achieve what we're looking for. In this case, the buildspec looks like this:
 <pre>
@@ -583,12 +583,12 @@ Notice that when we build the image, it's looking to name it $IMAGE_REPO_NAME:$C
 
 <details>
   <summary>
-    Click here for a spoiler!
+    HINT: Click here for a spoiler!
   </summary>
     For Amazon S3, the version ID associated with the input artifact. For AWS CodeCommit, the commit ID or branch name associated with the version of the source code to be built. For GitHub, the commit ID, branch name, or tag name associated with the version of the source code to be built. <br />
 </details> 
 
-8\. Check in your new file into the AWS CodeCommit repository.
+7\. Check in your new file into the AWS CodeCommit repository.
 
 Make sure the name of the file is buildspec.yml and then run these commands:
 
@@ -598,7 +598,7 @@ $ git commit -m "Adding in support for AWS CodeBuild"
 $ git push origin dev
 </pre>
 
-9\. Test your build.
+8\. Test your build.
 
 In the [AWS CodeBuild](https://console.aws.amazon.com/codebuild/home#/projects) dashboard, select the **dev-iridium-service** project and click on **Start Build**. Select the **dev** branch and the newest commit should populate automatically. Your commit message should appear as well. Then click **Start Build** at the bottom of the page.
 
@@ -606,7 +606,7 @@ If all goes well, you should see a lot of successes and your image in the ECR co
 
 ![Successes in CodeBuild](images/1-cb-success.png)
 
-What CodeBuild has done is follow the steps in your buildspec. If you now look at your EnvironmentName-iridium ECR Repository, you should see a new image.
+What CodeBuild has done is follow the steps in your buildspec. If you refresh your iridium ECR Repository, you should see a new image that was built, tagged and pushed by CodeBuild.
 
 ![New ECR Image w/ Commit ID as Tag](images/1-ecr-new-image.png)
 
@@ -619,36 +619,41 @@ There are a few changes we'll need to make to the code that we used as part of L
 
 1\. Create a master branch and check in your new code including the buildspec.
 
-Log back into your EC2 instance and create a new branch in your CodeCommit repository.
+Go back to your Cloud9 IDE where you should still be in the iridium working folder (*looks like EnvironmentName-iridium-repo*). 
+
+First create a master branch:
+<pre>
+$ git checkout -b master
+</pre>
+
+<b>NOTE:</b> You may see this output:
+<pre>
+Your branch is based on 'origin/master', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+</pre>  
+Disregard and continue by merging the work you've done in dev and push to master.
 
 <pre>
-$ cd EnvironmentName-iridium-repo
-$ git checkout -b master
-<i> You may see this:
-Your branch is based on 'origin/master', but the upstream is gone.
-  (use "git branch --unset-upstream" to fixup)</i> - It's ok. You can disregard the warning.
 $ git merge dev
 $ git push origin master
 </pre>
 
 2\. Take a look at the AWS CloudFormation template named service.yml in the iridium folder of our GitHub repo:
 
-- https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/code/iridium/service.yml
+https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/code/iridium/service.yml
 
 Take a bit of time to understand what this is doing. What parts of the manual process from before is it replacing? Since we're starting fresh, it's best to try and control everything using CloudFormation. Looking at this template that has already been created, it's generalized to take a cluster, desired count, tag, target group, and repository. This means that you'll have to pass the variables to CloudFormation to create the stack. CloudFormation will take the parameters and create an ECS service that matches the parameters.
 
 3\. Update AWS CodeBuild buildspec.yml to support deployments to AWS CloudFormation
 
-While using AWS CodePipeline, we will need a way of passing variables to different stages. The buildspec you created earlier had no artifacts, but now there will be two artifacts. One for the AWS CloudFormation template and one will be for parameters to pass to AWS CloudFormation when launching the stack. As part of the build, you'll also need to create the parameters to send to AWS CloudFormation and output them in JSON format. 
-
-*As part of the initial bootstrapping, we've already created a target group for you for the Application Load Balancer. The name of the target group can be accessed from the EC2 Parameter Store under* ***interstella/iridium-target-group***. *You'll need to pull in those parameters as part of the buildspec. How will you do it?*
+While using AWS CodePipeline, we will need a way of passing variables to different stages. The buildspec you created earlier had no artifacts, but now there will be two artifacts. One for the AWS CloudFormation template and one will be for parameters to pass to AWS CloudFormation when launching the stack. As part of the build, you'll also need to create the parameters to send to AWS CloudFormation and output them in JSON format.
 
 Open the existing **buildspec.yml** for the **iridium** microservice. Update the buildspec to include the following:
 
-- Add a section for parameters and pull in the right parameters from parameter store. Specifically, we'll need to get the parameters iridiumTargetGroupArn, cloudWatchLogsGroup, and ecsClusterName so we can pass those to the CloudFormation stack later.
+- Add a section for parameters and pull in the right parameters from AWS Systems Manager Parameter Store (we'll call this simply parameter store going forward). Specifically, we'll need to get the parameters iridiumTargetGroupArn, cloudWatchLogsGroup, and ecsClusterName so we can pass those to the CloudFormation stack later. These values were added to parameter store by CloudFormation when you ran the template for this workshop.
   - http://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
 
-- Within the pre-build section, determine if the source is coming from CodeCommit direct or through CodePipeline so we can get the commit id.
+- Within the pre-build section, determine if the source is coming from CodeCommit directly or through CodePipeline so we can get the commit id.
   - http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
   - **Specifically, look at CODEBUILD_INITIATOR.** How can you use it to figure out where your object is coming from?
 
@@ -658,7 +663,7 @@ Open the existing **buildspec.yml** for the **iridium** microservice. Update the
 
 <details>
   <summary>
-    ***Click here to show detailed info on what to do in the buildspec file***
+    HINT: If you get stuck, click here for detailed info on what to do in the buildspec file
   </summary>
 
 Add a section to your buildspec.yml file entitled "**env**". Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: 
