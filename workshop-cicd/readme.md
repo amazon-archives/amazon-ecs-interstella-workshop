@@ -37,6 +37,8 @@ $ ssh -i <b><i>PRIVATE_KEY.PEM</i></b> ec2-user@<b><i>EC2_PUBLIC_DNS_NAME</i></b
 
 The command starts after the $.  Text that is ***UPPER_ITALIC_BOLD*** indicates a value that is unique to your environment.  For example, the ***PRIVATE\_KEY.PEM*** refers to the private key of an SSH key pair that you've created, and the ***EC2\_PUBLIC\_DNS\_NAME*** is a value that is specific to an EC2 instance launched in your account.  You can find these unique values either in the CloudFormation outputs or by going to the specific service dashboard in the [AWS management console](https://console.aws.amazon.com).
 
+If you are asked to enter a specific value in a text field, the value will look like `VALUE`.
+
 Hints are also provided along the way and will look like this:
 
 <details>
@@ -394,8 +396,8 @@ VPC:
 
 Expand the **Advanced** settings section and under "Environment variables", enter two environment variables:
 
-- Name: Enter `AWS_ACCOUNT_ID`; Value: ***Enter your account ID***; Type: Select **Plaintext** *You can find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
-- Name: Enter `IMAGE_REPO_NAME` Value: ***Enter the name of the iridium ECR repo*** Type: Select **Plaintext** *This is the name of your ECR repo for iridium which follows this format - EnvironmentName-iridium; you can also find the repository name in the [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) section of the ECS dashboard*
+- Name: `AWS_ACCOUNT_ID` Value: ***Your account ID*** Type: **Plaintext** *You can find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
+- Name: `IMAGE_REPO_NAME` Value: ***Name of the iridium ECR repo*** Type: **Plaintext** *This is the name of your ECR repo for iridium which follows this format - EnvironmentName-iridium; you can also find the repository name in the [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) section of the ECS dashboard*
 
 ![CodeBuild Create Project Part 2](images/1-cb-create-project-2.png)
 
@@ -736,83 +738,85 @@ $ cp hints/finalhintspec.yml buildspec.yml
 </pre>
 </details>  
 
-4\. Create an AWS CodePipeline Pipeline and set it up to listen to AWS CodeCommit. 
+4\. Create an AWS CodePipeline Pipeline and set it up to listen to AWS CodeCommit.
 
 Now it's time to hook everything together. In the AWS Management Console, navigate to the [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home#/) dashboard. Click on **Create Pipeline**.
 
 *Note: If this is your first time visiting the AWS CodePipeline console in the region, click on **Get Started***
 
-We're going to make this a production pipeline. Name the pipeline `prod-iridium-service`. Click **Next**.
+Since this will be a production pipeline, name the pipeline `prod-iridium-service`. Click **Next**.
 
 ![CodePipeline Name](images/2-cp-create-name.png)
 
-For the "Source Location", choose **AWS CodeCommit**. Then in the "AWS Code Commit" section, select your iridium repository and select the **master** branch. Click **Next Step**.
+In the next step, choose what you want AWS CodePipeline to monitor. Using Amazon CloudWatch Events, AWS CodeCommit will trigger this pipeline when something is pushed to a repo.
 
-*Here, you are choosing what you want AWS CodePipeline to monitor. Using Amazon CloudWatch Events, AWS CodeCommit will trigger this pipeline when something is pushed to a repo.*
+For the "Source Location", choose **AWS CodeCommit**. Then in the "AWS Code Commit" section, select your iridium repository and select the **master** branch. Click **Next Step**.
 
 ![CodePipeline Source](images/2-cp-create-source.png)
 
-Next, configure the Build action. Choose **AWS CodeBuild** as the build provider. Click **Create a new build project** and name it **prod-iridium-service**.
+Next, configure the Build action. Choose **AWS CodeBuild** as the build provider. Click **Create a new build project** and name it `prod-iridium-service`.
 
-Scroll down further. In the Environment: How to build section, select values for the following fields:
+Scroll down to the "Environment: How to build" section and select these values for the following fields:
 
-- Environment Image: **Use an Image managed by AWS CodeBuild** - *There are two options. You can either use a predefined Docker container that is curated by CodeBuild, or you can upload your own if you want to customize dependencies etc. to speed up build time*
+- Environment Image: **Use an Image managed by AWS CodeBuild** - *There are two options. You can either use a predefined Docker container that is curated by CodeBuild, or you can upload your own if you want to customize dependencies,etc to speed up build time*
 - Operating System: **Ubuntu** - *This is the OS that will run your build*
 - Runtime: **Docker** - *Each image has specific versions of software installed. See [Docker Images Provided by AWS CodeBuild](http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html)*
-- Version: **aws/codebuild/docker:1.12.1** - *There's only one version now, but you will be able to choose different versions in the future*
+- Version: **aws/codebuild/docker:17.09.0** - *This will always show the latest available*
 
 ![CodePipeline Create CodeBuild](images/2-cp-create-cb.png)
 
-Ensure **Create a service role in your account** is selected and leave the name as default. When you're done, expand the **Advanced** section. 
+In the "AWS CodeBuild service role" section, make sure **Create a service role in your account** is selected and leave the name as default.
 
-Under Environment Variables, enter three variables:
+Scroll down to the "Advanced" section, and under "Environment Variables", set these three variables:
 
-- Name: **AWS_ACCOUNT_ID** Value: **Your account ID** Type: **Plaintext** *Earlier, when we created the buildspec, it looked for some existing environment variables like this one. Find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
-- Name: **IMAGE_REPO_NAME** Value: **EnvironmentName-iridium** Type: **Plaintext** *This is the name of your ECR repo for iridium*
-- Name: **ENV_TYPE** Value: **prod** Type: **Plaintext** *This is a new environment variable which we're going to use to prefix our log stream. You'll see in lab 3 why this is needed*
+- Name: `AWS_ACCOUNT_ID` Value: ****Your account ID*** Type: **Plaintext** *These will look similar to the ones you configured earlier in the buildspec. Find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
+- Name: `IMAGE_REPO_NAME` Value: ***Name of the iridium ECR repo*** Type: **Plaintext** *This is the name of your ECR repo for iridium*
+- Name: `ENV_TYPE` Value: `prod` Type: **Plaintext** *This is a new environment variable which we're going to use to prefix our CloudWatch log stream.*
+
+Here's what the env variables should look like. Note, your values (e.g. acct ID, EnvironmentName replaced with the one you selected) will be unique:
 
 ![CodePipeline Create CodeBuild P2](images/2-cp-create-cb-2.png)
 
-Once confirmed, click **Save build project** and **Next Step**
+Once confirmed, click **Save build project** and then **Next Step**.
 
-The next dialog that will appear is **Deploy**. Select and populate the following values:
+In the "Deploy" step, select and populate the following values:
 
-- Deployment provider: **AWS CloudFormation** - *This is the mechanism we're choosing to deploy with. CodePipeline also supports several other deployment options, but we're using CloudFormation in this case.*
-- Action Mode: **Create or Replace a Change Set** - *This will actually create or update an existing change set that we can apply later.*
-- Stack Name: **prod-iridium-service** - *Name the CloudFormation stack that you're going to create/update*
-- Change Set Name: **prod-iridium-service-changeset**
-- Template File: **service.yml** - *The filename of the template that you looked over earlier in this workshop*
-- Configuration File: **build.json** - *The filename of the JSON file generated by CodeBuild that has all the parameters*
-- Capabilities: **CAPABILITY_IAM** - *Here, we're giving CloudFormation the ability to create IAM resources*
-- Role Name: **EnvironmentName-CFServiceRole** - *CloudFormation needs a role to assume so that it can create and update stacks on your behalf*
+- Deployment provider: Select **AWS CloudFormation** - *This is the mechanism we're choosing to deploy with. CodePipeline also supports several other deployment options, but we're using CloudFormation in this case.*
+- Action Mode: Select **Create or Replace a Change Set** - *This will create or update an existing change set that we can apply later.*
+- Stack Name: Enter `prod-iridium-service` - *Name the CloudFormation stack that you're going to create/update*
+- Change Set Name: Enter `prod-iridium-service-changeset`
+- Template File: Enter `service.yml` - *The filename of the template that you looked over earlier in this workshop*
+- Configuration File: Enter `build.json` - *The filename of the JSON file generated by CodeBuild that has all the parameters*
+- Capabilities: Select **CAPABILITY_IAM** - *Here, we're giving CloudFormation the ability to create IAM resources*
+- Role Name: Select ***EnvironmentName*-CFServiceRole** - *Note, "EnvironmentName" will be the one you specified. This value is a role CloudFormation assumes to create and update stacks on your behalf*
+
+Click **Next step**.
 
 ![CodePipeline Deploy](images/2-cp-deploy-step.png)
 
-In the next step of creating your pipeline, we must give AWS CodePipeline a way to access artifacts and dependencies to pull. Leave the Role Name blank and click **Create Role**. You will be automatically taken to the IAM Management Console to create a service role. Choose **Create a new IAM Role** and leave the role name as the default. Click **Allow** to create the role and return to AWS CodePipeline. Click **Next Step**
+In the "Service Role" step, we must authorize AWS CodePipeline to access artifacts and dependencies to pull. Leave the Role Name blank and click **Create Role**. You will be automatically taken to the IAM Management Console to create a service role. Choose **Create a new IAM Role** and leave the role name as the default. Click **Allow** to create the role. Return to the AWS CodePipeline dashboard and make sure the newly created role is selected. Click **Next Step**.
 
 ![CodePipeline Role IAM](images/2-cp-svc-role.png)
 
-When you return to the AWS CodePipeline Console, click in the blank dialog box for Role Name and choose the CodePipeline Service role created for you: **EnvironmentName-CodePipelineServiceRole**
-
-Review your pipeline and click **Create pipeline**.
+Review your pipeline configuration and click **Create pipeline**.
 
 5\. Test your pipeline.
 
-Once the pipeline is created, CodePipeline will automatically try to get the most recent commit from the source. In this case, that's CodeCommit. Navigate to the AWS CodePipeline Console and choose your **prod-iridium-service** pipeline. You should see it working.
+Once the **prod-iridium-service** pipeline is created, CodePipeline will automatically try to get the most recent commit from the source and run the pipeline.
 
 ![CodePipeline First Execution](images/2-cp-first-execution.png)
 
-**Oh no!** There seems to have been an error! Let's try and troubleshoot it. Try to find out what happened. There are links to click when there's a failed execution. Click around and if you get stumped, look at the answer below.
+**Oh no!** There seems to have been an error that halted the pipeline. Try to troubleshoot by exploring the available links in the Build step. If you get stumped, expand the HINT below.
 
 ![CodePipeline Build Failure](images/2-cp-build-failure.png)  
 
 <details>
   <summary>
-    <i><b>Click here to expand this section and we'll go over how to find out what happened.</i></b>
+    HINT: CodePipeline Build stage troubleshooting
   </summary>
-  From the pipeline, it's easy to see that the whole process failed at the build step. Let's click on **Details** to see what it will tell us.<br/>
+  From the pipeline, it's easy to see that the whole process failed at the build step. Click on <b>Details</b> to see what it will tell us.<br/>
 
-  Now click on **Link to execution details** since the error message didn't tell us much.<br/><br/>
+  Now click on <b>Link to execution details</b> since the error message didn't tell us much.<br/><br/>
   
   ![CodePipeline Build Failure Execution](images/2-cp-build-failure-execution.png)
 
