@@ -531,11 +531,10 @@ Here are links to documentation and hints to help along the way. If you get stuc
 
 *#[TODO]: Command to log into ECR. Remember, it has to be executed $(maybe like this?)*
 
-* The ECR login command you copied earlier includes a **no-include-email** flag. **Do not include it** as CodeBuild is using an earlier version of the CLI.
 * http://docs.aws.amazon.com/AmazonECR/latest/userguide/Registries.html
-* http://docs.aws.amazon.com/codebuild/latest/userguide/sample-docker.html#sample-docker-docker-hub
+* https://docs.aws.amazon.com/codebuild/latest/userguide/sample-docker.html#sample-docker-files
 
-*#[TODO]: Build the actual image using the current commit ID as the tag. Remember that we also put in two environment variables into CodeBuild previously: AWS_ACCOUNT_ID and IMAGE_REPO_NAME. How can you use them?*
+*#[TODO]: Build the actual image using the current commit ID as the tag...perhaps there's a CodeBuild environment variable we can use. Remember that we also added two custom environment variables into the CodeBuild project previously: AWS_ACCOUNT_ID and IMAGE_REPO_NAME. How can you use them too?*
 
 * https://docs.docker.com/get-started/part2/#build-the-app
 * http://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
@@ -545,7 +544,6 @@ Here are links to documentation and hints to help along the way. If you get stuc
 *#[TODO]: Push the Docker image up to ECR*
 
 * http://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
-
 * https://docs.docker.com/engine/reference/builder/#entrypoint
 
 <details>
@@ -560,7 +558,7 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --region $AWS_DEFAULT_REGION) # <b><i>This is the login command from earlier</i></b>
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION) # <b><i>This is the login command from earlier</i></b>
   build:
     commands:
       - echo Build started on `date`
