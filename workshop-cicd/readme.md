@@ -668,7 +668,7 @@ Open the existing **buildspec.yml** for the **iridium** microservice. Update the
     HINT: If you get stuck, click here for detailed info on what to do in the buildspec file
   </summary>
 
-Add a section to your buildspec.yml file entitled "**env**". Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: 
+Add a section to your buildspec.yml file entitled <b>env</b>. Within this section you can either choose regular environment variables, or pull them from parameter store, which is what we will do. It should look something like this: 
 
 <pre>
 env:
@@ -738,6 +738,14 @@ $ cp hints/finalhintspec.yml buildspec.yml
 </pre>
 </details>  
 
+Once you're done editing the buildspec.yml file, commit and push the updated version to CodeCommit.
+
+<pre>
+$ git add buildspec.yml
+$ git commit -m "updated for prod"
+$ git push origin master
+</pre>
+
 4\. Create an AWS CodePipeline Pipeline and set it up to listen to AWS CodeCommit.
 
 Now it's time to hook everything together. In the AWS Management Console, navigate to the [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home#/) dashboard. Click on **Create Pipeline**.
@@ -770,7 +778,7 @@ In the "AWS CodeBuild service role" section, make sure **Create a service role i
 Scroll down to the "Advanced" section, and under "Environment Variables", set these three variables:
 
 - Name: `AWS_ACCOUNT_ID` Value: ****Your account ID*** Type: **Plaintext** *These will look similar to the ones you configured earlier in the buildspec. Find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
-- Name: `IMAGE_REPO_NAME` Value: ***Name of the iridium ECR repo*** Type: **Plaintext** *This is the name of your ECR repo for iridium*
+- Name: `IMAGE_REPO_NAME` Value: ***Name of the iridium ECR repo*** Type: **Plaintext** *This is the name of your ECR repo for iridium, which will look like EnvironmentName-iridium*
 - Name: `ENV_TYPE` Value: `prod` Type: **Plaintext** *This is a new environment variable which we're going to use to prefix our CloudWatch log stream.*
 
 Here's what the env variables should look like. Note, your values (e.g. acct ID, EnvironmentName replaced with the one you selected) will be unique:
@@ -822,11 +830,11 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
 
   The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the following message:
   
-  "Error while executing command: $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION). Reason: exit status 255"<br/>
+  <b>Error while executing command: $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION). Reason: exit status 255</b><br/>
 
-  Looking through the Build logs, you can see the following exceptions: 
+  Looking through the Build logs, you'll see the following exception:
   
-  "AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/iridiumTargetGroupArn status code: 400"<br/>
+  <b>AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/iridiumTargetGroupArn status code: 400</b><br/>
 
   ![CodePipeline Build Failure Details](images/2-cp-build-failure-details.png)
 
@@ -834,7 +842,7 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
 
   In the AWS Management Console, navigate to the [AWS IAM Roles](https://console.aws.amazon.com/iam/home#/roles) dashboard. Find the CodeBuild prod role that you created earlier. The name of the role created should be something like <b>code-build-prod-iridium-service-service-role</b>. Click <b>Add inline policy</b>. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br/>
 
-  Choose <b>Custom Policy</b>. Click <b>Select</b>. Name it <b>AccessECR</b>. In the Resource section of your policy for ssm:GetParameters, make sure you specify the region and account number so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy, replacing REGION and ACCOUNTNUMBER with yours:<br/>
+  Click on the <b>JSON</b> tab, so you can enter the provided policy below.  In the Resource section of your policy for the ssm:GetParameters action, make sure you specify your current region and account number so we can lock down CodeBuild's role to only access the right parameters. Here is the policy you can use, replacing REGION and ACCOUNTNUMBER with yours:<br/>
 
 <pre>
 {
@@ -863,15 +871,17 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
 }
 </pre>
 
-Choose <b>Apply Policy</b>
+Click on <b>Review Policy</b>. 
+
+Enter a name for the policy, e.g. `AccessECR`. Click <b>Create Policy</b>.
 
 </details>
 
-Once you think you've fixed the problem, since the code and pipeline haven't actually changed, we can retry the build step. Navigate back to the CodePipeline Console and choose your pipeline. Then click the **Retry** button in the Build stage.
+Once you think you've fixed the problem, retry the build step since the code and pipeline themselves haven't changed. Navigate back to the [CodePipeline](https://console.aws.amazon.com/codepipeline/home) dashboard, choose your pipeline, and click the **Retry** button in the Build stage. Success!! The build completed.
 
 6\. Create two more stages. One gate and one to execute the change set.
 
-In the CodePipeline console, when you're looking at prod-iridium-service pipeline, click **Edit**. Add a stage at the bottom and name it **Approval**. Then click **+Add Action**.
+You should still be in the CodePipeline dashboard, viewing the prod-iridium-service pipeline. Click **Edit**. Add a stage at the bottom by clicking **+ Stage**. Enter `Approval` for the stage name. Then click **+ Action**.
 
 In the dialog that comes up on the right, populate the following values:
 
