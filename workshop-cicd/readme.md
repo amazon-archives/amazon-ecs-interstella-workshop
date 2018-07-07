@@ -816,21 +816,25 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
   </summary>
   From the pipeline, it's easy to see that the whole process failed at the build step. Click on <b>Details</b> to see what it will tell us.<br/>
 
-  Now click on <b>Link to execution details</b> since the error message didn't tell us much.<br/><br/>
+  Now click on <b>Link to execution details</b> since the error message didn't tell us much.<br/>
   
   ![CodePipeline Build Failure Execution](images/2-cp-build-failure-execution.png)
 
-  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the output message of **Error while executing command: $(aws ecr get-login --region $AWS_DEFAULT_REGION). Reason: exit status 255**<br/><br/>
+  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the following message:
+  
+  "Error while executing command: $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION). Reason: exit status 255"<br/>
 
-  Looking in the logs, we can see that **AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/iridiumTargetGroupArn status code: 400**<br/><br/>
+  Looking through the Build logs, you can see the following exceptions: 
+  
+  "AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/iridiumTargetGroupArn status code: 400"<br/>
 
   ![CodePipeline Build Failure Details](images/2-cp-build-failure-details.png)
 
-  Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br/><br/>
+  Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br/>
 
-  In the AWS Management Console, navigate to the AWS IAM console. Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **code-build-prod-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br/><br/>
+  In the AWS Management Console, navigate to the [AWS IAM Roles](https://console.aws.amazon.com/iam/home#/roles) dashboard. Find the CodeBuild prod role that you created earlier. The name of the role created should be something like <b>code-build-prod-iridium-service-service-role</b>. Click <b>Add inline policy</b>. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br/>
 
-  Choose **Custom Policy**. Click **Select**. Name it **AccessECR**. In the Resource section for ssm:GetParameters, make sure you replace the REGION and ACCOUNTNUMBER so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy:<br/><br/>
+  Choose <b>Custom Policy</b>. Click <b>Select</b>. Name it <b>AccessECR</b>. In the Resource section of your policy for ssm:GetParameters, make sure you specify the region and account number so we can lock down CodeBuild's role to only access the right parameters. Enter the following policy, replacing REGION and ACCOUNTNUMBER with yours:<br/>
 
 <pre>
 {
@@ -852,15 +856,14 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
             "Action": [
               "ssm:GetParameters"
             ],
-            "Resource": "arn:aws:ssm:REGION:ACCOUNTNUMBER:parameter/interstella/\*",
+            "Resource": "arn:aws:ssm:<b><i>REGION</i></b>:<b><i>ACCOUNTNUMBER</i></b>:parameter/interstella/\*",
             "Effect": "Allow"
         }
     ]
 }
-
 </pre>
 
-Choose **Apply Policy**
+Choose <b>Apply Policy</b>
 
 </details>
 
