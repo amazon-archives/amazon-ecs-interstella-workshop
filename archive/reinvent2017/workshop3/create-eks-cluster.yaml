@@ -1,44 +1,6 @@
 Description: >
-    Starting template for Interstella CI/CD workshop.  
-    Last Modified: July 2, 2018
-
-Mappings:
-
-    # You can find the latest available ECS Optimized AMI on this page of our documentation:
-    # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-    # (note the AMI identifier is region specific) 
-
-    AWSRegionToAMI:
-        us-east-2:
-            AMI: ami-956e52f0
-        us-east-1:
-            AMI: ami-5253c32d
-        us-west-2:
-            AMI: ami-d2f489aa
-        us-west-1:
-            AMI: ami-6b81980b
-        eu-west-3:
-            AMI: ami-ca75c4b7
-        eu-west-2:
-            AMI: ami-3622cf51
-        eu-west-1:
-            AMI: ami-c91624b0
-        eu-central-1:
-            AMI: ami-10e6c8fb
-        ap-northeast-2:
-            AMI: ami-7c69c112
-        ap-northeast-1:
-            AMI: ami-f3f8098c
-        ap-southeast-2:
-            AMI: ami-bc04d5de
-        ap-southeast-1:
-            AMI: ami-b75a6acb
-        ca-central-1:
-            AMI: ami-da6cecbe
-        ap-south-1:
-            AMI: ami-c7072aa8
-        sa-east-1:
-            AMI: ami-a1e2becd
+    Starting template for Interstella 4-part workshop series.  
+    Last Modified: Nov 25, 2017
 
 Parameters:
 
@@ -47,6 +9,11 @@ Parameters:
         Type: String
         MinLength: 2
         AllowedPattern: (?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*
+
+    KeyPairName:
+        Description: Name of an existing EC2 KeyPair to enable SSH access to the EC2 instances. If no dropdown appears, please create a new keypair. 
+        Type: AWS::EC2::KeyPair::KeyName
+        MinLength: 1
 
     VpcCIDR: 
         Description: Please enter the IP range (CIDR notation) for this VPC
@@ -94,13 +61,24 @@ Parameters:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
         Type: String
         MinLength: 1
-        Default: NZWCH3hQo18GTiACnK7wxgWhdUMdiEV3sNZovTlg
-        
+    
     InterstellaFulfillmentAPIURL:
         Description: Enter the URL where your application will be fulfilling the orders
         Type: String
         MinLength: 1
         Default: https://orders.interstella.trade/receiving/
+    
+    InterstellaOrdersTopicArn: 
+        Description: Logistics software will subscribe to this SNS topic to receive orders
+        Type: String
+        Default: arn:aws:sns:us-west-2:270206935686:orderTopic
+        MinLength: 1
+    
+    InterstellaIridiumOrdersTopicArn: 
+        Description: Logistics software will subscribe to this SNS topic to receive iridium orders
+        Type: String
+        Default: arn:aws:sns:us-west-2:270206935686:iridium
+        MinLength: 1
 
 Resources:
 
@@ -262,7 +240,7 @@ Resources:
         Properties:
             RouteTableId: !Ref PrivateRouteTable2
             SubnetId: !Ref PrivateSubnet2
- 
+
     ECSHostSecurityGroup:
         Type: AWS::EC2::SecurityGroup
         Properties: 
@@ -276,10 +254,6 @@ Resources:
                   FromPort: 22
                   ToPort: 22
                   CidrIp: 0.0.0.0/0
-                - IpProtocol: tcp
-                  FromPort: 80
-                  ToPort: 80
-                  CidrIp: 0.0.0.0/0 
                 - IpProtocol: tcp
                   FromPort: 5000
                   ToPort: 5000
@@ -358,6 +332,7 @@ Resources:
         Properties:
             ImageId:  !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
             InstanceType: !Ref InstanceType
+            KeyName: !Ref KeyPairName
             SecurityGroups: 
                 - !Ref ECSHostSecurityGroup
             IamInstanceProfile: !Ref ECSInstanceProfile
@@ -434,8 +409,6 @@ Resources:
                         }
                     }]
                 }
-            ManagedPolicyArns:
-            - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
             Policies: 
                 - PolicyName: ecs-service
                   PolicyDocument: 
@@ -541,6 +514,22 @@ Resources:
             Description: API endpoint for sending order fulfillment
             Type: String
             Value: !Ref InterstellaFulfillmentAPIURL
+
+    InterstellaOrderTopicParam:
+        Type: AWS::SSM::Parameter
+        Properties:
+            Name: /interstella/orderTopic
+            Description: SNS topic for receiving orders
+            Type: String
+            Value: !Ref InterstellaOrdersTopicArn
+    
+    IridiumSubscriptionArn:
+        Type: AWS::SSM::Parameter
+        Properties:
+            Name: /interstella/iridiumSubscriptionArn
+            Description: SNS topic for receiving orders for Iridium
+            Type: String
+            Value: !Ref InterstellaIridiumOrdersTopicArn
     
     InternalFulfillmentEndpoint:
         Type: AWS::SSM::Parameter
@@ -550,183 +539,6 @@ Resources:
             Type: String
             Value: !GetAtt LoadBalancer.DNSName
     
-    InterstellaCloud9Environment:
-        Type: "AWS::Cloud9::EnvironmentEC2"
-        Properties:
-            Description: Cloud9 Environment for Interstella Workshop
-            AutomaticStopTimeMinutes: 30
-            InstanceType: t2.micro
-            Name: !Sub ${EnvironmentName}-Interstella-Cloud9
-            SubnetId: !Ref PublicSubnet1
-    
-    AddRoleToInstance:
-      Description: Add LabIdeRole to Cloud9 IDE Instance
-      Type: Custom::AddRoleToInstance
-      DependsOn: AddRoleToInstanceFunction
-      Properties:
-        ServiceToken: !GetAtt AddRoleToInstanceFunction.Arn
-        Region: !Ref AWS::Region
-        StackName: !Ref AWS::StackName
-        EnvironmentId: !Ref InterstellaCloud9Environment
-        LabIdeInstanceProfileName: !Ref ECSInstanceProfile
-        LabIdeInstanceProfileArn: !GetAtt ECSInstanceProfile.Arn
-        Cloud9BootstrapDoc: !Ref Cloud9BootstrapDoc
-    
-    Cloud9BootstrapDoc:
-      Type: "AWS::SSM::Document"
-      Properties: 
-        DocumentType: "Command"
-        Content: 
-          schemaVersion: "2.2"
-          description: "RunCommand document to bootstrap Cloud9 environment"
-          mainSteps:
-          - action: "aws:runShellScript"
-            name: "configEnv"
-            inputs:
-              runCommand:
-              - "aws s3 sync s3://www.interstella.trade/code/cicd/monolith/ $HOME/environment/monolith/"
-              - "mv $HOME/environment/monolith/installcredhelper.sh $HOME/"
-              - "cd $HOME"
-              - "chmod +x installcredhelper.sh"
-              - "./installcredhelper.sh"
-              - "rm installcredhelper.sh"
-              - "cd environment"
-              - "aws s3 sync s3://www.interstella.trade/code/cicd/iridium $HOME/environment/iridium/"
-              - "aws s3 sync s3://www.interstella.trade/hints/cicd $HOME/environment/hints/"
-              - "aws s3 sync s3://www.interstella.trade/tests/cicd $HOME/environment/tests/"
-              - "chgrp -R ec2-user hints tests iridium monolith"
-              - "chown -R ec2-user hints tests iridium monolith"
-    
-    AddRoleToInstanceFunction:
-      Type: AWS::Lambda::Function
-      Properties:
-        Code:
-          ZipFile: !Sub | 
-            from __future__ import print_function
-            import boto3
-            import logging
-            import json
-            import time
-            import traceback
-            import cfnresponse
-
-            logger = logging.getLogger()
-            logger.setLevel(logging.INFO)
-
-            def handler(event, context):
-                logger.debug('Event: {}'.format(event))
-                logger.debug('Context: {}'.format(context))
-                responseData = {}
-                
-                # Immediately respond on Delete
-                if event['RequestType'] == 'Delete':
-                    try:
-                        cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, 'CustomResourcePhysicalID')
-                    except Exception as e:
-                        logger.error(e, exc_info=True)
-                        responseData = {'Error': traceback.format_exc(e)}
-                        cfnresponse.send(event, context, cfnresponse.FAILED, responseData, 'CustomResourcePhysicalID')
-                
-                if event['RequestType'] == 'Create':
-                    try:
-                        ec2 = boto3.client('ec2')
-                        ssm = boto3.client('ssm')
-                        # Get InstanceId of the Cloud9 IDE
-                        instance = ec2.describe_instances(Filters=[{'Name':'tag:aws:cloud9:environment', 'Values':[event['ResourceProperties']['EnvironmentId']]}])['Reservations'][0]['Instances'][0]
-                        instanceId = instance['InstanceId']
-                        
-                        # Create the IamInstanceProfile request object
-                        iam_instance_profile = {
-                            'Arn': event['ResourceProperties']['LabIdeInstanceProfileArn'],
-                            'Name': event['ResourceProperties']['LabIdeInstanceProfileName']
-                        }
-                        # Wait for Instance to become ready before adding Role
-                        instance_state = instance['State']['Name']
-                        while instance_state != 'running':
-                            time.sleep(3)
-                            instance_state = ec2.describe_instances(InstanceIds=[instanceId])
-                        if 'IamInstanceProfile' in instance:
-                            association_id = ec2.describe_iam_instance_profile_associations(Filters=
-                              [{'Name':'instance-id','Values':[instanceId]}])['IamInstanceProfileAssociations'][0]['AssociationId']
-                            ec2.replace_iam_instance_profile_association(IamInstanceProfile=iam_instance_profile, AssociationId=association_id)
-                        else:
-                            ec2.associate_iam_instance_profile(IamInstanceProfile=iam_instance_profile, InstanceId=instanceId)
-                        time.sleep(5)
-                        ec2.reboot_instances(InstanceIds=[instanceId])
-                        bootstrapStatus = ssm.list_commands(InstanceId=instanceId)
-                        if (bool(bootstrapStatus['Commands'])):
-                            print('Already bootstrapping. Skipping send_command')
-                            bootstrapCommandId = bootstrapStatus['Commands'][0]['CommandId']
-                        else:
-                            while bootstrapStatus != 'Pending':
-                                try:
-                                    bootstrapCommand = ssm.send_command( InstanceIds=[ instanceId ], DocumentName=event['ResourceProperties']['Cloud9BootstrapDoc'], Comment='Bootstrapping Cloud9 Instance')
-                                    print('Initial Command Status:'+bootstrapCommand['Command']['Status'])
-                                    bootstrapStatus = bootstrapCommand['Command']['Status']
-                                    bootstrapCommandId = bootstrapCommand['Command']['CommandId']
-                                except Exception as e:
-                                    time.sleep(5)
-                                    pass
-                        commandStatus = ssm.list_commands(CommandId=bootstrapCommandId)
-                        while commandStatus['Commands'][0]['Status'] != 'Success':
-                            commandStatus = ssm.list_commands(CommandId=bootstrapCommandId)
-                            print("Polling for Command Status: "+commandStatus['Commands'][0]['Status'])
-                            time.sleep(5)
-                        responseData = {'Success': 'Role added to instance'+instanceId+'.'}
-                        cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, 'CustomResourcePhysicalID')
-                    except Exception as e:
-                        logger.error(e, exc_info=True)
-                        responseData = {'Error': traceback.format_exc(e)}
-                        cfnresponse.send(event, context, cfnresponse.FAILED, responseData, 'CustomResourcePhysicalID')
-            
-        Handler: index.handler
-        Role:
-          Fn::GetAtt:
-          - LambdaExecutionRole
-          - Arn
-        Runtime: python2.7
-        Timeout: '300'
-    LambdaExecutionRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-              - lambda.amazonaws.com
-            Action:
-            - sts:AssumeRole
-        Path: "/"
-        Policies:
-        - PolicyName: root
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-              Action:
-              - logs:CreateLogGroup
-              - logs:CreateLogStream
-              - logs:PutLogEvents
-              Resource: arn:aws:logs:*:*:*
-            - Effect: Allow
-              Action:
-              - cloudformation:DescribeStacks
-              - cloudformation:DescribeStackEvents
-              - cloudformation:DescribeStackResource
-              - cloudformation:DescribeStackResources
-              - ec2:DescribeInstances
-              - ec2:AssociateIamInstanceProfile
-              - ec2:ReplaceIamInstanceProfileAssociation
-              - ec2:DescribeIamInstanceProfileAssociations
-              - ec2:RebootInstances
-              - iam:ListInstanceProfiles
-              - iam:PassRole
-              - ssm:SendCommand
-              - ssm:ListCommands
-              Resource: '*'
-
     IridiumTargetGroupArn:
         Type: AWS::SSM::Parameter
         Properties:
@@ -1050,31 +862,6 @@ Resources:
                     - cloudformation:UpdateStack
                     - cloudformation:SetStackPolicy
                     - cloudformation:CreateChangeSet
-    
-    Cloud9BootstrapDoc:
-      Type: "AWS::SSM::Document"
-      Properties: 
-        DocumentType: "Command"
-        Content: 
-          schemaVersion: "2.2"
-          description: "RunCommand document to bootstrap Cloud9 environment"
-          mainSteps:
-          - action: "aws:runShellScript"
-            name: "configEnv"
-            inputs:
-              runCommand:
-              - "aws s3 sync s3://www.interstella.trade/code/cicd/monolith/ /home/ec2-user/environment/monolith/"
-              - "mv /home/ec2-user/environment/monolith/installcredhelper.sh /home/ec2-user/"
-              - "cd /home/ec2-user/"
-              - "chmod +x installcredhelper.sh"
-              - "./installcredhelper.sh"
-              - "rm installcredhelper.sh"
-              - "cd /home/ec2-user/environment/"
-              - "aws s3 sync s3://www.interstella.trade/code/cicd/iridium iridium/"
-              - "aws s3 sync s3://www.interstella.trade/hints/cicd hints/"
-              - "aws s3 sync s3://www.interstella.trade/tests/cicd tests/"
-              - "chgrp -R ec2-user hints tests iridium monolith"
-              - "chown -R ec2-user hints tests iridium monolith"
                
 Outputs:
 
