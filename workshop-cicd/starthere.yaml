@@ -100,7 +100,7 @@ Parameters:
         Description: Enter the URL where your application will be fulfilling the orders
         Type: String
         MinLength: 1
-        Default: https://orders.interstella.trade/receiving/
+        
 
 Resources:
 
