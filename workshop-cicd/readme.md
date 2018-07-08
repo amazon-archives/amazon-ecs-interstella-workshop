@@ -156,18 +156,14 @@ On the left pane (Blue), any files downloaded to your environment will appear he
 
 On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.  You can also customize your Cloud9 environment by changing themes, moving panes around, etc.
 
-3\. Download the monolith service source, requirements file, and [Dockerfile](https://docs.docker.com/engine/reference/builder/) from Interstella HQ. We'll also take this opportunity to install the [ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper) to help with authentication (don't worry, we'll explain later). Once logged onto the instance, copy down required files for the monolith (glue fulfillment) service
+*IMPORTANT: The rest of these steps are specifically to get you familiarized with what you'll be automating. If you're comfortable with these already, feel free to skip to [Lab 1](). Here's a tl;dr of what you'll be automating:
+1. Build the monolith image in the monolith folder
+2. Push the image to your monolith ECR repo
+3. Create a task definition for the monolith service
+4. Create a service and register it to your ALB
+5. Test the service*
 
-<pre>
-$ aws s3 sync s3://www.interstella.trade/code/cicd/monolith/ monolith/
-$ cd monolith
-$ chmod +x installcredhelper.sh
-$ sudo ./installcredhelper.sh
-</pre>
-
-*Note: This is using the [AWS CLI](https://aws.amazon.com/cli/) which comes bundled with Cloud9, and we authorize access to S3 through [AWS Managed Temporary Credentials](https://docs.aws.amazon.com/cloud9/latest/user-guide/auth-and-access-control.html#auth-and-access-control-temporary-managed-credentials). Also notice the downloaded files appeared in your Cloud9 file tree.*
-
-4\. Build the monolith docker image and push to ECR.
+3\. Build the monolith docker image and push to ECR.
 
 First, we have to get the ECR repository that we will be pushing to. Navigate to [Repositories](https://console.aws.amazon.com/ecs/home#/repositories) in the ECS dashboard. You should see a few repositories that were created for you:
 
@@ -214,7 +210,7 @@ When you issue the push command, Docker pushes the layers up to ECR, and if you 
 
 *Note: You did not need to authenticate docker with ECR because of the [Amazon ECR Credential Helper](https://github.com/awslabs/amazon-ecr-credential-helper). You can read more about the credentials helper in this blog article - https://aws.amazon.com/blogs/compute/authenticating-amazon-ecr-repositories-for-docker-cli-with-credential-helper/*
 
-5\. Create a task definition to reference this Docker image in ECS and enable logging to CloudWatch Logs.
+4\. Create a task definition to reference this Docker image in ECS and enable logging to CloudWatch Logs.
 
 Now that we've pushed an image to ECR, let's make a task definition to reference and deploy using ECS. In the AWS Management Console, navigate to [Task Definitions](https://console.aws.amazon.com/ecs/home#/taskDefinitions) in the ECS dashboard. Click on **Create new Task Definition**. 
 
@@ -264,7 +260,7 @@ The log configuration should look something like this:
 
 Click **Add** and then **Create**.
 
-6\. Create an ECS Service using your task definition.
+5\. Create an ECS Service using your task definition.
 
 It's time to start up the monolith service. Let's create an ECS service. What's a service you ask? There are two ways of launching Docker containers with ECS. One is to create a service and the other is to run a task.
 
@@ -290,7 +286,7 @@ Fill in the following fields:
 
 Leave the other fields as default and click **Next step**
 
-7\. Associate an ALB with your ECS Service.
+6\. Associate an ALB with your ECS Service.
 
 On the next page, select **Application Load Balancer** for **Load balancer type**. Then select the Service IAM Role created by CloudFormation. It should start with your environmentName. In my case, it is **interstella-ECSServiceRole**.
 
@@ -307,13 +303,13 @@ Leave the rest as default as you can't edit it and click **Next**.
 
 ![ECS Service Creation Step 2b](images/0-ecs-svc-create-3.png)
 
-8\. Click **Next step** to skip the auto scaling option.  
+7\. Click **Next step** to skip the auto scaling option.  
 
 Click **Create Service** and click **View Service** to get the status of your service launch. The *Last Status* will show **RUNNING** once your container has launched.
 
 ![ECS Service Monolith](images/0-ecs-service-mono.png)
 
-9\. Confirm logging to CloudWatch Logs is working.
+8\. Confirm logging to CloudWatch Logs is working.
 
 Once the monolith service is running, navigate to the [CloudWatch dashboard](https://console.aws.amazon.com/cloudwatch/home), click **Logs** on the left menu, and then select the log groug which should look like **EnvironmentName-LogGroup** (*replacing EnvironmentName with the one you used*).  As your container processes orders, you'll see a log stream appear in the log group reflecting HTTP health checks from the ALB as well as all the requests going in. Open the most recent one. You can test the monolith fulfillment service by sending some data to it using curl from your Cloud9 IDE:
 
