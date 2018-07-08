@@ -94,8 +94,8 @@ Open the CloudFormation launch template link below for the region you selected i
 
 Region | Launch Template
 ------------ | -------------  
-**Ireland** (eu-west-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=interstella-cicd&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)  
-**Ohio** (us-east-2) | [![Launch Interstella Stack into Ohio with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=interstella-cicd&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml) 
+**N. Virginia** (us-east-1) | [![Launch Interstella Stack into Ireland with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=interstella-cicd&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml)  
+**Oregon** (us-west-2) | [![Launch Interstella Stack into Ohio with CloudFormation](/images/deploy-to-aws.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=interstella-cicd&templateURL=https://s3-us-west-2.amazonaws.com/www.interstella.trade/templates/cicd/starthere.yaml) 
 
 The link above will bring you to the AWS CloudFormation console with the **Specify an Amazon S3 template URL** field populated and radio button selected. Just click **Next**. If you do not have this populated, please click the link above.
 
