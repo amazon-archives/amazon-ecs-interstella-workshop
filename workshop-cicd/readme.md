@@ -136,6 +136,14 @@ While you're waiting, take a minute to look over the overall architecture that y
 
 In this lab, you will manually deploy the monolith service so that you know what you'll be automating later. If you are new to the Interstella workshop series, the monolith is what we broke apart into microservices using the strangler pattern. There's still some legacy order fulfillment code in there that we can't get rid of, which is what you'll be deploying now. For a better sense of the story, review [Interstella GTC: Monolith to Microservices with Containers](https://github.com/aws-samples/amazon-ecs-interstella-workshop/tree/master/workshop-microservices). By the end of the lab, you will have a single monolith service waiting to fulfill orders to the API.
 
+*IMPORTANT: The rest of these steps are specifically to get you familiarized with what you'll be automating. If you're comfortable with these already, feel free to skip to [Lab 1](). Here's a tl;dr of what you'll be automating:*
+1. Open Cloud9 Environment - You'll be using this the whole lab for CLI commands
+2. Build the monolith image in the monolith folder
+3. Push the image to your monolith ECR repo
+4. Create a task definition for the monolith service
+5. Create a service and register it to your ALB
+6. Test the service
+
 Here's a reference architecture for what you'll be building:
 
 ![Lab 0 - Overview](images/0-overview.png)
@@ -155,13 +163,6 @@ On the left pane (Blue), any files downloaded to your environment will appear he
 ![Cloud9 Editing](images/0-c9-2.png)
 
 On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.  You can also customize your Cloud9 environment by changing themes, moving panes around, etc.
-
-*IMPORTANT: The rest of these steps are specifically to get you familiarized with what you'll be automating. If you're comfortable with these already, feel free to skip to [Lab 1](). Here's a tl;dr of what you'll be automating:*
-1. Build the monolith image in the monolith folder
-2. Push the image to your monolith ECR repo
-3. Create a task definition for the monolith service
-4. Create a service and register it to your ALB
-5. Test the service
 
 3\. Build the monolith docker image and push to ECR.
 
