@@ -43,9 +43,10 @@ Mappings:
 Parameters:
 
     EnvironmentName:
-        Description: An environment name that will be prefixed to resource names. Restriction - Lower case with minimal special characters. 
+        Description: An environment name that will be prefixed to resource names. Restriction - Lower case with minimal special characters and between 2 to 19 characters. 
         Type: String
         MinLength: 2
+        MaxLength: 19
         AllowedPattern: (?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*
 
     VpcCIDR: 
@@ -94,13 +95,12 @@ Parameters:
         Description: Enter the API key used by the logistics software to fulfill orders. See lab instructions for help. This key is obtained here - http://www.interstella.trade/getkey.html  
         Type: String
         MinLength: 1
-        Default: NZWCH3hQo18GTiACnK7wxgWhdUMdiEV3sNZovTlg
         
     InterstellaFulfillmentAPIURL:
         Description: Enter the URL where your application will be fulfilling the orders
         Type: String
         MinLength: 1
-        
+        Default: https://orders.interstella.trade/receiving/
 
 Resources:
 
