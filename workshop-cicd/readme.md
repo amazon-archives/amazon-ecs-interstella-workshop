@@ -156,12 +156,12 @@ On the left pane (Blue), any files downloaded to your environment will appear he
 
 On the bottom, you will see a bash shell (Yellow). For the remainder of the lab, use this shell to enter all commands.  You can also customize your Cloud9 environment by changing themes, moving panes around, etc.
 
-*IMPORTANT: The rest of these steps are specifically to get you familiarized with what you'll be automating. If you're comfortable with these already, feel free to skip to [Lab 1](). Here's a tl;dr of what you'll be automating:
+*IMPORTANT: The rest of these steps are specifically to get you familiarized with what you'll be automating. If you're comfortable with these already, feel free to skip to [Lab 1](). Here's a tl;dr of what you'll be automating:*
 1. Build the monolith image in the monolith folder
 2. Push the image to your monolith ECR repo
 3. Create a task definition for the monolith service
 4. Create a service and register it to your ALB
-5. Test the service*
+5. Test the service
 
 3\. Build the monolith docker image and push to ECR.
 
