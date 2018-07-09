@@ -62,7 +62,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
 
-The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose **EU (Ireland)** or **US East (Ohio)**.  Workshop administrators will typically indicate which region you should use.
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **US East (N. Virginia)** or **US West (Oregon)**.  Workshop administrators will typically indicate which region you should use.
 
 2\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
@@ -174,9 +174,10 @@ Click on the monolith repo and note down the "Repository URI".
 
 ![ECR URI](images/0-ecr-monolith-uri.png)
 
-Go back in your Cloud 9 IDE and build the monolith docker image (you should still be in the monolith directory) using the following command:
+Go back to your Cloud 9 IDE. Notice in the file tree that a few project files were downloaded for you. In the bash shell, navigate to the monolith directory and build the monolith docker image:
 
 <pre>
+$ cd monolith
 $ docker build -t monolith .
 </pre>
 
@@ -486,13 +487,11 @@ $ git clone https://git-codecommit.us-east-2.amazonaws.com/v1/repos/interstella-
 
 You'll be prompted for your CodeCommit username and password (Note: this was generated earlier in the IAM dashboard), enter them here.  
 
-Once you've cloned the empty repository, let's download some files from Interstella HQ. First, navigate to the directory created by the clone command; then use the AWS sync command to pull files from Interstella HQ's S3 bucket.
+Once you've cloned the empty repository, move the iridium application files into the empty repo. If you look in the file tree, you'll see a folder titled "iridium". Copy the contents of that folder into your empty repo.  
 
 <pre>
 $ cd <i><b>EnvironmentName</b></i>-iridium-repo
-$ aws s3 sync s3://www.interstella.trade/code/cicd/iridium .
-$ aws s3 sync s3://www.interstella.trade/hints/cicd hints/
-$ aws s3 sync s3://www.interstella.trade/tests/cicd tests/
+$ cp ../iridium/* .
 </pre>
 
 You are now separating one part of the repository into another so that you can commit directly to the specific service. Similar to breaking up the monolith application in [Interstella GTC: Monolith to Microservices with Containers](https://github.com/aws-samples/amazon-ecs-interstella-workshop/tree/master/workshop-microservices), we've now started to break the monolithic repository apart.
@@ -576,7 +575,7 @@ phases:
 If you get stuck, you can copy a completed spec file to use:
 
 <pre>
-$ cp hints/hintspec.yml buildspec.yml
+$ cp ../hints/hintspec.yml buildspec.yml
 </pre>
 </details> 
 
@@ -733,7 +732,7 @@ If you get stuck, look at the file [finalhintspec.yml](https://github.com/aws-sa
 
 You can also copy it in from the hints folder. Overwrite the initial buildspec.
 <pre>
-$ cp hints/finalhintspec.yml buildspec.yml
+$ cp ../hints/finalhintspec.yml buildspec.yml
 </pre>
 </details>  
 
@@ -971,7 +970,7 @@ You can also check the monolith log stream where you'll see HTTP POST messages c
 06:21:03 Fulfillment request succeeded
 </pre>
 
-### Checkpoint:  
+### Checkpoint:
 At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then call CloudFormation to create a change set and when you approve the change set, CodePipeline will call CloudFormation to execute the change set.
 
 ### Lab 3 - Add Security and Implement Automated Testing
@@ -990,7 +989,7 @@ For more background on the tool, please see: [Finding Security Problems Early in
 
 Now that the microservices are really split up, we should look into how to lock them down. One great way is to use IAM Roles for Tasks. We can give a specific task an IAM role so we know exactly what task assumed what role to do something instead of relying on the default EC2 instance profile.
 
-A complete and updated service.yml file is located in [hints/new-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/new-service.yml). Overwrite your existing service.yml with that one. 
+A complete and updated service.yml file is located in [hints/new-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/new-service.yml). Overwrite your existing service.yml with that one.
 
 <pre>
 $ cp hints/new-service.yml service.yml
@@ -1032,6 +1031,7 @@ TaskDefinition:
   Type: AWS::ECS::TaskDefinition
   Properties:
     Family: iridium
+    <b>TaskRoleArn: !Ref ECSTaskRole </b>
     ContainerDefinitions:
       - Name: iridium
         Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
@@ -1042,7 +1042,6 @@ TaskDefinition:
         Environment:
           - Name: Tag
             Value: !Ref Tag
-        <b>TaskRoleArn: !Ref ECSTaskRole </b>
         LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -1056,14 +1055,14 @@ TaskDefinition:
 
 2\. Create a new stage for testing in your pipeline
 
-Navigate to the AWS CodePipeline dashboard and choose your pipeline. Edit the pipeline and click the **+stage** button between source and the build stage. Name it **CodeAnalysis** and then click on the **+ Action** button. This will add a new stage to your pipeline where we can run some static analysis. *We want this static analysis tool to run before our Docker container even gets built so that we can fail the deployment quickly if something goes wrong.*
+Navigate to the [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home) dashboard and choose your pipeline. Edit the pipeline and click the **+stage** button between source and the build stage. Name it `CodeAnalysis` and then click on the **+ Action** button. This will add a new stage to your pipeline where we can run some static analysis. *We want this static analysis tool to run before our Docker container even gets built so that we can fail the deployment quickly if something goes wrong.*
 
 Select and populate the following Values:
 
 - Action Category - **Test**
 - Action Name - **CFNNag**
 - Test provider - **AWS CodeBuild**
-- Project Name - **EnvironmentName-CFNNagCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
+- Project Name - **EnvironmentName-CFNNagCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses Ruby.*
 - Input Artifact #1 - **MyApp**
 
 Click **Add Action**
@@ -1105,9 +1104,9 @@ phases:
         - cfn_nag_scan --input-path service.yml
   </pre>
   
-  A completed file is in the hints folder. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
+  A completed file is in the hints folder. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
   <pre>
-  $ cp hints/hint1-cfn-nag-buildspec.yml cfn-nag-buildspec.yml
+  $ cp ../hints/hint1-cfn-nag-buildspec.yml cfn-nag-buildspec.yml
   </pre>
 </details>
 
@@ -1170,14 +1169,14 @@ By pushing to CodeCommit, the pipeline will automatically trigger.
 
 5\. Fix all the errors.
 
-WHAT? THERE WERE ERRORS AGAIN?!?!? Ok go through and fix them all. 
+WHAT? THERE WERE ERRORS AGAIN?!?!?
 
 ![CodePipeline Failed Tests](images/3-cp-failed-tests.png)
 
 Look at the outputs of both CodeBuild runs and you'll see the errors. Go through and remediate them all.
 <details>
 <summary>
-How to fix CFNNag errors:
+HINT: How to fix CFNNag errors
 </summary>
 The error is this:
 
@@ -1186,7 +1185,7 @@ The error is this:
 The permissions for my role ECSTaskRole are too wide open. Let's lock it down. Update the IAM policy to only allow access to your SSM parameters. The answer is in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/final-service.yml)
 
 <pre>
-$ cp hints/final-service.yml service.yml
+$ cp ../hints/final-service.yml service.yml
 </pre>
 </details>
 
@@ -1197,7 +1196,7 @@ How to fix CheckAccessKeys errors:
 The build output will tell you exactly what file and what line the problems are on. Open the files and delete the lines specified.
 </details>
 
-Check everything in again:
+Check everything in again to make sure the changes pass:
 
 <pre>
 $ git add -A
@@ -1221,6 +1220,9 @@ Build completed on Thu Nov 30 10:05:29 UTC 2017
 </pre>
 
 You probably didn't check into master. This happens if the new buildspec.yml is not in the master branch.
+
+### Checkpoint
+Congratulations, you've successfully helped Interstella implement CI/CD to improve how microservices development is carried out. Don't forget to [cleanup your workshop environment](#workshop-cleanup).
 
 ### Workshop Cleanup
 
