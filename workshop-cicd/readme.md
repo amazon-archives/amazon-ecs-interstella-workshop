@@ -152,7 +152,7 @@ Here's a reference architecture for what you'll be building:
 
 1\. Access your AWS Cloud9 Development Environment.
 
-In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specifed in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**.
+In the AWS Management Console, go to the [Cloud9 Dashboard](https://console.aws.amazon.com/cloud9/home) and find your environment which should be prefixed with the **EnvironmentName** specified in the CloudFomation template. You can also find the name of your environment in the CloudFormation outputs as Cloud9EnvName. Click **Open IDE**.
 
 ![Cloud9 Env](images/0-c9.png)
 
