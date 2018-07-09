@@ -448,46 +448,30 @@ Click on "View Push Commands" and copy the login, build, tag, and push commands 
 
 ![ECR Get Iridium Commands](images/1-ecr-get-iridium-commands.png)
 
-4\. Connect to your AWS CodeCommit repository.
+4\. Set up CodeCommit Credential Helper and clone your repo
+
+Since you're using the Cloud9 dev environment, you already have the right credentials so you just have to set up the credential helper to use them. 
 
 In the AWS Management Console, navigate to the [AWS CodeCommit](https://console.aws.amazon.com/codecommit/home#) dashboard. Choose the repository named **EnvironmentName-iridium-repo** where *EnvironmentName* is what you entered in CloudFormation. A screen should appear saying **Connect to your repository**.
 *Note: If you are familiar with using git, feel free to use the ssh connection as well.*
 
 When the **Connect to your repository** screen appears, choose **HTTPS** for the connection type to make things simpler for this lab.
 
-In the "Steps to clone your repository" section, click on the **IAM User** link. This will launch the IAM dashboard in a new tab, so you can generate credentials for to log into CodeCommit when trying to check your code in.
-
-![CodeCommit Create IAM User](images/1-cc-createiam.png)
-
-Scroll down to the **HTTPS Git credentials for AWS CodeCommit** section and click on **Generate**. CodeCommit uses default git authentication instead of IAM roles, so we need to create git credentials to access your repository.
-
-![Codecommit HTTPS Credentials](images/1-cc-generate-creds.png)
-
-Save the **User name** and **Password** as you'll never be able to get this again. Close the IAM tab and return to the [CodeCommit](https://console.aws.amazon.com/codecommit/home#) dashboard.
-
-Note down the "git clone" command in step 2, which you'll use in the next step.
-
-5\. In your Cloud9 IDE, download the microservice code and commit one microservice to your CodeCommit repo
-
-Before we log into CodeCommit, to avoid entering in a password every time, we're going to cache the password. Run the following command to cache the password for the next two hours. While we're at it, we'll also set up a git name and email:
+First, we'll set the credential helper and username/email. Then, follow the commands in **Steps to clone your resository** and make sure you're in the base ~/environment/ folder of Cloud9.
 
 <pre>
+$ cd ~/environment/
 $ git config --global credential.helper "cache --timeout=7200"
 $ git config --global user.email "<b><i>REPLACEWITHYOUREMAIL</i></b>"
 $ git config --global user.name "<b><i>REPLACEWITHYOURNAME</i></b>"
+$ git config --global credential.helper '!aws codecommit credential-helper $@'
+$ git config --global credential.UseHttpPath true
+$ git clone https://git-codecommit.us-west-2.amazonaws.com/v1/repos/interstella-cicd-iridium-repo
 </pre>
 
-Run the git clone command you noted down above to clone the empty repository.
+5\. Commit one microservice (iridium) to your CodeCommit repo.
 
-Here's an example (note your codecommit path will be unique):
-<pre>
-$ cd ~/environment/
-$ git clone https://git-codecommit.us-east-2.amazonaws.com/v1/repos/interstella-iridium-repo
-</pre>
-
-You'll be prompted for your CodeCommit username and password (Note: this was generated earlier in the IAM dashboard), enter them here.  
-
-Once you've cloned the empty repository, move the iridium application files into the empty repo. If you look in the file tree, you'll see a folder titled "iridium". Copy the contents of that folder into your empty repo.  
+Move the iridium application files into the empty repo. If you look in the file tree, you'll see a folder titled "iridium". Copy the contents of that folder into your empty repo.  
 
 <pre>
 $ cd <i><b>EnvironmentName</b></i>-iridium-repo
