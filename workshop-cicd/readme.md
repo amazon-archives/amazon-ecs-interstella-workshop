@@ -62,7 +62,7 @@ You will be deploying infrastructure on AWS which will have an associated cost. 
 
 1\. Log into the AWS Management Console and select an [AWS region](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).  
 
-The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose **EU (Ireland)** or **US East (Ohio)**.  Workshop administrators will typically indicate which region you should use.
+The region dropdown is in the upper right hand corner of the console to the left of the Support dropdown menu.  For this workshop, choose either **US East (N. Virginia)** or **US West (Oregon)**.  Workshop administrators will typically indicate which region you should use.
 
 2\. Generate a Fulfillment API Key to authorize the logistics platform to communicate with the fulfillment API.
 
@@ -174,9 +174,10 @@ Click on the monolith repo and note down the "Repository URI".
 
 ![ECR URI](images/0-ecr-monolith-uri.png)
 
-Go back in your Cloud 9 IDE and build the monolith docker image (you should still be in the monolith directory) using the following command:
+Go back to your Cloud 9 IDE. Notice in the file tree that a few project files were downloaded for you. In the bash shell, navigate to the monolith directory and build the monolith docker image:
 
 <pre>
+$ cd monolith
 $ docker build -t monolith .
 </pre>
 
@@ -486,13 +487,11 @@ $ git clone https://git-codecommit.us-east-2.amazonaws.com/v1/repos/interstella-
 
 You'll be prompted for your CodeCommit username and password (Note: this was generated earlier in the IAM dashboard), enter them here.  
 
-Once you've cloned the empty repository, let's download some files from Interstella HQ. First, navigate to the directory created by the clone command; then use the AWS sync command to pull files from Interstella HQ's S3 bucket.
+Once you've cloned the empty repository, move the iridium application files into the empty repo. If you look in the file tree, you'll see a folder titled "iridium". Copy the contents of that folder into your empty repo.  
 
 <pre>
 $ cd <i><b>EnvironmentName</b></i>-iridium-repo
-$ aws s3 sync s3://www.interstella.trade/code/cicd/iridium .
-$ aws s3 sync s3://www.interstella.trade/hints/cicd hints/
-$ aws s3 sync s3://www.interstella.trade/tests/cicd tests/
+$ cp ../iridium/* .
 </pre>
 
 You are now separating one part of the repository into another so that you can commit directly to the specific service. Similar to breaking up the monolith application in [Interstella GTC: Monolith to Microservices with Containers](https://github.com/aws-samples/amazon-ecs-interstella-workshop/tree/master/workshop-microservices), we've now started to break the monolithic repository apart.
@@ -576,7 +575,7 @@ phases:
 If you get stuck, you can copy a completed spec file to use:
 
 <pre>
-$ cp hints/hintspec.yml buildspec.yml
+$ cp ../hints/hintspec.yml buildspec.yml
 </pre>
 </details> 
 
@@ -733,7 +732,7 @@ If you get stuck, look at the file [finalhintspec.yml](https://github.com/aws-sa
 
 You can also copy it in from the hints folder. Overwrite the initial buildspec.
 <pre>
-$ cp hints/finalhintspec.yml buildspec.yml
+$ cp ../hints/finalhintspec.yml buildspec.yml
 </pre>
 </details>  
 
@@ -990,7 +989,7 @@ For more background on the tool, please see: [Finding Security Problems Early in
 
 Now that the microservices are really split up, we should look into how to lock them down. One great way is to use IAM Roles for Tasks. We can give a specific task an IAM role so we know exactly what task assumed what role to do something instead of relying on the default EC2 instance profile.
 
-A complete and updated service.yml file is located in [hints/new-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/new-service.yml). Overwrite your existing service.yml with that one. 
+A complete and updated service.yml file is located in [hints/new-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/new-service.yml). Overwrite your existing service.yml with that one.
 
 <pre>
 $ cp hints/new-service.yml service.yml
