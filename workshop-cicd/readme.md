@@ -970,7 +970,7 @@ You can also check the monolith log stream where you'll see HTTP POST messages c
 06:21:03 Fulfillment request succeeded
 </pre>
 
-### Checkpoint:  
+### Checkpoint:
 At this point you have a pipeline ready to listen for changes to your repo. Once a change is checked in to your repo, CodePipeline will bring your artifact to CodeBuild to build the container and check into ECR. AWS CodePipeline will then call CloudFormation to create a change set and when you approve the change set, CodePipeline will call CloudFormation to execute the change set.
 
 ### Lab 3 - Add Security and Implement Automated Testing
@@ -1031,6 +1031,7 @@ TaskDefinition:
   Type: AWS::ECS::TaskDefinition
   Properties:
     Family: iridium
+    <b>TaskRoleArn: !Ref ECSTaskRole </b>
     ContainerDefinitions:
       - Name: iridium
         Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
@@ -1041,7 +1042,6 @@ TaskDefinition:
         Environment:
           - Name: Tag
             Value: !Ref Tag
-        <b>TaskRoleArn: !Ref ECSTaskRole </b>
         LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -1055,14 +1055,14 @@ TaskDefinition:
 
 2\. Create a new stage for testing in your pipeline
 
-Navigate to the AWS CodePipeline dashboard and choose your pipeline. Edit the pipeline and click the **+stage** button between source and the build stage. Name it **CodeAnalysis** and then click on the **+ Action** button. This will add a new stage to your pipeline where we can run some static analysis. *We want this static analysis tool to run before our Docker container even gets built so that we can fail the deployment quickly if something goes wrong.*
+Navigate to the [AWS CodePipeline](https://console.aws.amazon.com/codepipeline/home) dashboard and choose your pipeline. Edit the pipeline and click the **+stage** button between source and the build stage. Name it `CodeAnalysis` and then click on the **+ Action** button. This will add a new stage to your pipeline where we can run some static analysis. *We want this static analysis tool to run before our Docker container even gets built so that we can fail the deployment quickly if something goes wrong.*
 
 Select and populate the following Values:
 
 - Action Category - **Test**
 - Action Name - **CFNNag**
 - Test provider - **AWS CodeBuild**
-- Project Name - **EnvironmentName-CFNNagCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses ruby.*
+- Project Name - **EnvironmentName-CFNNagCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Ruby stack as cfn-nag uses Ruby.*
 - Input Artifact #1 - **MyApp**
 
 Click **Add Action**
@@ -1104,9 +1104,9 @@ phases:
         - cfn_nag_scan --input-path service.yml
   </pre>
   
-  A completed file is in the hints folder. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
+  A completed file is in the hints folder. It's named <a href="https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/hint1-cfn-nag-buildspec.yml">hint1-cfn-nag-buildspec.yml</a>
   <pre>
-  $ cp hints/hint1-cfn-nag-buildspec.yml cfn-nag-buildspec.yml
+  $ cp ../hints/hint1-cfn-nag-buildspec.yml cfn-nag-buildspec.yml
   </pre>
 </details>
 
@@ -1169,14 +1169,14 @@ By pushing to CodeCommit, the pipeline will automatically trigger.
 
 5\. Fix all the errors.
 
-WHAT? THERE WERE ERRORS AGAIN?!?!? Ok go through and fix them all. 
+WHAT? THERE WERE ERRORS AGAIN?!?!?
 
 ![CodePipeline Failed Tests](images/3-cp-failed-tests.png)
 
 Look at the outputs of both CodeBuild runs and you'll see the errors. Go through and remediate them all.
 <details>
 <summary>
-How to fix CFNNag errors:
+HINT: How to fix CFNNag errors
 </summary>
 The error is this:
 
@@ -1185,7 +1185,7 @@ The error is this:
 The permissions for my role ECSTaskRole are too wide open. Let's lock it down. Update the IAM policy to only allow access to your SSM parameters. The answer is in [hints/final-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/final-service.yml)
 
 <pre>
-$ cp hints/final-service.yml service.yml
+$ cp ../hints/final-service.yml service.yml
 </pre>
 </details>
 
@@ -1196,7 +1196,7 @@ How to fix CheckAccessKeys errors:
 The build output will tell you exactly what file and what line the problems are on. Open the files and delete the lines specified.
 </details>
 
-Check everything in again:
+Check everything in again to make sure the changes pass:
 
 <pre>
 $ git add -A
@@ -1220,6 +1220,9 @@ Build completed on Thu Nov 30 10:05:29 UTC 2017
 </pre>
 
 You probably didn't check into master. This happens if the new buildspec.yml is not in the master branch.
+
+### Checkpoint
+Congratulations, you've successfully helped Interstella implement CI/CD to improve how microservices development is carried out. Don't forget to [cleanup your workshop environment](#workshop-cleanup).
 
 ### Workshop Cleanup
 

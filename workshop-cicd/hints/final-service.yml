@@ -70,6 +70,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: iridium
+      TaskRoleArn: !Ref ECSTaskRole
       ContainerDefinitions:
         - Name: iridium
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
@@ -80,7 +81,6 @@ Resources:
           Environment:
             - Name: Tag
               Value: !Ref Tag
-          TaskRoleArn: !Ref ECSTaskRole
           LogConfiguration:
               LogDriver: awslogs
               Options:
