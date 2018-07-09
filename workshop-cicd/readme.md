@@ -234,6 +234,8 @@ Your container definition should look like this:
 
 In the "Advanced container configuration" section, scroll down until you get to the "Storage and Logging" section where you'll find **Log Configuration**.
 
+**Do not select "Auto-Configure Cloudwatch Logs" as we've already created log streams that will automatically expire and be deleted.**
+
 Select **awslogs** from the *Log driver* dropdown.
 
 For *Log options*, enter values for the following:
