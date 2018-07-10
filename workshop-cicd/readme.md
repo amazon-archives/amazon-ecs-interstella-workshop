@@ -939,7 +939,7 @@ Now that the microservices are really split up, we should look into how to lock 
 A complete and updated service.yml file is located in [hints/new-service.yml](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop-cicd/hints/new-service.yml). Overwrite your existing service.yml with that one.
 
 <pre>
-$ cp hints/new-service.yml service.yml
+$ cp ../hints/new-service.yml service.yml
 </pre>
 
 Here are the differences:
@@ -1081,16 +1081,17 @@ Interstella GTC has heard a lot of people checking in their keys to repos. How c
   - Project Name - **EnvironmentName-GeneralCodeBuild-project** - *We've already created a CodeBuild project for you as part of the initial CloudFormation stack. It's a Generic Ubuntu 14.04 Linux stack.*<br/>
   - Input Artifact #1 - **MyApp**
   
-  Click **Add Action**
+  Click **Add Action**.
   
   ![CodePipeline Create Test 2](images/3-cp-create-test-2.png)
   
-  We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. Let's make it executable:
+  We've pre-written a script for you to look for an AWS Access Key or Secret Key within your code. Take a look in github for the [checkaccesskeys.sh script in GitHub](https://github.com/aws-samples/amazon-ecs-interstella-workshop/blob/master/workshop3/tests/checkaccesskeys.sh). If it finds something, it will output some warnings to the CodeBuild log output. Normally, we would fire off some sort of security notification, but this will do for now. Let's copy it into our repo and make it executable:
   <pre>
+  $ cp ../tests tests -R
   $ chmod +x tests/checkaccesskeys.sh
   </pre>
 
-  Within the build section, add in a line to run a script in the test folder. Your accesskeys-buildspec.yml should now look like this:
+  Within the build section, add in a line to run a script in the test folder. Note that we pre-configured a CodeBuild project, so this time we're looking for a file named accesskeys-buildspec.yml. Your accesskeys-buildspec.yml should now look like this:
 
   <pre>
   version: 0.2
@@ -1102,6 +1103,11 @@ Interstella GTC has heard a lot of people checking in their keys to repos. How c
   </pre>
 
   A final version of this buildspec is also located in the hints folder. It's named accesskeys-buildspec.yml.
+  
+  Copy it in to your environment like this:
+  <pre>
+  $ cp ../hints/accesskeys-buildspec.yml .
+  </pre>
 </details>
 
 4\. Let's check everything in and run the tests. 
