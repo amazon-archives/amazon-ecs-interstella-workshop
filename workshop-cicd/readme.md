@@ -136,7 +136,7 @@ While you're waiting, take a minute to look over the overall architecture that y
 
 In this lab, you will manually deploy the monolith service so that you know what you'll be automating later. If you are new to the Interstella workshop series, the monolith is what we broke apart into microservices using the strangler pattern. There's still some legacy order fulfillment code in there that we can't get rid of, which is what you'll be deploying now. For a better sense of the story, review [Interstella GTC: Monolith to Microservices with Containers](https://github.com/aws-samples/amazon-ecs-interstella-workshop/tree/master/workshop-microservices). By the end of the lab, you will have a single monolith service waiting to fulfill orders to the API.
 
-*IMPORTANT: The rest of these steps are specifically to get you familiarized with what you'll be automating. If you're comfortable with these already, feel free to skip to [Lab 1](#lab-1---offload-the-application-build-from-your-dev-machine). Here's a tl;dr of what you'll be automating:*
+*Here's a tl;dr of what you'll be automating:*
 1. Open Cloud9 Environment - You'll be using this the whole lab for CLI commands
 2. Build the monolith image in the monolith folder
 3. Push the image to your monolith ECR repo
