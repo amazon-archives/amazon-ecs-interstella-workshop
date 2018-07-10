@@ -1,21 +1,19 @@
-FROM ubuntu:14.04
+FROM gliderlabs/alpine:3.3
 
-ENV PRODUCT iridium 
-
-RUN apt-get -y update
-
-RUN apt-get -y install \
-  git \
-  wget \
-  python-dev \
-  python-virtualenv \
-  libffi-dev \
-  libssl-dev
+RUN apk add --update \
+    python \
+    python-dev \
+    git \
+    wget \
+    libffi-dev \
+    gcc
 
 WORKDIR /root
 
+ENV PRODUCT iridium
+
 RUN wget https://bootstrap.pypa.io/get-pip.py \
-  && python get-pip.py
+  && python get-pip.py && pip install virtualenv
 
 WORKDIR interstella
 
@@ -23,15 +21,16 @@ RUN virtualenv ${PRODUCT}
 
 WORKDIR ${PRODUCT}
 
-RUN bin/pip install --upgrade pip && \
-    bin/pip install requests[security]
+#RUN bin/pip install --upgrade pip && \
+#    bin/pip install requests[security]
 
 COPY ./requirements.txt .
 
 RUN bin/pip install -r requirements.txt
 
-COPY ./$PRODUCT.py .
+COPY ./iridium.py .
 
 EXPOSE 5000
 
 ENTRYPOINT ["bin/python", "iridium.py"]
+
