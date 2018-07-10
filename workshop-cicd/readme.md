@@ -755,11 +755,11 @@ In the "Deploy" step, select and populate the following values:
 - Capabilities: Select **CAPABILITY_IAM** - *Here, we're giving CloudFormation the ability to create IAM resources*
 - Role Name: Select ***EnvironmentName*-CFServiceRole** - *Note, "EnvironmentName" will be the one you specified. This value is a role CloudFormation assumes to create and update stacks on your behalf*
 
-Click **Next step**.
+Click **Next step***
 
 ![CodePipeline Deploy](images/2-cp-deploy-step.png)
 
-In the "Service Role" step, we must authorize AWS CodePipeline to access artifacts and dependencies to pull. Leave the Role Name blank and click **Create Role**. You will be automatically taken to the IAM Management Console to create a service role. Choose **Create a new IAM Role** and leave the role name as the default. Click **Allow** to create the role. Return to the AWS CodePipeline dashboard and make sure the newly created role is selected. Click **Next Step**.
+In the "Service Role" step, we must authorize AWS CodePipeline to access artifacts and dependencies to pull. Select **EnvironmentName-CodePipelineServiceRole** that was pre-created for you. Click **Next Step**.
 
 ![CodePipeline Role IAM](images/2-cp-svc-role.png)
 
@@ -797,7 +797,7 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
 
   Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br/>
 
-  In the AWS Management Console, navigate to the [AWS IAM Roles](https://console.aws.amazon.com/iam/home#/roles) dashboard. Find the CodeBuild prod role that you created earlier. The name of the role created should be something like <b>code-build-prod-iridium-service-service-role</b>. Click <b>Add inline policy</b>. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br/>
+  In the AWS Management Console, navigate to the [AWS IAM Roles](https://console.aws.amazon.com/iam/home#/roles) dashboard. Find the CodeBuild prod role that is referenced in the error. Click <b>Add inline policy</b>. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. <br/>
 
   Click on the <b>JSON</b> tab, so you can enter the provided policy below.  In the Resource section of your policy for the ssm:GetParameters action, make sure you specify your current region and account number so we can lock down CodeBuild's role to only access the right parameters. Here is the policy you can use, replacing REGION and ACCOUNTNUMBER with yours:<br/>
 
@@ -807,21 +807,9 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
     "Statement": [
         {
             "Action": [
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:CompleteLayerUpload",
-                "ecr:GetAuthorizationToken",
-                "ecr:InitiateLayerUpload",
-                "ecr:PutImage",
-                "ecr:UploadLayerPart"
-            ],
-            "Resource": "\*",
-            "Effect": "Allow"
-        },
-        {
-            "Action": [
               "ssm:GetParameters"
             ],
-            "Resource": "arn:aws:ssm:<b><i>REGION</i></b>:<b><i>ACCOUNTNUMBER</i></b>:parameter/interstella/\*",
+            "Resource": "arn:aws:ssm:<b><i>REGION</i></b>:<b><i>ACCOUNTNUMBER</i></b>:parameter/interstella/*",
             "Effect": "Allow"
         }
     ]
