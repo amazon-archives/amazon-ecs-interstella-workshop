@@ -407,36 +407,11 @@ When you click save, CodeBuild will create an IAM role to access other AWS resou
 
 2\. Modify IAM role to allow CodeBuild to access other resources like ECR.
 
-In the AWS Management Console, navigate to the [AWS IAM console](https://console.aws.amazon.com/iam/). Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **codebuild-dev-iridium-service-service-role**. Click **Add inline policy**. By adding an inline policy, we can keep the existing managed policy separate from what we want to manage ourselves. 
+In the AWS Management Console, navigate to the [AWS IAM console](https://console.aws.amazon.com/iam/). Choose **Roles** on the left. Find the role that created earlier. In the example, the name of the role created was **codebuild-dev-iridium-service-service-role**. Click **Attach Policy**. Find **AmazonEC2ContainerRegistryPowerUser**. This will grant CodeBuild all the necessary permissions to access ECR.
 
 ![CodeBuild Modify IAM Role](images/1-cb-modify-iam.png)
 
-Choose **Custom Policy**. Name it **AccessECR** and enter in:
-
-<pre>
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:CompleteLayerUpload",
-                "ecr:GetAuthorizationToken",
-                "ecr:InitiateLayerUpload",
-                "ecr:PutImage",
-                "ecr:UploadLayerPart"
-            ],
-            "Resource": "*",
-            "Effect": "Allow"
-        }
-    ]
-}
-
-</pre>
-
-![CodeBuild Add Policy](images/1-cb-add-policy.png)
-
-Choose **Apply Policy**
+Choose the role and click **Attach Policy**
 
 3\. Get details about the iridium ECR repository where we will be pushing and pulling Docker images to/from.
 
