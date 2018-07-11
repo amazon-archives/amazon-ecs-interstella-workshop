@@ -738,7 +738,7 @@ Scroll down to the "Environment: How to build" section and select these values f
 
 ![CodePipeline Create CodeBuild](images/2-cp-create-cb.png)
 
-In the "AWS CodeBuild service role" section, make sure **Create a service role in your account** is selected and leave the name as default.
+In the "AWS CodeBuild service role" section, select **Choose an existing service role from your account**, and for **Role name**, choose the CodeBuild service role created for you by CloudFormation. It will look like ***EnvironmentName*-CodeBuildServiceRole**.
 
 Scroll down to the "Advanced" section, and under "Environment Variables", set these three variables:
 
@@ -793,15 +793,11 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
   
   ![CodePipeline Build Failure Execution](images/2-cp-build-failure-execution.png)
 
-  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **PRE_BUILD** step failed with the following message:
+  The link brings you to the execution details of your specific build. We can look through the logs and the different steps to find out what's wrong. In this case, it looks like the **DOWNLOAD_SOURCE** step failed.
   
-  <b>Error while executing command: $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION). Reason: exit status 255</b><br/>
-
   Looking through the Build logs, you'll see the following exception:
   
   <b>AccessDeniedException: User: arn:aws:sts::123456789012:assumed-role/code-build-prod-iridium-service-service-role/AWSCodeBuild-e111c11e-b111-11c1-ac11-f1111a1f1c11 is not authorized to perform: ssm:GetParameters on resource: arn:aws:ssm:us-east-2:123456789012:parameter/interstella/iridiumTargetGroupArn status code: 400</b><br/>
-
-  ![CodePipeline Build Failure Details](images/2-cp-build-failure-details.png)
 
   Right, we forgot to give AWS CodeBuild the permissions to do everything it needs to do. Copy the region and account number as we'll be using those. Let's go fix it. <br/>
 
@@ -826,7 +822,7 @@ Once the **prod-iridium-service** pipeline is created, CodePipeline will automat
 
 Click on <b>Review Policy</b>. 
 
-Enter a name for the policy, e.g. `AccessECR`. Click <b>Create Policy</b>.
+Enter a name for the policy, e.g. `AccessSSM`. Click <b>Create Policy</b>.
 
 </details>
 
