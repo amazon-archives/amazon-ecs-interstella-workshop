@@ -642,7 +642,7 @@ env:
     ...
 </pre>
 
-In the pre-build section, we have to update the line that gets the commit tag. Depending on the initiator, the environent variable changes. You'll either use CODEBUILD_RESOLVED_SOURCE_VERSION or CODEBUILD_SOURCE_VERSION.
+In the pre-build section, we have to update the line that gets the commit tag. Depending on the initiator, the environment variable changes. You'll either use CODEBUILD_RESOLVED_SOURCE_VERSION or CODEBUILD_SOURCE_VERSION.
 <pre>
 ...
 phases:
@@ -742,7 +742,7 @@ In the "AWS CodeBuild service role" section, make sure **Create a service role i
 
 Scroll down to the "Advanced" section, and under "Environment Variables", set these three variables:
 
-- Name: `AWS_ACCOUNT_ID` Value: ****Your account ID*** Type: **Plaintext** *These will look similar to the ones you configured earlier in the buildspec. Find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
+- Name: `AWS_ACCOUNT_ID` Value: ***Your account ID*** Type: **Plaintext** *These will look similar to the ones you configured earlier in the buildspec. Find your account number [here](https://console.aws.amazon.com/billing/home?#/account)*
 - Name: `IMAGE_REPO_NAME` Value: ***Name of the iridium ECR repo*** Type: **Plaintext** *This is the name of your ECR repo for iridium, which will look like EnvironmentName-iridium*
 - Name: `ENV_TYPE` Value: `prod` Type: **Plaintext** *This is a new environment variable which we're going to use to prefix our CloudWatch log stream.*
 
@@ -763,11 +763,11 @@ In the "Deploy" step, select and populate the following values:
 - Capabilities: Select **CAPABILITY_IAM** - *Here, we're giving CloudFormation the ability to create IAM resources*
 - Role Name: Select ***EnvironmentName*-CFServiceRole** - *Note, "EnvironmentName" will be the one you specified. This value is a role CloudFormation assumes to create and update stacks on your behalf*
 
-Click **Next step***
+Click **Next step**
 
 ![CodePipeline Deploy](images/2-cp-deploy-step.png)
 
-In the "Service Role" step, we must authorize AWS CodePipeline to access artifacts and dependencies to pull. Select **EnvironmentName-CodePipelineServiceRole** that was pre-created for you. Click **Next Step**.
+In the "Service Role" step, we must authorize AWS CodePipeline to access artifacts and dependencies to pull. Select ***EnvironmentName*-CodePipelineServiceRole** that was pre-created for you. Click **Next Step**.
 
 ![CodePipeline Role IAM](images/2-cp-svc-role.png)
 
