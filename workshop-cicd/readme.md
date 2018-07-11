@@ -441,8 +441,16 @@ $ git config --global user.email "<b><i>REPLACEWITHYOUREMAIL</i></b>"
 $ git config --global user.name "<b><i>REPLACEWITHYOURNAME</i></b>"
 $ git config --global credential.helper '!aws codecommit credential-helper $@'
 $ git config --global credential.UseHttpPath true
-$ git clone https://git-codecommit.us-west-2.amazonaws.com/v1/repos/interstella-cicd-iridium-repo
+$ git clone https://git-codecommit.<b><i>REPLACEWITHYOURREGION</i></b>.amazonaws.com/v1/repos/interstella-cicd-iridium-repo
 </pre>
+
+<details>
+<summary>HINT: Region codes</summary>
+US East (N.Virginia) = us-east-1<br>
+US East (Ohio) = us-east-2<br>
+US West (Oregon) = us-west-2<br>
+EU (Ireland) = eu-west-1<br>
+</details>
 
 5\. Commit one microservice (iridium) to your CodeCommit repo.
 
