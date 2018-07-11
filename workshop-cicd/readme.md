@@ -441,7 +441,7 @@ $ git config --global user.email "<b><i>REPLACEWITHYOUREMAIL</i></b>"
 $ git config --global user.name "<b><i>REPLACEWITHYOURNAME</i></b>"
 $ git config --global credential.helper '!aws codecommit credential-helper $@'
 $ git config --global credential.UseHttpPath true
-$ git clone https://git-codecommit.<b><i>REPLACEWITHYOURREGION</i></b>.amazonaws.com/v1/repos/interstella-cicd-iridium-repo
+$ git clone https://git-codecommit.<b><i>REPLACEWITHYOURREGION</i></b>.amazonaws.com/v1/repos/<b><i>REPLACEWITHYOURENVIRONMENTNAME</i></b>-iridium-repo
 </pre>
 
 <details>
